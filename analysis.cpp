@@ -26,6 +26,41 @@ void Swap(MPS& psi, const SiteSet& sites, int b){
     psi.set(b+1,S*V);
 }
 
+MPO TranslationOp(const SiteSet& sites){
+    int N = sites.length();
+    auto G = std::vector<ITensor>(N);
+    for(auto j : range1(N-1))
+    {
+        G[j] = BondGate(sites, j, j+1);
+    }
+    auto A = std::vector<ITensor>(N);
+    auto B = std::vector<ITensor>(N);
+    for(auto j : range1(N-1))
+    {
+        auto [Aj,Bj] = factor(G[j],{sites(j),prime(sites(j))});
+        A[j] = Aj;
+        B[j] = Bj;
+    }
+    auto t = std::vector<Index>(N+1);
+    for(auto j : range1(N))
+    {
+        t[j] = sim(sites(j));
+    }
+    for(auto j : range1(2,N-1))
+    {
+        B[j-1] *= delta(prime(sites(j)),t[j]);
+        A[j] *= delta(sites(j),t[j]);
+    }
+    auto Rho = MPO(N);
+    Rho.set(1,A[1]);
+    for(auto j : range1(2,N-1))
+    {
+        Rho.set(j,B[j-1]*A[j]);
+    }
+    Rho.set(N,B[N-1]);
+    return Rho;
+}
+
 void Translate(MPS& psi, const SiteSet& sites){
     int len = psi.length();
     for(int i=1;i<len;i++){
@@ -57,36 +92,13 @@ void ActGlobal(MPS& psi, const SiteSet& sites, TwoSiteGate gate){
         ActLocal(psi, std::invoke(gate, f_data, sites(b), sites(b+1)), b);
     }
 }
-/* void ActGlobal(MPS& psi, SiteSet sites, ITensor (*gate)(Index, Index)){
+void ActGlobal2(MPS& psi, const SiteSet& sites, TwoSiteGate gate){
     int len = psi.length();
     for(int b=1;b<len;b++){
-        ActLocal(psi, std::invoke(gate, sites(b), sites(b+1)), b);
+        ActLocal(psi, std::invoke(gate, f_data, sites(b), sites(b+1)), b);
     }
-} */
-void ActGlobal2(MPS& psi, const SiteSet& sites, ITensor (*gate)(Index, Index)){
-    int len = psi.length();
-    for(int b=1;b<len;b++){
-        ActLocal(psi, gate(sites(b),sites(b+1)), b);
-    }
-    ActLocal(psi, gate(sites(len),sites(1)), len);
+    ActLocal(psi, std::invoke(gate, f_data, sites(len), sites(1)), len);
 }
-
-ITensor SwapITensorLocal(const Index& s1, const Index& s2){
-    // auto s1 = sites(i1);
-    // auto s2 = sites(i2);
-    auto a = ITensor(dag(s1),prime(s2));
-    auto b = ITensor(dag(s2),prime(s1));
-    for(auto j : range1(s1))
-        {
-        a.set(dag(s1)(j),prime(s2)(j),1.);
-        b.set(dag(s2)(j),prime(s1)(j),1.);
-        }
-    return a*b;
-    }
-
-//ITensor RhoDefect(Index s1, Index s2){
-//    return f_data->RhoDefect(s1, s2);
-//}
 
 int NN = 0;
 Real Spin(Cplx num){
@@ -179,41 +191,11 @@ int analyze(int argc,char** argv){
         psiR = MPS(states.at(i));
         ActGlobal(psiT, sites, &FData::SwapITensor);
         // Translate(psiT, sites);
-        ActGlobal(psiR, sites, &FData::RhoDefect);
+        // ActGlobal(psiR, sites, &FData::RhoDefect);
         pastT.push_back(psiT);
         pastR.push_back(psiR);
     }
-//    auto G = std::vector<ITensor>(N);
-//    for(auto j : range1(N-1))
-//    {
-//        G[j] = f_data.RhoDefect(sites(j), sites(j+1));
-//    }
-//    auto A = std::vector<ITensor>(N);
-//    auto B = std::vector<ITensor>(N);
-//    for(auto j : range1(N-1))
-//    {
-//        auto [Aj,Bj] = factor(G[j],{sites(j),prime(sites(j))});
-//        A[j] = Aj;
-//        B[j] = Bj;
-//    }
-//    auto t = std::vector<Index>(N+1);
-//    for(auto j : range1(N))
-//    {
-//        t[j] = sim(sites(j));
-//    }
-//    for(auto j : range1(2,N-1))
-//    {
-//        B[j-1] *= delta(prime(sites(j)),t[j]);
-//        A[j] *= delta(sites(j),t[j]);
-//    }
-//    auto Rho = MPO(N);
-//    Rho.set(1,A[1]);
-//    for(auto j : range1(2,N-1))
-//    {
-//        Rho.set(j,B[j-1]*A[j]);
-//    }
-//    Rho.set(N,B[N-1]);
-//    print(innerC(states.at(2), applyMPO(Rho, states.at(2)))/norm(states.at(2))/norm(states.at(2)));
+
     // Eigen::MatrixXcf en(len,len);
     // Eigen::MatrixXcf shift(len,len);
     // for(int i=0;i<len;i++){
@@ -236,6 +218,7 @@ int analyze(int argc,char** argv){
     auto sP = prime(s);
     auto En = ITensor(dag(s),sP);
     auto OpT = ITensor(dag(s),sP);
+    auto OpT2 = ITensor(dag(s),sP);
     auto OpR = ITensor(dag(s),sP);
 
     Real gs_en = dmrg_progress.Energies().at(0);
@@ -244,12 +227,13 @@ int analyze(int argc,char** argv){
         En.set(s(i+1),sP(i+1),dmrg_progress.Energies().at(i) - gs_en);
         for(int j=0;j<len;j++){
             OpT.set(s(i+1),sP(j+1),Chop(innerC(states.at(i), pastT.at(j))));
-            OpR.set(s(i+1),sP(j+1),Chop(innerC(states.at(i), pastR.at(j))));
+            //OpR.set(s(i+1),sP(j+1),Chop(innerC(states.at(i), pastR.at(j))));
         }
     }
     PrintData(En);
-    PrintData(OpR);
-
+    // PrintData(OpR);
+    PrintData(OpT);
+    println(innerC(states.at(1),applyMPO(TranslationOp(sites), states.at(1))));
     // Diagonalize translation
     auto [UT,DT] = eigen(OpT);
    
