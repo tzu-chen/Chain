@@ -1,0 +1,12 @@
+#ifndef __ITENSOR_CONFIG_H
+#define __ITENSOR_CONFIG_H
+
+#ifndef PLATFORM_openblas
+#define PLATFORM_openblas
+#endif
+
+#ifndef __ASSERT_MACROS_DEFINE_VERSIONS_WITHOUT_UNDERSCORES
+#define __ASSERT_MACROS_DEFINE_VERSIONS_WITHOUT_UNDERSCORES 0
+#endif
+
+#endif 

@@ -1,0 +1,1111 @@
+make all --print-data-base --no-builtin-variables --no-builtin-rules --question
+# GNU Make 4.3
+# Built for x86_64-redhat-linux-gnu
+# Copyright (C) 1988-2020 Free Software Foundation, Inc.
+# License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+# This is free software: you are free to change and redistribute it.
+# There is NO WARRANTY, to the extent permitted by law.
+
+# Make data base, printed on Fri Mar 26 00:49:23 2021
+
+# Variables
+
+# makefile (from '../options.mk', line 220)
+DYLIB_EXT = so
+# environment
+NO_AT_BRIDGE = 1
+# makefile (from '../options.mk', line 163)
+DEBUGFLAGS = -DDEBUG -g -Wall -Wno-unknown-pragmas -pedantic
+# environment
+GTK_RC_FILES = /etc/gtk/gtkrc:/home/tzuchen/.gtkrc:/home/tzuchen/.config/gtkrc
+# makefile (from 'Makefile', line 58)
+GOBJECTS = $(patsubst %.cc,.debug_objs/%.o, $(SOURCES))
+# environment
+LMOD_SETTARG_FULL_SUPPORT = no
+# makefile (from '../options.mk', line 182)
+ITENSOR_LIBNAMES = itensor
+# environment
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-19798659-9bf1-4170-837a-2f9fd397b614.sock
+# makefile (from '../options.mk', line 204)
+ITENSOR_INCLUDEFLAGS = -I'$(ITENSOR_INCLUDEDIR)' $(BLAS_LAPACK_INCLUDEFLAGS) -DITENSOR_USE_OMP -fopenmp
+# default
+MAKE_COMMAND := make
+# makefile (from '../options.mk', line 150)
+ITENSOR_USE_OMP = 1
+# environment
+LMOD_ROOT = /usr/share/lmod
+# makefile (from 'Makefile', line 176)
+ITDEPHEADERS = itdata/dense.h  itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h itdata/qcombiner.h itdata/qdiag.h itdata/scalar.h smallstring.h tagset.h index.h indexset_impl.h indexset.h itensor.h itensor_impl.h itensor_impl.h itensor.h itdata/itdata.h itdata/dense.h itdata/diag.h qn.h detail/skip_iterator.h
+# automatic
+@D = $(patsubst %/,%,$(dir $@))
+# environment
+CUDA_INC_PATH = /usr/include/cuda
+# environment
+VSCODE_HANDLES_UNCAUGHT_ERRORS = true
+# default
+.VARIABLES := 
+# environment
+PWD = /home/tzuchen/Software/itensor/itensor
+# automatic
+%D = $(patsubst %/,%,$(dir $%))
+# environment
+HOSTNAME = solver
+# environment
+LSCOLORS = Gxfxcxdxbxegedabagacad
+# environment
+MAIL = /var/spool/mail/tzuchen
+# environment
+STEAM_FRAME_FORCE_CLOSE = 1
+# environment
+XDG_DATA_DIRS = /home/tzuchen/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share:/usr/share
+# environment
+OLDPWD = /home/tzuchen
+# automatic
+^D = $(patsubst %/,%,$(dir $^))
+# environment
+VSCODE_LOG_STACK = false
+# automatic
+%F = $(notdir $%)
+# environment
+XDG_SESSION_PATH = /org/freedesktop/DisplayManager/Session1
+# environment
+SSH_ASKPASS = /usr/bin/ksshaskpass
+# environment
+LANG = en_US.UTF-8
+# environment
+XAUTHORITY = /run/user/1000/xauth_yVdNlD
+# default
+.LOADED := 
+# default
+.INCLUDE_DIRS = /usr/include /usr/local/include /usr/include
+# environment
+LMOD_CMD = /usr/share/lmod/lmod/libexec/lmod
+# makefile
+MAKEFLAGS = pqrR
+# makefile
+CURDIR := /home/tzuchen/Software/itensor/itensor
+# environment
+VSCODE_PIPE_LOGGING = true
+# environment
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
+# environment
+LMOD_DIR = /usr/share/lmod/lmod/libexec
+# environment
+LESSOPEN = ||/usr/bin/lesspipe.sh %s
+# automatic
+*D = $(patsubst %/,%,$(dir $*))
+# environment
+PAM_KWALLET5_LOGIN = /run/user/1000/kwallet5.socket
+# environment
+MFLAGS = -pqrR
+# environment
+SSH_AUTH_SOCK = /tmp/ssh-Q4BUeguRassq/agent.2878
+# default
+.SHELLFLAGS := -c
+# environment
+HISTSIZE = 50000
+# environment
+XDG_CONFIG_DIRS = /etc/xdg:/usr/share/kde-settings/kde-profile/default/xdg
+# automatic
++D = $(patsubst %/,%,$(dir $+))
+# environment
+XCURSOR_THEME = breeze_cursors
+# environment
+XDG_SESSION_DESKTOP = KDE
+# environment
+VSCODE_CRASH_REPORTER_START_OPTIONS = {"companyName":"Microsoft","productName":"VSCode","submitURL":"appcenter://code?aid=fba07a4d-84bd-4fc8-a125-9640fc8ce171&uid=4d4c763c-1aac-45dc-b131-bded75b3ca44&iid=4d4c763c-1aac-45dc-b131-bded75b3ca44&sid=4d4c763c-1aac-45dc-b131-bded75b3ca44","uploadToServer":true}
+# makefile (from '../options.mk', line 1)
+MAKEFILE_LIST := Makefile ../this_dir.mk ../options.mk
+# automatic
+@F = $(notdir $@)
+# environment
+ZSH = /home/tzuchen/.oh-my-zsh
+# environment
+VSCODE_VERBOSE_LOGGING = true
+# environment
+VSCODE_PID = 186260
+# environment
+SDL_VIDEO_MINIMIZE_ON_FOCUS_LOSS = 0
+# environment
+XDG_SESSION_TYPE = x11
+# automatic
+?D = $(patsubst %/,%,$(dir $?))
+# environment
+GDK_CORE_DEVICE_EVENTS = 1
+# makefile (from 'Makefile', line 54)
+CCFLAGS = $(ITENSOR_INCLUDEFLAGS) $(OPTIMIZATIONS) -DPLATFORM_$(PLATFORM) -D__ASSERT_MACROS_DEFINE_VERSIONS_WITHOUT_UNDERSCORES=0
+# makefile (from '../options.mk', line 85)
+BLAS_LAPACK_LIBFLAGS = -lpthread -L/usr/lib64 -lopenblas
+# makefile (from '../options.mk', line 179)
+ITENSOR_LIBDIR = $(PREFIX)/lib
+# environment
+SESSION_MANAGER = local/unix:@/tmp/.ICE-unix/3016,unix/unix:/tmp/.ICE-unix/3016
+# automatic
+*F = $(notdir $*)
+# environment
+MANPATH = /usr/share/lmod/lmod/share/man:
+# environment
+MODULEPATH = /etc/modulefiles:/usr/share/modulefiles:/usr/share/modulefiles/Linux:/usr/share/modulefiles/Core:/usr/share/lmod/lmod/modulefiles/Core
+# environment
+CHROME_DESKTOP = code-url-handler.desktop
+# environment
+DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus
+# automatic
+<D = $(patsubst %/,%,$(dir $<))
+# makefile (from '../options.mk', line 84)
+PLATFORM = openblas
+# environment
+VSCODE_NLS_CONFIG = {"locale":"en-us","availableLanguages":{},"_languagePackSupport":true}
+# environment
+CUDA_INCLUDE_DIRS = /usr/include/cuda
+# makefile (from '../this_dir.mk', line 1)
+THIS_DIR = /home/tzuchen/Software/itensor
+# environment
+BREAKPAD_DUMP_LOCATION = /home/tzuchen/.config/Code/exthost Crash Reports
+# default
+MAKE_HOST := x86_64-redhat-linux-gnu
+# makefile
+SHELL = /bin/sh
+# default
+MAKECMDGOALS := all
+# makefile (from '../options.mk', line 86)
+BLAS_LAPACK_INCLUDEFLAGS = -I/usr/include/openblas -fpermissive -DHAVE_LAPACK_CONFIG_H -DLAPACK_COMPLEX_STRUCTURE
+# environment
+DOTNET_BUNDLE_EXTRACT_BASE_DIR = /home/tzuchen/.cache/dotnet_bundle_extract
+# environment
+SHLVL = 0
+# makefile (from '../options.mk', line 187)
+ITENSOR_LIBS = $(patsubst %,$(ITENSOR_LIBDIR)/lib%.a, $(ITENSOR_LIBNAMES))
+# makefile (from '../options.mk', line 169)
+ITENSOR_MAKE_DYLIB = 0
+# environment
+MAKELEVEL := 0
+# default
+MAKE = $(MAKE_COMMAND)
+# environment
+PATH = /usr/local/bin:/usr/bin:/bin:/home/tzuchen/bin:/usr/local/sbin:/usr/sbin:/home/tzuchen/.dotnet/tools:/home/tzuchen/bin
+# environment
+MOZ_GMP_PATH = /usr/lib64/mozilla/plugins/gmp-gmpopenh264/system-installed
+# default
+MAKEFILES := 
+# environment
+MODULESHOME = /usr/share/lmod/lmod
+# automatic
+^F = $(notdir $^)
+# environment
+LMOD_sys = Linux
+# makefile (from '../options.mk', line 211)
+LIBFLAGS = -L'$(ITENSOR_LIBDIR)' $(ITENSOR_LIBFLAGS)
+# makefile (from 'Makefile', line 55)
+CCGFLAGS = $(ITENSOR_INCLUDEFLAGS) $(DEBUGFLAGS) -DPLATFORM_$(PLATFORM) -D__ASSERT_MACROS_DEFINE_VERSIONS_WITHOUT_UNDERSCORES=0
+# makefile (from '../options.mk', line 221)
+DYLIB_FLAGS = -shared
+# makefile (from '../options.mk', line 177)
+PREFIX = $(THIS_DIR)
+# environment
+VSCODE_LOG_NATIVE = false
+# automatic
+?F = $(notdir $?)
+# makefile (from '../options.mk', line 188)
+ITENSOR_GLIBS = $(patsubst %,$(ITENSOR_LIBDIR)/lib%-g.a, $(ITENSOR_LIBNAMES))
+# environment
+KDE_APPLICATIONS_AS_SCOPE = 1
+# environment
+XDG_SEAT = seat0
+# environment
+XDG_CURRENT_DESKTOP = KDE
+# environment
+KDEDIRS = /usr
+# makefile (from '../options.mk', line 215)
+UNAME_S := Linux
+# environment
+LS_COLORS = no=00:fi=00:di=01;34:ln=00;36:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=41;33;01:ex=00;32:*.cmd=00;32:*.exe=01;32:*.com=01;32:*.bat=01;32:*.btm=01;32:*.dll=01;32:*.tar=00;31:*.tbz=00;31:*.tgz=00;31:*.rpm=00;31:*.deb=00;31:*.arj=00;31:*.taz=00;31:*.lzh=00;31:*.lzma=00;31:*.zip=00;31:*.zoo=00;31:*.z=00;31:*.Z=00;31:*.gz=00;31:*.bz2=00;31:*.tb2=00;31:*.tz2=00;31:*.tbz2=00;31:*.avi=01;35:*.bmp=01;35:*.fli=01;35:*.gif=01;35:*.jpg=01;35:*.jpeg=01;35:*.mng=01;35:*.mov=01;35:*.mpg=01;35:*.pcx=01;35:*.pbm=01;35:*.pgm=01;35:*.png=01;35:*.ppm=01;35:*.tga=01;35:*.tif=01;35:*.xbm=01;35:*.xpm=01;35:*.dl=01;35:*.gl=01;35:*.wmv=01;35:*.aiff=00;32:*.au=00;32:*.mid=00;32:*.mp3=00;32:*.ogg=00;32:*.voc=00;32:*.wav=00;32:
+# automatic
++F = $(notdir $+)
+# environment
+XDG_SEAT_PATH = /org/freedesktop/DisplayManager/Seat0
+# environment
+LESS = -R
+# environment
+DESKTOP_SESSION = /usr/share/xsessions/plasma
+# environment
+ORIGINAL_XDG_CURRENT_DESKTOP = KDE
+# makefile (from 'Makefile', line 57)
+OBJECTS = $(patsubst %.cc,%.o, $(SOURCES))
+# 'override' directive
+GNUMAKEFLAGS := 
+# environment
+QT_SCREEN_SCALE_FACTORS = DP-1=1;HDMI-1=1;DP-2=1;DP-3=1;
+# environment
+LOGNAME = tzuchen
+# environment
+BASH_ENV = /usr/share/lmod/lmod/init/bash
+# environment
+XDG_VTNR = 1
+# makefile
+.DEFAULT_GOAL := install
+# makefile (from '../options.mk', line 212)
+LIBGFLAGS = -L'$(ITENSOR_LIBDIR)' $(ITENSOR_LIBGFLAGS)
+# environment
+MODULEPATH_ROOT = /usr/share/modulefiles
+# environment
+HISTCONTROL = ignoredups
+# environment
+EDITOR = /usr/bin/nano
+# environment
+DISPLAY = :0
+# environment
+USER = tzuchen
+# default
+MAKE_VERSION := 4.3
+# environment
+KDE_SESSION_UID = 1000
+# 'override' directive
+.SHELLSTATUS := 0
+# environment
+SSH_AGENT_PID = 2900
+# environment
+PAGER = less
+# environment
+VSCODE_NODE_CACHED_DATA_DIR = /home/tzuchen/.config/Code/CachedData/2b9aebd5354a3629c3aba0a5f5df49f43d6689f8
+# environment
+_ = /usr/bin/make
+# environment
+XDG_RUNTIME_DIR = /run/user/1000
+# environment
+S_COLORS = auto
+# environment
+XDG_SESSION_CLASS = user
+# environment
+MKL_DEBUG_CPU_TYPE = 5
+ 
+make: *** No rule to make target 'all'.  Stop.
+ 
+# environment
+VSCODE_AMD_ENTRYPOINT = vs/workbench/services/extensions/node/extensionHostProcess
+# makefile (from '../options.mk', line 10)
+CCCOM = g++ -m64 -std=c++17 -fconcepts -fPIC
+# environment
+GTK2_RC_FILES = /etc/gtk-2.0/gtkrc:/home/tzuchen/.gtkrc-2.0:/home/tzuchen/.gtkrc-2.0-kde4:/home/tzuchen/.config/gtkrc-2.0
+# environment
+HOME = /home/tzuchen
+# makefile (from '../options.mk', line 205)
+ITENSOR_LIBFLAGS = $(patsubst %,-l%, $(ITENSOR_LIBNAMES)) $(BLAS_LAPACK_LIBFLAGS) -fopenmp
+# environment
+ELECTRON_RUN_AS_NODE = 1
+# environment
+VSCODE_IPC_HOOK = /run/user/1000/vscode-144fdf2d-1.54.3-main.sock
+# environment
+XDG_SESSION_ID = 2
+# environment
+XCURSOR_SIZE = 24
+# default
+.RECIPEPREFIX := 
+# automatic
+<F = $(notdir $<)
+# default
+SUFFIXES := 
+# makefile (from '../options.mk', line 160)
+OPTIMIZATIONS = -O2 -DNDEBUG -Wall -Wno-unknown-pragmas
+# environment
+QT_AUTO_SCREEN_SCALE_FACTOR = 0
+# environment
+LMOD_PKG = /usr/share/lmod/lmod
+# environment
+KDE_SESSION_VERSION = 5
+# default
+.FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell nocomment grouped-target extra-prereqs archives jobserver output-sync check-symlink guile load
+# makefile (from '../options.mk', line 206)
+ITENSOR_LIBGFLAGS = $(patsubst %,-l%-g, $(ITENSOR_LIBNAMES)) $(BLAS_LAPACK_LIBFLAGS) -fopenmp
+# makefile (from 'Makefile', line 192)
+GDEPHEADERS = real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h  tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h spectrum.h decomp.h mps/mps.h mps/siteset.h mps/mpo.h
+# makefile (from 'Makefile', line 50)
+SOURCES = util/args.cc util/input.cc util/cputime.cc tensor/lapack_wrap.cc tensor/vec.cc tensor/mat.cc tensor/gemm.cc tensor/algs.cc tensor/contract.cc itdata/dense.cc itdata/combiner.cc itdata/diag.cc itdata/qdense.cc itdata/qcombiner.cc itdata/qdiag.cc itdata/scalar.cc qn.cc tagset.cc index.cc indexset.cc itensor.cc spectrum.cc decomp.cc hermitian.cc svd.cc global.cc mps/mps.cc mps/mpsalgs.cc mps/mpo.cc mps/mpoalgs.cc mps/autompo.cc
+# environment
+KDE_FULL_SESSION = true
+# environment
+XDG_MENU_PREFIX = kf5-
+# environment
+DOTNET_ROOT = /usr/lib64/dotnet
+# environment
+LMOD_VERSION = 8.4.1
+# makefile (from '../options.mk', line 180)
+ITENSOR_INCLUDEDIR = $(PREFIX)
+# variable set hash-table stats:
+# Load=159/1024=16%, Rehash=0, Collisions=73/441=17%
+
+# Pattern-specific Variable Values
+
+# No pattern-specific variable values.
+
+# Directories
+
+# . (device 66305, inode 57149468): 52 files, no impossibilities.
+
+# 52 files, no impossibilities in 1 directories.
+
+# Implicit Rules
+
+%.o: %.cc
+#  recipe to execute (from 'Makefile', line 63):
+	@echo "Compiling itensor/$< with optimizations"
+	$(eval COMMAND = $(CCCOM) -c $(CCFLAGS) -o $@ $<)
+	@$(COMMAND) || (echo "Failure while executing command: $(COMMAND)" && exit 1)
+
+.debug_objs/%.o: %.cc
+#  recipe to execute (from 'Makefile', line 68):
+	@echo "Compiling itensor/$< in debug mode"
+	$(eval COMMAND = $(CCCOM) -c $(CCGFLAGS) -o $@ $<)
+	@$(COMMAND) || (echo "Failure while executing command: $(COMMAND)" && exit 1)
+
+%.cc:
+
+# 3 implicit rules, 0 (0.0%) terminal.
+# Files
+
+mps/mps.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h itdata/qcombiner.h itdata/qdiag.h itdata/scalar.h smallstring.h tagset.h index.h indexset_impl.h indexset.h itensor.h itensor_impl.h itensor_impl.h itensor.h itdata/itdata.h itdata/dense.h itdata/diag.h qn.h detail/skip_iterator.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h spectrum.h decomp.h mps/mps.h mps/siteset.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+util/cputime.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+tensor/ten.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+itdata/combiner.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+itdata/scalar.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h itdata/qcombiner.h itdata/qdiag.h itdata/scalar.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+touch_all_headers:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 101):
+	@touch all.h
+	@touch all_basic.h
+	@touch all_mps.h
+
+.debug_objs/itdata/combiner.o: itdata/dense.h itdata/diag.h itdata/combiner.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+.debug_objs/itdata/qcombiner.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h itdata/qcombiner.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+spectrum.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h itdata/qcombiner.h itdata/qdiag.h itdata/scalar.h smallstring.h tagset.h index.h indexset_impl.h indexset.h itensor.h itensor_impl.h itensor_impl.h itensor.h itdata/itdata.h itdata/dense.h itdata/diag.h qn.h detail/skip_iterator.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h spectrum.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+.debug_objs/util/input.o: util/input.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+.debug_objs/qn.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h itdata/qcombiner.h itdata/qdiag.h itdata/scalar.h smallstring.h tagset.h index.h indexset_impl.h indexset.h itensor.h itensor_impl.h itensor_impl.h itensor.h itdata/itdata.h itdata/dense.h itdata/diag.h qn.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+itdata/qdense.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h util/tensorstats.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+itdata/dense.o: itdata/dense.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h util/tensorstats.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+itdata/combiner.o: itdata/dense.h itdata/diag.h itdata/combiner.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+.debug_objs/itensor.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h itdata/qcombiner.h itdata/qdiag.h itdata/scalar.h smallstring.h tagset.h index.h indexset_impl.h indexset.h itensor.h itensor_impl.h itensor_impl.h itensor.h itdata/itdata.h itdata/dense.h itdata/diag.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+tensor/lapack_wrap.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+tensor/types.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+.debug_objs/itdata/qdense.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h util/tensorstats.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+.debug_objs/mps/mpsalgs.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h itdata/qcombiner.h itdata/qdiag.h itdata/scalar.h smallstring.h tagset.h index.h indexset_impl.h indexset.h itensor.h itensor_impl.h itensor_impl.h itensor.h itdata/itdata.h itdata/dense.h itdata/diag.h qn.h detail/skip_iterator.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h spectrum.h decomp.h mps/mps.h mps/siteset.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+itdata/diag.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+../this_dir.mk:
+#  Implicit rule search has been done.
+#  Last modified 2021-03-09 01:24:18.433665569
+#  File has been updated.
+#  Successfully updated.
+
+.debug_objs/itdata/diag.o: itdata/dense.h itdata/diag.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+qn.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+tensor/lapack_wrap.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+real.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+debug: /home/tzuchen/Software/itensor/lib/libitensor-g.a /home/tzuchen/Software/itensor/lib/libitensor-g.so touch_all_headers
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+Makefile:
+#  Implicit rule search has been done.
+#  Last modified 2021-02-21 19:40:37.815377541
+#  File has been updated.
+#  Successfully updated.
+
+# Not a target:
+tensor/algs.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+detail/skip_iterator.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+util/args.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+.debug_objs/tagset.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+tensor/slicerange.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+itdata/task_types.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+ 
+itensor.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+mps/autompo.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h itdata/qcombiner.h itdata/qdiag.h itdata/scalar.h smallstring.h tagset.h index.h indexset_impl.h indexset.h itensor.h itensor_impl.h itensor_impl.h itensor.h itdata/itdata.h itdata/dense.h itdata/diag.h qn.h detail/skip_iterator.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h spectrum.h decomp.h mps/mps.h mps/siteset.h mps/mpo.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+.debug_objs/tensor/mat.o: real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+itdata/qutil.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+.debug_objs/mps/mpo.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h itdata/qcombiner.h itdata/qdiag.h itdata/scalar.h smallstring.h tagset.h index.h indexset_impl.h indexset.h itensor.h itensor_impl.h itensor_impl.h itensor.h itdata/itdata.h itdata/dense.h itdata/diag.h qn.h detail/skip_iterator.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h spectrum.h decomp.h mps/mps.h mps/siteset.h mps/mpo.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+tensor/mat.o: real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+svd.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h itdata/qcombiner.h itdata/qdiag.h itdata/scalar.h smallstring.h tagset.h index.h indexset_impl.h indexset.h itensor.h itensor_impl.h itensor_impl.h itensor.h itdata/itdata.h itdata/dense.h itdata/diag.h qn.h detail/skip_iterator.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h spectrum.h decomp.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+indexset.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h itdata/qcombiner.h itdata/qdiag.h itdata/scalar.h smallstring.h tagset.h index.h indexset_impl.h indexset.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+clean:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 120):
+	@rm -fr *.o .debug_objs util/*.o util/h5/*.o tensor/*.o itdata/*.o mps/*.o libitensor.a libitensor-g.a
+
+# Not a target:
+tensor/permutation.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+.cc:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+tensor/matrange.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+tagset.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+.debug_objs/indexset.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h itdata/qcombiner.h itdata/qdiag.h itdata/scalar.h smallstring.h tagset.h index.h indexset_impl.h indexset.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+.debug_objs/tensor/contract.o: real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+tensor/teniter.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+.debug_objs/itdata/scalar.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h itdata/qcombiner.h itdata/qdiag.h itdata/scalar.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+tensor/vec.o: real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+itdata/dense.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+itensor.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h itdata/qcombiner.h itdata/qdiag.h itdata/scalar.h smallstring.h tagset.h index.h indexset_impl.h indexset.h itensor.h itensor_impl.h itensor_impl.h itensor.h itdata/itdata.h itdata/dense.h itdata/diag.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+.debug_objs/util/args.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+../options.mk:
+#  Implicit rule search has been done.
+#  Last modified 2021-02-26 15:18:15.520015792
+#  File has been updated.
+#  Successfully updated.
+
+# Not a target:
+util/input.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+qn.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h itdata/qcombiner.h itdata/qdiag.h itdata/scalar.h smallstring.h tagset.h index.h indexset_impl.h indexset.h itensor.h itensor_impl.h itensor_impl.h itensor.h itdata/itdata.h itdata/dense.h itdata/diag.h qn.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+.debug_objs/global.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+.debug_objs/index.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h itdata/qcombiner.h itdata/qdiag.h itdata/scalar.h smallstring.h tagset.h index.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+.debug_objs/mps/mpoalgs.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h itdata/qcombiner.h itdata/qdiag.h itdata/scalar.h smallstring.h tagset.h index.h indexset_impl.h indexset.h itensor.h itensor_impl.h itensor_impl.h itensor.h itdata/itdata.h itdata/dense.h itdata/diag.h qn.h detail/skip_iterator.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h spectrum.h decomp.h mps/mps.h mps/siteset.h mps/mpo.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+.debug_objs/tensor/vec.o: real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+.debug_objs/hermitian.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h itdata/qcombiner.h itdata/qdiag.h itdata/scalar.h smallstring.h tagset.h index.h indexset_impl.h indexset.h itensor.h itensor_impl.h itensor_impl.h itensor.h itdata/itdata.h itdata/dense.h itdata/diag.h qn.h detail/skip_iterator.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h spectrum.h decomp.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+/home/tzuchen/Software/itensor/lib/libitensor-g.a: mkdebugdir .debug_objs/util/args.o .debug_objs/util/input.o .debug_objs/util/cputime.o .debug_objs/tensor/lapack_wrap.o .debug_objs/tensor/vec.o .debug_objs/tensor/mat.o .debug_objs/tensor/gemm.o .debug_objs/tensor/algs.o .debug_objs/tensor/contract.o .debug_objs/itdata/dense.o .debug_objs/itdata/combiner.o .debug_objs/itdata/diag.o .debug_objs/itdata/qdense.o .debug_objs/itdata/qcombiner.o .debug_objs/itdata/qdiag.o .debug_objs/itdata/scalar.o .debug_objs/qn.o .debug_objs/tagset.o .debug_objs/index.o .debug_objs/indexset.o .debug_objs/itensor.o .debug_objs/spectrum.o .debug_objs/decomp.o .debug_objs/hermitian.o .debug_objs/svd.o .debug_objs/global.o .debug_objs/mps/mps.o .debug_objs/mps/mpsalgs.o .debug_objs/mps/mpo.o .debug_objs/mps/mpoalgs.o .debug_objs/mps/autompo.o
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 80):
+	@echo "Building static library $(ITENSOR_LIBDIR)/libitensor-g.a"
+	@ar r '$(ITENSOR_LIBDIR)/libitensor-g.a' $(GOBJECTS)
+	@ranlib '$(ITENSOR_LIBDIR)/libitensor-g.a'
+
+# Not a target:
+util/readwrite.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+/home/tzuchen/Software/itensor/lib/libitensor.so: util/args.o util/input.o util/cputime.o tensor/lapack_wrap.o tensor/vec.o tensor/mat.o tensor/gemm.o tensor/algs.o tensor/contract.o itdata/dense.o itdata/combiner.o itdata/diag.o itdata/qdense.o itdata/qcombiner.o itdata/qdiag.o itdata/scalar.o qn.o tagset.o index.o indexset.o itensor.o spectrum.o decomp.o hermitian.o svd.o global.o mps/mps.o mps/mpsalgs.o mps/mpo.o mps/mpoalgs.o mps/autompo.o
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+mps/mpsalgs.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h itdata/qcombiner.h itdata/qdiag.h itdata/scalar.h smallstring.h tagset.h index.h indexset_impl.h indexset.h itensor.h itensor_impl.h itensor_impl.h itensor.h itdata/itdata.h itdata/dense.h itdata/diag.h qn.h detail/skip_iterator.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h spectrum.h decomp.h mps/mps.h mps/siteset.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+tensor/range.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+tagset.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+tensor/mat.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+tensor/gemm.o: real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+decomp.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h itdata/qcombiner.h itdata/qdiag.h itdata/scalar.h smallstring.h tagset.h index.h indexset_impl.h indexset.h itensor.h itensor_impl.h itensor_impl.h itensor.h itdata/itdata.h itdata/dense.h itdata/diag.h qn.h detail/skip_iterator.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h spectrum.h decomp.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+decomp.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+.DEFAULT:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+index.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+mps/mpo.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h itdata/qcombiner.h itdata/qdiag.h itdata/scalar.h smallstring.h tagset.h index.h indexset_impl.h indexset.h itensor.h itensor_impl.h itensor_impl.h itensor.h itdata/itdata.h itdata/dense.h itdata/diag.h qn.h detail/skip_iterator.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h spectrum.h decomp.h mps/mps.h mps/siteset.h mps/mpo.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+indexset_impl.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+itdata/qdense.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+all:
+#  Command line target.
+#  Implicit rule search has been done.
+#  File does not exist.
+#  File has not been updated.
+
+# Not a target:
+.debug_objs/tensor/lapack_wrap.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+ 
+
+build: /home/tzuchen/Software/itensor/lib/libitensor.a /home/tzuchen/Software/itensor/lib/libitensor.so touch_all_headers
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+/home/tzuchen/Software/itensor/lib/libitensor-g.so: mkdebugdir .debug_objs/util/args.o .debug_objs/util/input.o .debug_objs/util/cputime.o .debug_objs/tensor/lapack_wrap.o .debug_objs/tensor/vec.o .debug_objs/tensor/mat.o .debug_objs/tensor/gemm.o .debug_objs/tensor/algs.o .debug_objs/tensor/contract.o .debug_objs/itdata/dense.o .debug_objs/itdata/combiner.o .debug_objs/itdata/diag.o .debug_objs/itdata/qdense.o .debug_objs/itdata/qcombiner.o .debug_objs/itdata/qdiag.o .debug_objs/itdata/scalar.o .debug_objs/qn.o .debug_objs/tagset.o .debug_objs/index.o .debug_objs/indexset.o .debug_objs/itensor.o .debug_objs/spectrum.o .debug_objs/decomp.o .debug_objs/hermitian.o .debug_objs/svd.o .debug_objs/global.o .debug_objs/mps/mps.o .debug_objs/mps/mpsalgs.o .debug_objs/mps/mpo.o .debug_objs/mps/mpoalgs.o .debug_objs/mps/autompo.o
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+.debug_objs/mps/autompo.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h itdata/qcombiner.h itdata/qdiag.h itdata/scalar.h smallstring.h tagset.h index.h indexset_impl.h indexset.h itensor.h itensor_impl.h itensor_impl.h itensor.h itdata/itdata.h itdata/dense.h itdata/diag.h qn.h detail/skip_iterator.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h spectrum.h decomp.h mps/mps.h mps/siteset.h mps/mpo.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+tensor/sliceten.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+itensor_impl.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+.debug_objs/itdata/dense.o: itdata/dense.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h util/tensorstats.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+.debug_objs/decomp.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h itdata/qcombiner.h itdata/qdiag.h itdata/scalar.h smallstring.h tagset.h index.h indexset_impl.h indexset.h itensor.h itensor_impl.h itensor_impl.h itensor.h itdata/itdata.h itdata/dense.h itdata/diag.h qn.h detail/skip_iterator.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h spectrum.h decomp.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+tensor/vecrange.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+global.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+tensor/ten_impl.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+util/tensorstats.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+itdata/qcombiner.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h itdata/qcombiner.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+.debug_objs/spectrum.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h itdata/qcombiner.h itdata/qdiag.h itdata/scalar.h smallstring.h tagset.h index.h indexset_impl.h indexset.h itensor.h itensor_impl.h itensor_impl.h itensor.h itdata/itdata.h itdata/dense.h itdata/diag.h qn.h detail/skip_iterator.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h spectrum.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+.debug_objs/itdata/qdiag.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h itdata/qcombiner.h itdata/qdiag.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+indexset.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+index.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h itdata/qcombiner.h itdata/qdiag.h itdata/scalar.h smallstring.h tagset.h index.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+util/input.o: util/input.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+install: build debug
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+hermitian.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h itdata/qcombiner.h itdata/qdiag.h itdata/scalar.h smallstring.h tagset.h index.h indexset_impl.h indexset.h itensor.h itensor_impl.h itensor_impl.h itensor.h itdata/itdata.h itdata/dense.h itdata/diag.h qn.h detail/skip_iterator.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h spectrum.h decomp.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+tensor/vec.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+.debug_objs/tensor/gemm.o: real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+itdata/scalar.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+itdata/qdiag.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+.debug_objs/tensor/algs.o: real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+tensor/algs_impl.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+itdata/qcombiner.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+mps/mpo.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+.debug_objs/util/cputime.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+util/safe_ptr.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+tensor/contract.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+spectrum.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+index_impl.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+global.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+mps/mps.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+smallstring.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+itdata/diag.o: itdata/dense.h itdata/diag.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+mps/mpoalgs.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h itdata/qcombiner.h itdata/qdiag.h itdata/scalar.h smallstring.h tagset.h index.h indexset_impl.h indexset.h itensor.h itensor_impl.h itensor_impl.h itensor.h itdata/itdata.h itdata/dense.h itdata/diag.h qn.h detail/skip_iterator.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h spectrum.h decomp.h mps/mps.h mps/siteset.h mps/mpo.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+tensor/contract.o: real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+mps/siteset.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+itdata/qdiag.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h itdata/qcombiner.h itdata/qdiag.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+.SUFFIXES: .cc
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+.debug_objs/svd.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h itdata/qcombiner.h itdata/qdiag.h itdata/scalar.h smallstring.h tagset.h index.h indexset_impl.h indexset.h itensor.h itensor_impl.h itensor_impl.h itensor.h itdata/itdata.h itdata/dense.h itdata/diag.h qn.h detail/skip_iterator.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h spectrum.h decomp.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+tensor/algs.o: real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+mkdebugdir:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 110):
+	@mkdir -p .debug_objs
+	@mkdir -p .debug_objs/util
+	@mkdir -p .debug_objs/util/h5
+	@mkdir -p .debug_objs/util/h5/std_addons
+	@mkdir -p .debug_objs/util/h5/stl
+	@mkdir -p .debug_objs/tensor
+	@mkdir -p .debug_objs/itdata
+	@mkdir -p .debug_objs/mps
+
+# Not a target:
+itdata/itdata.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+/home/tzuchen/Software/itensor/lib/libitensor.a: util/args.o util/input.o util/cputime.o tensor/lapack_wrap.o tensor/vec.o tensor/mat.o tensor/gemm.o tensor/algs.o tensor/contract.o itdata/dense.o itdata/combiner.o itdata/diag.o itdata/qdense.o itdata/qcombiner.o itdata/qdiag.o itdata/scalar.o qn.o tagset.o index.o indexset.o itensor.o spectrum.o decomp.o hermitian.o svd.o global.o mps/mps.o mps/mpsalgs.o mps/mpo.o mps/mpoalgs.o mps/autompo.o
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 75):
+	@echo "Building static library $(ITENSOR_LIBDIR)/libitensor.a"
+	@ar r '$(ITENSOR_LIBDIR)/libitensor.a' $(OBJECTS)
+	@ranlib '$(ITENSOR_LIBDIR)/libitensor.a'
+
+ 
+.debug_objs/mps/mps.o: itdata/dense.h itdata/diag.h itdata/combiner.h itdata/qdense.h itdata/qutil.h itdata/qcombiner.h itdata/qdiag.h itdata/scalar.h smallstring.h tagset.h index.h indexset_impl.h indexset.h itensor.h itensor_impl.h itensor_impl.h itensor.h itdata/itdata.h itdata/dense.h itdata/diag.h qn.h detail/skip_iterator.h real.h global.h index.h index_impl.h util/readwrite.h tensor/types.h tensor/vecrange.h tensor/ten.h tensor/ten_impl.h tensor/teniter.h tensor/range.h tensor/lapack_wrap.h tensor/vec.h util/safe_ptr.h tensor/matrange.h tensor/mat.h tensor/slicemat.h tensor/algs.h tensor/algs_impl.h tensor/permutation.h tensor/slicerange.h tensor/sliceten.h tensor/contract.h itdata/task_types.h indexset_impl.h indexset.h spectrum.h decomp.h mps/mps.h mps/siteset.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+tensor/slicemat.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# files hash-table stats:
+# Load=127/1024=12%, Rehash=0, Collisions=182/2104=9%
+# VPATH Search Paths
+
+# No 'vpath' search paths.
+
+# No general ('VPATH' variable) search path.
+
+# strcache buffers: 1 (0) / strings = 160 / storage = 2503 B / avg = 15 B
+# current buf: size = 8162 B / used = 2503 B / count = 160 / avg = 15 B
+
+# strcache performance: lookups = 2105 / hit rate = 92%
+# hash-table stats:
+# Load=160/8192=2%, Rehash=0, Collisions=38/2105=2%
+# Finished Make data base on Fri Mar 26 00:49:23 2021
+
+ 
