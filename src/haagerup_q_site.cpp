@@ -6,9 +6,9 @@ inline int mod(int x,int N){
     return x;
 }
 
-HaagerupSite::HaagerupSite(const Index &I) : s(I) {}
+HaagerupQSite::HaagerupQSite(const Index &I) : s(I) {}
 
-HaagerupSite::HaagerupSite(const Args &args) {
+HaagerupQSite::HaagerupQSite(const Args &args) {
     auto ts=TagSet("Site,Haagerup");
     if(args.getBool("ConserveQNs",true))
     {
@@ -24,9 +24,9 @@ HaagerupSite::HaagerupSite(const Args &args) {
         s = Index(6,ts);
     }    }
 
-Index HaagerupSite::index() const { return s; }
+Index HaagerupQSite::index() const { return s; }
 
-IndexVal HaagerupSite::state(const string &state) {
+IndexVal HaagerupQSite::state(const string &state) {
     if(state=="0"){
         return s(4);
     }else if(state=="1"){
@@ -39,7 +39,7 @@ IndexVal HaagerupSite::state(const string &state) {
     throw ITError("State "+state+" not recognized");
 }
 
-ITensor HaagerupSite::m(int i) const {
+ITensor HaagerupQSite::m(int i) const {
     auto sP=prime(s);
     auto Op=ITensor(dag(s),sP);
     if(i==1){
@@ -70,7 +70,7 @@ ITensor HaagerupSite::m(int i) const {
     return Op;
 }
 
-ITensor HaagerupSite::q(int i) const {
+ITensor HaagerupQSite::q(int i) const {
     auto sP=prime(s);
     auto Op=ITensor(dag(s),sP);
     if(i==1){
@@ -96,7 +96,7 @@ ITensor HaagerupSite::q(int i) const {
     return Op;
 }
 
-ITensor HaagerupSite::qr(int i, int j) const {
+ITensor HaagerupQSite::qr(int i, int j) const {
     auto sP=prime(s);
     auto Op=ITensor(dag(s),sP);
     if(i==1){
@@ -231,7 +231,7 @@ ITensor HaagerupSite::qr(int i, int j) const {
     return Op;
 }
 
-ITensor HaagerupSite::op(const string &opname, const Args &args) const {
+ITensor HaagerupQSite::op(const string &opname, const Args &args) const {
     if(opname=="m1"){
         return m(1);
     }else if(opname=="m2"){
@@ -271,7 +271,8 @@ ITensor HaagerupSite::op(const string &opname, const Args &args) const {
     }
     throw ITError("Operator name "+opname+" not recognized");
 }
-MPO ConstructH(Haagerup sites, std::string boundary_condition, int N, Real U, Real K, Real J) {
+// fixme: (maybe) make ConstructH a method of the site specific class?
+MPO ConstructH(const HaagerupQ& sites, const std::string& boundary_condition, int N, Real U, Real K, Real J) {
     auto ampo = AutoMPO(sites);
 
     int L = N;
@@ -384,3 +385,5 @@ MPO ConstructH(Haagerup sites, std::string boundary_condition, int N, Real U, Re
     auto H = toMPO(ampo);
     return H;
 }
+
+

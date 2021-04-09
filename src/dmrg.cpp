@@ -1,71 +1,42 @@
+#include <filesystem>
 #include "itensor/all.h"
-#include "analysis.cpp"
-
+#include "chain.h"
+#include "utility.cpp"
+#include "dmrg_progress.cpp"
 using namespace itensor;
-
-std::vector<double> calcEE(MPS psi, int N){
-    std::vector<double> SvNs;
-    for(auto b=1;b<N;b++){
-        psi.position(b);
-
-        //SVD this wavefunction to get the spectrum
-        //of density-matrix eigenvalues
-        auto l = leftLinkIndex(psi,b);
-        auto s = siteIndex(psi,b);
-        auto [U,S,V] = svd(psi(b),{l,s});
-        auto u = commonIndex(U,S);
-
-        //Apply von Neumann formula
-        //to the squares of the singular values
-        Real SvN = 0.;
-        for(auto n : range1(dim(u)))
-            {
-            auto Sn = elt(S,n,n);
-            auto p = sqr(Sn);
-            if(p > 1E-12) SvN += -p*log(p);
-            }
-        SvNs.push_back(SvN);
-    }
-    return SvNs;
-}
-
-void dumpEE(int N, std::vector<double> SvNs, std::string const& filename){
-    FILE * eefile;
-    eefile = fopen(filename.c_str(), "a");
-    fprintf(eefile, "{\n");
-    for(auto b=1;b<N;b++){
-        fprintf(eefile, "{%d,  %.10f},\n",b,SvNs[b-1]);
-    }
-    fprintf(eefile, "},\n");
-    fclose(eefile);
-}
-
-void dumpEnergy(int state, Real en, std::string const& filename){
-    FILE * file;
-    file = fopen(filename.c_str(), "a");
-    fprintf(file, "{");
-    fprintf(file, "%d",state);
-    fprintf(file, ",");
-    fprintf(file, "%.10f",en);
-    fprintf(file, "},\n");
-    fclose(file);
-}
-
-// std::string name(typename SiteSetType) {
-//     if(SiteSetType == Golden){
-//         return "Golden";
-//     }else{
-//         return "Haagerup";
-//     }
-// }
 
 template<typename SiteSetType>
 class DMRG {
+    std::string name_;
+    std::string boundary_condition;
+    std::string job;
+    int N;
+    int gs_maxmaxdimension;
+    double cutoff;
+    float tolerance;
+    Real theta;
+    int init_num_sweeps;
+    int num_sweeps;
+    int maxmaxdimension;
+    double noise;
+    int m;
+    float gs_tolerance;
+    Real K, J, U;
+    int num_past_states;
+//    std::string progress_path, ee_path, en_path;
+//    std::string prefix = std::filesystem::current_path();
+    std::filesystem::path prefix = std::filesystem::path("/home/tzuchen/CLionProjects/ChainDMRG");
+    std::filesystem::path progress_path, ee_path, en_path;
+    std::filesystem::path progress_directory = prefix / "pgs";
+    std::filesystem::path ee_directory = prefix / "ee";
+    std::filesystem::path en_directory = prefix / "en";
+    std::string filename;
+    SiteSetType sites;
 public:
-    int run(char **argv) {
-        std::string name_ = std::string(argv[1]);
-        std::string boundary_condition = std::string(argv[2]);
-        std::string job;
+    // constructor
+    explicit DMRG(char** argv){
+        name_ = std::string(argv[1]);
+        boundary_condition = std::string(argv[2]);
         if(boundary_condition == "p"){
             job = name_ + " PBC";
         }else if(boundary_condition == "o"){
@@ -75,35 +46,45 @@ public:
         }else{
             job = name_ + " SSD/PBC";
         }
-        int N = std::stoi(argv[3]);
-        int init_num_sweeps = 5;
-        int num_sweeps = 1;
-        int gs_maxmaxdimension = std::stoi(argv[4]);
-        int maxmaxdimension = gs_maxmaxdimension;
-        double cutoff = std::stof(argv[5]);
-        double noise = 0.0;
-        int m = 3;
-        float tolerance = std::stof(argv[6]);
-        float gs_tolerance = std::pow(tolerance,2);
-        Real theta = std::stof(argv[7]);
-        Real K = cos(theta*Pi);
-        Real J = sin(theta*Pi);
+        N = std::stoi(argv[3]);
+        // fixme: refactor so that we're passing the most basic variable type instead of a type alias
+        sites = SiteSetType(N, {"ConserveQNs=", true});
+        gs_maxmaxdimension = std::stoi(argv[4]);
+        cutoff = std::stof(argv[5]);
+        tolerance = std::stof(argv[6]);
+        theta = std::stof(argv[7]);
+        init_num_sweeps = 5;
+        num_sweeps = 1;
+        maxmaxdimension = gs_maxmaxdimension;
+        noise = 0.0;
+        m = 3;
+        gs_tolerance = std::pow(tolerance, 2);
+        K = cos(theta * Pi);
+        J = sin(theta * Pi);
         if(std::abs(K) < 1E-5){
             K = 0;
         }
         if(std::abs(J) < 1E-5){
             J = 0;
         }
-        Real U=std::stof(argv[8]);
-        int num_past_states = std::stoi(argv[9]);
-
-        std::string const& progress_path = format("%s/pgs/%s_%s_%d_%g_%g_%g",prefix,name_,boundary_condition,N,cutoff,theta,U);
-        std::string const& ee_path = format("%s/ee/%s_%s_%d_%g_%g_%g.ee",prefix,name_,boundary_condition,N,cutoff,theta,U);
-        std::string const& en_path = format("%s/en/%s_%s_%d_%g_%g_%g.en",prefix,name_,boundary_condition,N,cutoff,theta,U);
-
+        U = std::stof(argv[8]);
+        num_past_states = std::stoi(argv[9]);
+        filename = format("%s_%s_%d_%g_%g_%g", name_, boundary_condition, N, cutoff, theta, U);
+        progress_path = progress_directory / filename;
+        ee_path = ee_directory / (filename + ".ee");
+        en_path = en_directory / (filename + ".en");
+    }
+    void run() {
+        if (not std::filesystem::exists(progress_directory)){
+            std::filesystem::create_directory(progress_directory);
+        }
+        if (not std::filesystem::exists(ee_directory)){
+            std::filesystem::create_directory(ee_directory);
+        }
+        if (not std::filesystem::exists(en_directory)){
+            std::filesystem::create_directory(en_directory);
+        }
         printf("\n> %s: N=%d maxmaxdim=%d cutoff=%g theta=%g K=%g J=%g U=%g\n",job,N,gs_maxmaxdimension,cutoff,theta,K,J,U);
-
-        SiteSetType sites = SiteSetType(N,{"ConserveQNs=",true});
 
         // Set the parameters controlling the accuracy of the DMRG
         // calculation for each DMRG sweep. 
@@ -124,8 +105,7 @@ public:
         std::string state;
 
         DMRGProgress<SiteSetType> dmrg_progress;
-
-        if(fileExists(progress_path + ".pgs")){
+        if(std::filesystem::exists(progress_directory / (filename + ".pgs"))){
             dmrg_progress.read(progress_path);
             sites = dmrg_progress.Sites();
 
@@ -139,7 +119,7 @@ public:
 
             if(dmrg_progress.num_past_states() >= num_past_states){
                 printf("\n> Job already completed: Computed to %s\n\n", state);
-                return 0;
+                return;
             }
             
             // printf("\n> Simulation: %s\n", state);
@@ -283,18 +263,96 @@ public:
             dmrg_progress.putSites(sites);
             dmrg_progress.write(progress_path);
         }
-        return 0;
+    }
+    void analyze(){
+        printf("\n%s: N=%d maxmaxdim=%d cutoff=%g theta=%g K=%g J=%g U=%g\n\n",job,N,gs_maxmaxdimension,cutoff,theta,K,J,U);
+
+        MPS psiT;
+        MPS psiR;
+
+        DMRGProgress<SiteSetType> dmrg_progress;
+        dmrg_progress.read(progress_path);
+
+        auto states = dmrg_progress.States();
+        sites = dmrg_progress.Sites();
+        int len = std::min((int) states.size(), num_past_states+1);
+
+        // Act translation/rho on psi to create psiT/psiR
+        std::vector<MPS> pastT;
+        std::vector<MPS> pastR;
+        GoldenFData f_data = GoldenFData();
+        for(int i=0;i<len;i++){
+            psiT = MPS(states.at(i));
+            psiR = MPS(states.at(i));
+
+            // calculate the action of translation on wavefunction
+//            ActGlobal(psiT, sites, &FData::SwapITensor); // Old method
+            psiT = applyMPO(TranslationOp(sites), psiT);
+            pastT.push_back(psiT);
+
+            // calculate the action of rho on wavefunction
+            psiR = applyMPO(RhoOp(sites), psiR);
+            psiR = applyMPO(TranslationOp(sites, true), psiR);
+            ActLocal(psiR, f_data.RhoDefect(sites(1), sites(2)),1);
+            psiR = applyMPO(TranslationOp(sites, false), psiR);
+            pastR.push_back(psiR);
+        }
+
+        // Create ITensors for
+        // En:  Energies and
+        // OpT:  Matrix elements between psi and the translated psiT
+        // OpR:  Matrix elements between psi and psiR
+        auto s = Index(len);
+        auto sP = prime(s);
+        auto En = ITensor(dag(s),sP);
+        auto OpT = ITensor(dag(s),sP);
+        auto OpR = ITensor(dag(s),sP);
+
+        Real gs_en = dmrg_progress.Energies().at(0);
+
+        for(int i=0;i<len;i++){
+            En.set(s(i+1),sP(i+1),dmrg_progress.Energies().at(i) - gs_en);
+            for(int j=0;j<len;j++){
+                OpT.set(s(i+1),sP(j+1),Chop(innerC(states.at(i), pastT.at(j))));
+                OpR.set(s(i+1),sP(j+1),Chop(innerC(states.at(i), pastR.at(j))));
+            }
+        }
+        PrintData(En);
+        PrintData(OpR);
+        PrintData(OpT);
+
+
+        // Diagonalize translation
+        auto [UT,DT] = eigen(OpT);
+        // Rotate basis for energies accordingly and create diagonal ITensor
+        En = prime(UT) * En * dag(UT);
+        std::vector<Real> diag_En;
+        diag_En.reserve(len);
+        for(int i=0;i<len;i++){
+            diag_En.push_back(eltC(En, i+1, i+1).real());
+        }
+        En = diagITensor(diag_En, dag(s), prime(s));
+        auto spins = DT.apply(Spin);
+        PrintData(En);
+        PrintData(spins);
     }
 };
 
 int main(int argc, char** argv){
-    if(argv[10] != nullptr){
-        return analyze(argc,argv);
-    }
-
+    // fixme: distangle case from task
     if(std::string(argv[1]) == "golden"){
-        return DMRG<Golden>().run(argv);
+        if(argv[10] != nullptr){
+            DMRG<Golden>(argv).analyze();
+        } else {
+            DMRG<Golden>(argv).run();
+        }
+        return 0;
     }else if(std::string(argv[1]) == "haagerup"){
-        return DMRG<Haagerup>().run(argv);
+        if(argv[10] != nullptr){
+            DMRG<HaagerupQ>(argv).analyze();
+        } else {
+            DMRG<HaagerupQ>(argv).run();
+        }
+        return 0;
     }
 }

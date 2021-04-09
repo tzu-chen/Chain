@@ -1,12 +1,9 @@
 #include <utility>
-
+#include <filesystem>
 #include "itensor/all.h"
 
 using namespace itensor;
-
-// const std::string prefix = "/n/holyscratch01/yin_lab/Users/yhlin";
-const std::string prefix = "/home/tzuchen/CLionProjects/ChainDMRG";
-
+// fixme: (maybe) refactor this class
 template<typename SiteSetType>
 class DMRGProgress {
 public:
@@ -69,9 +66,10 @@ public:
     int num_states() {
         return (int) psis.size();
     }
-
-    void write(const std::string& path) const
+    // fixme: string -> filesystem::path
+    void write(const std::filesystem::path& p) const
     {
+        std::string path = std::string(p);
         writeToFile(path + ".st", sites_);
         writeToFile(path + ".pgs", times_swepts);
         writeToFile(path + ".md", maxdims);
@@ -85,9 +83,10 @@ public:
         writeToFile(path + ".psi.bk", psis);
         writeToFile(path + ".H.bk", Hs);
     }
-
-    void read(const std::string& path)
+    // fixme: string -> filesystem::path
+    void read(const std::filesystem::path& p)
     {
+        std::string path = std::string(p);
         try{
             readFromFile(path + ".st", sites_);
             readFromFile(path + ".pgs", times_swepts);

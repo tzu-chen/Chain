@@ -8,6 +8,11 @@ inline int mod(int x,int N){
 
 GoldenSite::GoldenSite(Index I) : s(std::move(I)) {}
 
+GoldenSite::GoldenSite(const Args &args) {
+    auto tags = TagSet("Site,Golden");
+    s = Index(2,tags);
+}
+
 ITensor GoldenSite::op(const string &opname, const Args &args) const {
     if(opname=="n1"){
         return proj(1);
@@ -46,13 +51,8 @@ IndexVal GoldenSite::state(const string &state) {
 }
 
 Index GoldenSite::index() const { return s; }
-
-GoldenSite::GoldenSite(const Args &args) {
-    auto tags = TagSet("Site,Golden");
-    s = Index(2,tags);
-}
-
-MPO ConstructH(const Golden &sites, const string &boundary_condition, int N, Real U, Real K, Real J) {
+// fixme: (maybe) make ConstructH a method of the site specific class?
+MPO ConstructH(const Golden& sites, const std::string& boundary_condition, int N, Real U, Real K, Real J) {
     auto ampo = AutoMPO(sites);
     int L = N;
     if(boundary_condition != "p"){

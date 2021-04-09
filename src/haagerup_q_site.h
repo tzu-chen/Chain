@@ -5,20 +5,21 @@
 
 using namespace itensor;
 
-class HaagerupSite;
-using Haagerup=BasicSiteSet<HaagerupSite>;
+class HaagerupQSite;
+using HaagerupQ=BasicSiteSet<HaagerupQSite>;
 // 1    1
 // 2    a
 // 3    b=a^2
 // 4    r=\rho
 // 5    ar
 // 6    br
-class HaagerupSite
+
+class HaagerupQSite
 {
     Index s;
 public:
-    explicit HaagerupSite(Index const& I);
-    explicit HaagerupSite(Args const& args = Args::global());
+    explicit HaagerupQSite(Index const& I);
+    explicit HaagerupQSite(Args const& args = Args::global());
     Index
     index() const;
 
@@ -38,6 +39,6 @@ public:
     op(std::string const& opname,Args const& args = Args::global()) const;
 };
 
-MPO ConstructH(Haagerup sites, std::string boundary_condition, int N, Real U, Real K, Real J);
+MPO ConstructH(const HaagerupQ& sites, const std::string& boundary_condition, int N, Real U, Real K, Real J);
 
 #endif

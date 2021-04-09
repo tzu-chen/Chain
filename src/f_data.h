@@ -7,6 +7,8 @@ using namespace itensor;
 
 class FData {
 public:
+    explicit FData(int nu);
+
     int kNu;
     int kRho;
     int kRk;
@@ -14,26 +16,25 @@ public:
     double kPhiInv;
     double kSqrtPhiInv;
 
-    explicit FData(int nu);
 
     // Returns true if invertible
     bool IsInvertible(int i) const;
 
     int Dual(int i) const;
 
-    std::set<int> Fusion(int a, int b);
+    std::set<int> Fusion(int a, int b) const;
 
-    bool HasFusion(int i, int j, int k);
+    bool HasFusion(int i, int j, int k) const;
 
     // Package F symbols into a single ITensor
-    ITensor HasFusionITensor(const SiteSet& sites, int i1, int i2, int i3);
+    ITensor HasFusionITensor(const SiteSet& sites, int i1, int i2, int i3) const;
 
     // Quantum dimension
     double D(int i) const;
 
-    inline int add(int i, int j) const;
+    int add(int i, int j) const;
 
-    virtual double FSymbol(int i, int j, int k, int l, int m, int n) { return 0; }
+    virtual double FSymbol(int i, int j, int k, int l, int m, int n);
 
     double FSymbolPattern(int i, int j, int k, int l, int m, int n);
 

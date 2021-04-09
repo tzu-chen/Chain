@@ -1,5 +1,15 @@
 #include "f_data.h"
 
+
+FData::FData(int nu) {
+    kNu = nu;
+    kRho = kNu+1;
+    kRk = 2 * kNu;
+    kPhi = (sqrt(4+kNu*kNu)+kNu)/2;
+    kPhiInv = 1/kPhi;
+    kSqrtPhiInv = sqrt(kPhiInv);
+}
+
 bool FData::IsInvertible(int i) const {
     if(i<=kNu){
         return true;
@@ -16,7 +26,7 @@ int FData::Dual(int i) const {
     }
 }
 
-std::set<int> FData::Fusion(int a, int b) {
+std::set<int> FData::Fusion(int a, int b) const {
     std::set<int> ans;
     if(a<=kNu && b<=kNu){
         ans.insert(1+((a+b-2)%kNu));
@@ -25,7 +35,7 @@ std::set<int> FData::Fusion(int a, int b) {
     }else if(a>kNu && b<=kNu){
         return Fusion(1+((kRho-b)%kNu),a);
     }else{
-        ans.insert(1+((a-b)%kNu));
+        ans.insert(1+((kNu+a-b)%kNu));
         for(int i=kRho;i<=kRk;i++){
             ans.insert(i);
         }
@@ -33,12 +43,12 @@ std::set<int> FData::Fusion(int a, int b) {
     return ans;
 }
 
-bool FData::HasFusion(int i, int j, int k) {
+bool FData::HasFusion(int i, int j, int k) const {
     auto fused = Fusion(i,j);
     return fused.find(k) != fused.end();
 }
 
-ITensor FData::HasFusionITensor(const SiteSet &sites, int i1, int i2, int i3) {
+ITensor FData::HasFusionITensor(const SiteSet &sites, int i1, int i2, int i3) const {
     auto s1 = sites(i1);
     auto s2 = sites(i2);
     auto s3 = sites(i3);
@@ -63,17 +73,8 @@ double FData::D(int i) const {
     }
 }
 
-FData::FData(int nu) {
-    kNu = nu;
-    kRho = kNu+1;
-    kRk = 2 * kNu;
-    kPhi = (sqrt(4+kNu*kNu)+kNu)/2;
-    kPhiInv = 1/kPhi;
-    kSqrtPhiInv = sqrt(kPhiInv);
-}
-
 int FData::add(int i, int j) const {
-    return kRho + (i+j-1%kNu);
+    return kRho + ((i+j-1)%kNu);
 }
 
 double FData::FSymbolPattern(int i, int j, int k, int l, int m, int n) {
@@ -142,7 +143,7 @@ ITensor FData::RhoDefect(const Index &s1, const Index &s2) {
         for(int j1=1;j1<=kRk;j1++){
             for(int i2=1;i2<=kRk;i2++){
                 for(int j2=1;j2<=kRk;j2++){
-                    auto f = FSymbol(kRho,i1,kRho,j2,j1,i2) * sqrt(D(i1)/D(j1));
+                    auto f = FSymbol(kRho,i1,kRho,j2,j1,i2) * sqrt(D(i1)/D(i2));
                     if(f!=0){
                         Op.set(s1(i1),s1P(j1),s2(i2),s2P(j2), f);
                     }
@@ -277,6 +278,8 @@ FData::RhoDefect6(const Index &s1, const Index &s2, const Index &s3, const Index
     }
     return Op;
 }
+
+double FData::FSymbol(int i, int j, int k, int l, int m, int n) { return 0; }
 
 GoldenFData::GoldenFData() : FData(1) {
 }
