@@ -13,7 +13,7 @@ set(ITENSOR_LINK_FLAGS "-DPLATFORM_openblas -fopenmp -L${CMAKE_SOURCE_DIR}/exter
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ITENSOR_FLAGS}")
 
-add_executable(Chain src/dmrg.cpp src/f_data.cpp src/golden_site.cpp src/haagerup_q_site.cpp src/chain.cpp src/haagerup_site.cpp)
+add_executable(Chain src/dmrg.cpp src/f_data.cpp src/golden_site.cpp src/haagerup_q_site.cpp src/chain.cpp src/haagerup_site.cpp src/dmrg.h)
 
 set_property(TARGET itensor PROPERTY IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/extern/itensor/lib/libitensor.a)
 target_link_libraries(Chain itensor "${ITENSOR_LINK_FLAGS}")
