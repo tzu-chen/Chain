@@ -1,9 +1,118 @@
 #ifndef CHAINDMRG_DMRG_H
 #define CHAINDMRG_DMRG_H
+#include <filesystem>
 #include "itensor/all.h"
 #include "chain.h"
 using namespace itensor;
+template<typename SiteSetType>
+class DMRGProgress {
+public:
+    SiteSetType sites_;
+    std::vector<int> times_swepts;
+    std::vector<int> maxdims;
+    std::vector<Real> ens;
+    std::vector<MPS> psis;
+    std::vector<MPO> Hs;
 
+    void update(int times_swept, int maxdim, Real en, MPS const& psi, MPO H) {
+        times_swepts.back() = times_swept;
+        maxdims.back() = maxdim;
+        ens.back() = en;
+        psis.back() = psi;
+        Hs.back() = std::move(H);
+    }
+
+    void putSites(SiteSetType sites){
+        sites_ = sites;
+    }
+
+    SiteSetType Sites(){
+        return sites_;
+    }
+
+    void next() {
+        times_swepts.push_back(0);
+        maxdims.push_back(0);
+        ens.push_back(0);
+        psis.emplace_back();
+        Hs.emplace_back();
+    }
+
+    std::tuple<int,int,Real,MPS,MPO> get() {
+        return std::tuple<int,int,Real,MPS,MPO>(times_swepts.back(), maxdims.back(), ens.back(), psis.back(), Hs.back());
+    }
+
+    std::vector<MPS> past_states() {
+        std::vector<MPS> past_psis;
+        past_psis.reserve((int) psis.size()-1);
+        for (int i=0;i<(int) psis.size()-1;i++){
+            past_psis.push_back(psis.at(i));
+        }
+        return past_psis;
+    }
+
+    std::vector<MPS> States() {
+        return psis;
+    }
+
+    std::vector<Real> Energies() const {
+        return ens;
+    }
+
+    int num_past_states() {
+        return (int) psis.size()-1;
+    }
+
+    int num_states() {
+        return (int) psis.size();
+    }
+    // fixme: string -> filesystem::path
+    void write(const std::filesystem::path& p) const
+    {
+        std::string path = std::string(p);
+        writeToFile(path + ".st", sites_);
+        writeToFile(path + ".pgs", times_swepts);
+        writeToFile(path + ".md", maxdims);
+        writeToFile(path + ".en", ens);
+        writeToFile(path + ".psi", psis);
+        writeToFile(path + ".H", Hs);
+
+        writeToFile(path + ".pgs.bk", times_swepts);
+        writeToFile(path + ".md.bk", maxdims);
+        writeToFile(path + ".en.bk", ens);
+        writeToFile(path + ".psi.bk", psis);
+        writeToFile(path + ".H.bk", Hs);
+    }
+    // fixme: string -> filesystem::path
+    void read(const std::filesystem::path& p)
+    {
+        std::string path = std::string(p);
+        try{
+            readFromFile(path + ".st", sites_);
+            readFromFile(path + ".pgs", times_swepts);
+            readFromFile(path + ".md", maxdims);
+            readFromFile(path + ".en", ens);
+            readFromFile(path + ".psi", psis);
+            readFromFile(path + ".H", Hs);
+        }catch(std::exception const& e){
+            try{
+                readFromFile(path + ".pgs.bk", times_swepts);
+                readFromFile(path + ".md.bk", maxdims);
+                readFromFile(path + ".en.bk", ens);
+                readFromFile(path + ".psi.bk", psis);
+                readFromFile(path + ".H.bk", Hs);
+            }catch(std::exception const& e){
+                times_swepts.clear();
+                maxdims.clear();
+                ens.clear();
+                psis.clear();
+                Hs.clear();
+                next();
+            }
+        }
+
+    }
+};
 template<typename SiteSetType>
 class DMRG {
     std::string name_;
@@ -33,9 +142,17 @@ class DMRG {
     SiteSetType sites;
 public:
     // constructor
-    explicit DMRG(char** argv){
-        name_ = std::string(argv[1]);
-        boundary_condition = std::string(argv[2]);
+    explicit DMRG(std::tuple<std::basic_string<char>, std::basic_string<char>, int, int, float, float, float, float, int, int> params){
+        name_ = std::get<0>(params);
+        boundary_condition = std::get<1>(params);
+        N = std::get<2>(params);
+        gs_maxmaxdimension= std::get<3>(params);
+        cutoff= std::get<4>(params);
+        tolerance= std::get<5>(params);
+        theta= std::get<6>(params);
+        U= std::get<7>(params);
+        num_past_states= std::get<8>(params);
+
         if(boundary_condition == "p"){
             job = name_ + " PBC";
         }else if(boundary_condition == "o"){
@@ -45,13 +162,8 @@ public:
         }else{
             job = name_ + " SSD/PBC";
         }
-        N = std::stoi(argv[3]);
         // fixme: refactor so that we're passing the most basic variable type instead of a type alias
         sites = SiteSetType(N, {"ConserveQNs=", true});
-        gs_maxmaxdimension = std::stoi(argv[4]);
-        cutoff = std::stof(argv[5]);
-        tolerance = std::stof(argv[6]);
-        theta = std::stof(argv[7]);
         init_num_sweeps = 5;
         num_sweeps = 1;
         maxmaxdimension = gs_maxmaxdimension;
@@ -66,8 +178,6 @@ public:
         if(std::abs(J) < 1E-5){
             J = 0;
         }
-        U = std::stof(argv[8]);
-        num_past_states = std::stoi(argv[9]);
         filename = format("%s_%s_%d_%g_%g_%g", name_, boundary_condition, N, cutoff, theta, U);
         progress_path = progress_directory / filename;
         ee_path = ee_directory / (filename + ".ee");
@@ -279,7 +389,6 @@ public:
         // Act translation/rho on psi to create psiT/psiR
         std::vector<MPS> pastT;
         std::vector<MPS> pastR;
-        GoldenFData f_data = GoldenFData();
         for(int i=0;i<len;i++){
             psiT = MPS(states.at(i));
             psiR = MPS(states.at(i));
@@ -290,9 +399,15 @@ public:
             pastT.push_back(psiT);
 
             // calculate the action of rho on wavefunction
-            psiR = applyMPO(RhoOp(sites), psiR);
+            psiR = applyMPO(RhoOp(sites, name_), psiR);
             psiR = applyMPO(TranslationOp(sites, true), psiR);
-            ActLocal(psiR, f_data.RhoDefect(sites(1), sites(2)),1);
+            if (name_ == "golden"){
+                GoldenFData f_data = GoldenFData();
+                ActLocal(psiR, f_data.RhoDefect(sites(1), sites(2)),1);
+            } else if (name_ == "haagerup"){
+                HaagerupFData f_data = HaagerupFData();
+                ActLocal(psiR, f_data.RhoDefect(sites(1), sites(2)),1);
+            }
             psiR = applyMPO(TranslationOp(sites, false), psiR);
             pastR.push_back(psiR);
         }
@@ -331,9 +446,11 @@ public:
             diag_En.push_back(eltC(En, i+1, i+1).real());
         }
         En = diagITensor(diag_En, dag(s), prime(s));
-        auto spins = DT.apply(Spin);
+        auto spins = DT.apply([this](Cplx a){return Spin(a, N);});
         PrintData(En);
         PrintData(spins);
     }
 };
+
+
 #endif //CHAINDMRG_DMRG_H

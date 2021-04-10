@@ -18,7 +18,7 @@ class HaagerupQSite
 {
     Index s;
 public:
-    explicit HaagerupQSite(Index const& I);
+    explicit HaagerupQSite(Index  I);
     explicit HaagerupQSite(Args const& args = Args::global());
     Index
     index() const;

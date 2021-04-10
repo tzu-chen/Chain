@@ -155,8 +155,6 @@ ITensor FData::RhoDefect(const Index &s1, const Index &s2) {
 }
 
 ITensor FData::SwapITensor(const Index &s1, const Index &s2) {
-    // auto s1 = sites(i1);
-    // auto s2 = sites(i2);
     auto a = ITensor(dag(s1),prime(s2));
     auto b = ITensor(dag(s2),prime(s1));
     for(auto j : range1(s1))

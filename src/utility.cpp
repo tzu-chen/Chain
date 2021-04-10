@@ -1,9 +1,6 @@
-#include "itensor/all.h"
-using namespace itensor;
+#include "utility.h"
 
-
-int NN = 0;
-Real Spin(Cplx num){
+Real Spin(Cplx num, int NN) {
     Real spin = log(num).imag()/(2*Pi)*NN;
     if(spin>NN/2){
         spin -= NN;
@@ -11,7 +8,9 @@ Real Spin(Cplx num){
     return spin;
 }
 
-Cplx Chop(Cplx num){
+
+
+Cplx Chop(Cplx num) {
     Real r = num.real();
     Real i = num.imag();
     if(abs(r)<1E-3){
@@ -24,7 +23,9 @@ Cplx Chop(Cplx num){
 }
 
 
-std::vector<double> calcEE(MPS psi, int N){
+
+
+std::vector<double> calcEE(MPS psi, int N) {
     std::vector<double> SvNs;
     for(auto b=1;b<N;b++){
         psi.position(b);
@@ -49,8 +50,11 @@ std::vector<double> calcEE(MPS psi, int N){
     }
     return SvNs;
 }
+
 // fixme: string -> filesystem::path
-void dumpEE(int N, std::vector<double> SvNs, const std::filesystem::path& p){
+
+
+void dumpEE(int N, std::vector<double> SvNs, const std::filesystem::path &p) {
     std::string filename = std::string(p);
     FILE * eefile;
     eefile = fopen(filename.c_str(), "a");
@@ -61,8 +65,11 @@ void dumpEE(int N, std::vector<double> SvNs, const std::filesystem::path& p){
     fprintf(eefile, "},\n");
     fclose(eefile);
 }
+
 // fixme: string -> filesystem::path
-void dumpEnergy(int state, Real en, const std::filesystem::path& p){
+
+
+void dumpEnergy(int state, Real en, const std::filesystem::path &p) {
     std::string filename = std::string(p);
     FILE * file;
     file = fopen(filename.c_str(), "a");

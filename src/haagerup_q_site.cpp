@@ -1,12 +1,14 @@
 #include "haagerup_q_site.h"
 
+#include <utility>
+
 inline int mod(int x,int N){
     if(x>N)
         return x-N;
     return x;
 }
 
-HaagerupQSite::HaagerupQSite(const Index &I) : s(I) {}
+HaagerupQSite::HaagerupQSite(Index I) : s(std::move(I)) {}
 
 HaagerupQSite::HaagerupQSite(const Args &args) {
     auto ts=TagSet("Site,Haagerup");
