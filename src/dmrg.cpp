@@ -40,6 +40,14 @@ int main(int argc, char** argv){
         }
         return 0;
     }else if(std::get<0>(params) == "haagerup"){
+        auto dmrg_ = DMRG<Haagerup>(params);
+        if (std::get<9>(params) == 1) {
+            dmrg_.analyze();
+        } else {
+            dmrg_.run();
+        }
+        return 0;
+    }else if(std::get<0>(params) == "haagerupQN"){
         auto dmrg_ = DMRG<HaagerupQ>(params);
         if (std::get<9>(params) == 1) {
             dmrg_.analyze();

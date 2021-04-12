@@ -2,6 +2,7 @@
 #define CHAINDMRG_CHAIN_H
 #include "itensor/all.h"
 #include "golden_site.h"
+#include "haagerup_site.h"
 #include "haagerup_q_site.h"
 using namespace itensor;
 
