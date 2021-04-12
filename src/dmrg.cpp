@@ -2,7 +2,8 @@
 #include <tuple>
 #include "dmrg.h"
 #include <cxxopts.hpp>
-#include <chrono>
+//uncomment this and the std::chrono lines to enable timing
+//#include <chrono>
 int main(int argc, char** argv){
     cxxopts::Options options("Chain", "Simulates DMRG on anyon chains.");
     options.add_options()
@@ -44,10 +45,10 @@ int main(int argc, char** argv){
         if (std::get<9>(params) == 1){
             dmrg_.analyze();
         } else {
-            auto start = std::chrono::high_resolution_clock::now();
+//            auto start = std::chrono::high_resolution_clock::now();
             dmrg_.run();
-            auto stop = std::chrono::high_resolution_clock::now();
-            std::cout << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() << std::endl;
+//            auto stop = std::chrono::high_resolution_clock::now();
+//            std::cout << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() << std::endl;
         }
         return 0;
     }else if(std::get<0>(params) == "haagerup"){
