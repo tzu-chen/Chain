@@ -4,10 +4,10 @@
 #include <cxxopts.hpp>
 #include <chrono>
 int main(int argc, char** argv){
-    cxxopts::Options options("MyProgram", "One line description of MyProgram");
+    cxxopts::Options options("Chain", "Simulates DMRG on anyon chains.");
     options.add_options()
-        ("s,site", "Site types", cxxopts::value<std::string>())
-        ("b,bc", "Boundary condition types", cxxopts::value<std::string>())
+        ("s,site", "Site types(golden/haagerup/haagerupQN)", cxxopts::value<std::string>())
+        ("b,bc", "Boundary condition types(p/o/s/sp)", cxxopts::value<std::string>())
         ("n", "# of sites", cxxopts::value<int>())
         ("d", "Max dimension", cxxopts::value<int>())
         ("c,cutoff", "Cutoff", cxxopts::value<float>())
@@ -15,9 +15,15 @@ int main(int argc, char** argv){
         ("theta", "theta", cxxopts::value<float>())
         ("u,penalty", "Penalty size", cxxopts::value<float>())
         ("nstates", "# of states to solve for", cxxopts::value<int>())
-        ("analysis", "analysis?", cxxopts::value<int>())
-            ;
+        ("analysis", "dmrg mode(0)/analysis mode(1)", cxxopts::value<int>())
+        ("h,help", "Print usage")
+        ;
     auto result = options.parse(argc, argv);
+    if (result.count("help"))
+    {
+        std::cout << options.help() << std::endl;
+        exit(0);
+    }
     //fixme: print parameters used
     auto params = std::make_tuple(
             result["s"].as<std::string>(),
