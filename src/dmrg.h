@@ -273,7 +273,7 @@ public:
                 sweeps.cutoff() = std::max(1E-5,cutoff),std::max(1E-6,cutoff),std::max(1E-7,cutoff),std::max(1E-8,cutoff),std::max(1E-9,cutoff),std::max(1E-10,cutoff),std::max(1E-11,cutoff),std::max(1E-12,cutoff),cutoff;
                 sweeps.niter() = 2;
                 sweeps.noise() = noise;
-                std::tie(en,psi) = dmrg(H,dmrg_progress.past_states(),init_state,sweeps,{"Quiet",true,"Weight=",100.0});
+                std::tie(en,psi) = dmrg(H,dmrg_progress.past_states(),init_state,sweeps,{"Quiet",true,"Weight=",1000.0});
 
                 s += init_num_sweeps;
                 dmrg_progress.update(s,maxdim,en,psi,H);
@@ -309,7 +309,7 @@ public:
                 sweeps.cutoff() = cutoff;
                 sweeps.niter() = 2;
                 sweeps.noise() = noise;
-                std::tie(en,psi) = dmrg(H,dmrg_progress.past_states(),init_state,sweeps,{"Quiet",true,"Weight=",100.0});
+                std::tie(en,psi) = dmrg(H,dmrg_progress.past_states(),init_state,sweeps,{"Quiet",true,"Weight=",1000.0});
 
                 s += init_num_sweeps;
                 dmrg_progress.update(s,maxdim,en,psi,H);
@@ -332,7 +332,7 @@ public:
                 sw.cutoff()=cutoff;
                 sw.niter()=2;
                 sw.noise()=noise;
-                std::tie(en,psi)=dmrg(H,dmrg_progress.past_states(),psi,sw,{"Quiet=",true,"Weight=",20.0});
+                std::tie(en,psi)=dmrg(H,dmrg_progress.past_states(),psi,sw,{"Quiet=",true,"Weight=",1000.0});
                 if (abs(min_en-en)*N < tol){
                     count -= 1;
                 } else {

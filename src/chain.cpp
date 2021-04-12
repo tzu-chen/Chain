@@ -91,13 +91,11 @@ MPO RhoOp(const SiteSet &sites, const std::string& sitetype_) {
         }
     }
 
-
-
     auto A = std::vector<ITensor>(N);
     auto B = std::vector<ITensor>(N);
     for(auto j : range1(N-1))
     {
-        auto [Aj,Bj] = factor(G[j],{sites(j),prime(sites(j))});
+        auto [Aj,Bj] = factor(G[j],{sites(j),prime(sites(j))},{"Truncate", false});
         A[j] = Aj;
         B[j] = Bj;
     }
@@ -132,7 +130,7 @@ void ActLocal(MPS &psi, const ITensor &G, int b) {
     wf *= G;
     wf.noPrime();
 
-    auto [U,S,V] = svd(wf,inds(psi(b)));
+    auto [U,S,V] = svd(wf,inds(psi(b)),{"Truncate", false});
     U.replaceTags(TagSet("U,Link,0"), tag);
     S.replaceTags(TagSet("U,Link,0"), tag);
 
