@@ -121,6 +121,13 @@ MPO RhoOp(const SiteSet &sites, const std::string& sitetype_) {
 
 
 
+MPO RhoOp2(const SiteSet &sites) {
+    int N = sites.length();
+    auto m = MPO(N);
+    SetRho(sites, m, 1, N, true);
+    return m;
+}
+
 MPO NewRhoOp(const SiteSet &sites) {
     int N = sites.length();
     auto aux_sites = Golden(2*N);
@@ -151,6 +158,76 @@ MPO NewRhoOp(const SiteSet &sites) {
     m.mapPrime(2,1);
 
     return m;
+}
+
+
+
+
+ITensor Delta3ITensor(const Index &s1, const Index &s2, const Index &s3) {
+    auto a = ITensor(s1,s2,s3);
+    for(auto j : range1(s1))
+    {
+        a.set(s1(j),s2(j),s3(j),1.);
+    }
+    return a;
+}
+
+void SetRho(const SiteSet &sites, MPO &m, int min, int max, bool boundary) {
+    int N = max;
+    auto G = std::vector<ITensor>(N+1);
+    for(auto j : range1(N-1))
+    {
+        G[j] = GoldenFData().RhoDefect(sites(j), sites(j+1));
+    }
+    G[N] = GoldenFData().RhoDefect(sites(N), sites(1));
+
+    auto A = std::vector<ITensor>(N+1);
+    auto B = std::vector<ITensor>(N+1);
+    for(auto j : range1(N))
+    {
+        auto [Aj,Bj] = factor(G[j],{sites(j),prime(sites(j))});
+        Aj.prime("Site").prime("Site");
+        Bj.prime("Site").prime("Site").prime("Site").prime("Site");
+        A[j] = Aj;
+        B[j] = Bj;
+    }
+    auto D12 = std::vector<ITensor>(N+1);
+    auto D21 = std::vector<ITensor>(N+1);
+    for(auto j : range1(N))
+    {
+        D12[j] = Delta3ITensor(dag(sites(j)), prime(sites(j),2), prime(sites(j),4) );
+        D21[j] = Delta3ITensor(prime(sites(j)), dag(prime(sites(j), 3)), dag(prime(sites(j),5)) );
+    }
+    // auto t = std::vector<Index>(N+1);
+    // for(auto j : range1(N))
+    // {
+    //     t[j] = sim(sites(j));
+    // }
+    // for(auto j : range1(2,N-1))
+    // {
+    //     B[j-1] *= delta(prime(sites(j)),t[j]);
+    //     A[j] *= delta(sites(j),t[j]);
+    // }
+    // auto m = MPO(N);
+    if(boundary){
+        // m.set(1, B[N] * A[1] * D12[1] * D21[1]);
+        // m.set(N, B[N-1] * A[N] * D12[N] * D21[N]);
+        m.set(min, A[min] * delta(dag(sites(min)), prime(sites(min), 2)) * delta(dag(prime(sites(min))), prime(sites(min), 3)) );
+        m.set(N, B[N-1] * delta(dag(sites(N)), prime(sites(N), 4)) * delta(dag(prime(sites(N))), prime(sites(N), 5)) );
+    }else{
+        auto ind_min_old = commonIndex(B[min], A[min]);
+        auto ind_max_old = commonIndex(B[max-1], A[max-1]);
+        auto ind_min_new = rightLinkIndex(m, min);
+        auto ind_max_new = leftLinkIndex(m, max);
+        B[min] *= delta(ind_min_old, ind_min_new);
+        A[max-1] *= delta(ind_max_old, ind_max_new);
+    }
+    for(auto j : range1(min+1,N-1))
+    {
+        // print(j);
+        // print("\n");
+        m.set(j, B[j-1] * A[j] * D12[j] * D21[j]);
+    }
 }
 
 void ActLocal(MPS &psi, const ITensor &G, int b) {

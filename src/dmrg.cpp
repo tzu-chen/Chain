@@ -2,6 +2,7 @@
 #include <tuple>
 #include "dmrg.h"
 #include <cxxopts.hpp>
+#include <chrono>
 int main(int argc, char** argv){
     cxxopts::Options options("MyProgram", "One line description of MyProgram");
     options.add_options()
@@ -31,12 +32,16 @@ int main(int argc, char** argv){
             result["analysis"].as<int>());
 
     // fixme: disentangle case from task
+
     if(std::get<0>(params) == "golden"){
         auto dmrg_ = DMRG<Golden>(params);
         if (std::get<9>(params) == 1){
             dmrg_.analyze();
         } else {
+            auto start = std::chrono::high_resolution_clock::now();
             dmrg_.run();
+            auto stop = std::chrono::high_resolution_clock::now();
+            std::cout << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() << std::endl;
         }
         return 0;
     }else if(std::get<0>(params) == "haagerup"){

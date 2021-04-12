@@ -133,7 +133,7 @@ class DMRG {
     int num_past_states;
 //    std::string progress_path, ee_path, en_path;
 //    std::string prefix = std::filesystem::current_path();
-    std::filesystem::path prefix = std::filesystem::path("/home/tzuchen/CLionProjects/ChainDMRG");
+    std::filesystem::path prefix = std::filesystem::current_path().parent_path();
     std::filesystem::path progress_path, ee_path, en_path;
     std::filesystem::path progress_directory = prefix / "pgs";
     std::filesystem::path ee_directory = prefix / "ee";
@@ -385,7 +385,7 @@ public:
         auto states = dmrg_progress.States();
         sites = dmrg_progress.Sites();
         int len = std::min((int) states.size(), num_past_states+1);
-
+        auto rho_op = RhoOp2(sites);
         // Act translation/rho on psi to create psiT/psiR
         std::vector<MPS> pastT;
         std::vector<MPS> pastR;
@@ -399,16 +399,16 @@ public:
             pastT.push_back(psiT);
 
             // calculate the action of rho on wavefunction
-            psiR = applyMPO(NewRhoOp(sites), psiR);
-            psiR = applyMPO(TranslationOp(sites, true), psiR);
-            if (name_ == "golden"){
-                GoldenFData f_data = GoldenFData();
-                ActLocal(psiR, f_data.RhoDefect(sites(1), sites(2)),1);
-            } else if (name_ == "haagerup"){
-                HaagerupFData f_data = HaagerupFData();
-                ActLocal(psiR, f_data.RhoDefect(sites(1), sites(2)),1);
-            }
-            psiR = applyMPO(TranslationOp(sites, false), psiR);
+            psiR = applyMPO(rho_op, psiR);
+//            psiR = applyMPO(TranslationOp(sites, true), psiR);
+//            if (name_ == "golden"){
+//                GoldenFData f_data = GoldenFData();
+//                ActLocal(psiR, f_data.RhoDefect(sites(1), sites(2)),1);
+//            } else if (name_ == "haagerup"){
+//                HaagerupFData f_data = HaagerupFData();
+//                ActLocal(psiR, f_data.RhoDefect(sites(1), sites(2)),1);
+//            }
+//            psiR = applyMPO(TranslationOp(sites, false), psiR);
             pastR.push_back(psiR);
         }
 

@@ -53,6 +53,7 @@ IndexVal GoldenSite::state(const string &state) {
 Index GoldenSite::index() const { return s; }
 // fixme: (maybe) make ConstructH a method of the site specific class?
 MPO ConstructH(const Golden& sites, const std::string& boundary_condition, int N, Real U, Real K, Real J) {
+    println("here");
     auto ampo = AutoMPO(sites);
     int L = N;
     if(boundary_condition != "p"){
