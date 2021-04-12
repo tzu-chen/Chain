@@ -399,7 +399,7 @@ public:
             pastT.push_back(psiT);
 
             // calculate the action of rho on wavefunction
-            psiR = applyMPO(RhoOp(sites, name_), psiR);
+            psiR = applyMPO(NewRhoOp(sites), psiR);
             psiR = applyMPO(TranslationOp(sites, true), psiR);
             if (name_ == "golden"){
                 GoldenFData f_data = GoldenFData();

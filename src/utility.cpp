@@ -80,3 +80,39 @@ void dumpEnergy(int state, Real en, const std::filesystem::path &p) {
     fprintf(file, "},\n");
     fclose(file);
 }
+
+
+
+void dumpMeasurement(const string &name, int len, const ITensor &i_tensor, const std::filesystem::path &p) {
+    std::string filename = std::string(p);
+    FILE * file;
+    file = fopen(filename.c_str(),"a");
+    fprintf(file, "%s = {\n", name.c_str());
+    for(int i=1;i<=len;i++){
+        fprintf(file, "{");
+        for(int j=1;j<=len;j++){
+            fprintf(file, "%.10f",eltC(i_tensor, i, j).real());
+            fprintf(file, " + I * ");
+            fprintf(file, "%.10f",eltC(i_tensor, i, j).imag());
+            if(j!=len){
+                fprintf(file, ",  ");
+            }
+        }
+        if(i!=len){
+            fprintf(file, "},\n");
+        }else{
+            fprintf(file, "}\n};\n\n");
+        }
+
+    }
+    fclose(file);
+}
+
+void dumpMathematica(int len, const ITensor &En, const ITensor &OpT, const std::filesystem::path &p) {
+    std::string filename = std::string(p);
+    FILE * file;
+    file = fopen(filename.c_str(),"w");
+    fclose(file);
+    dumpMeasurement("En", len, En, filename);
+    dumpMeasurement("OpT", len, OpT, filename);
+}

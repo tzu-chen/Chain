@@ -121,6 +121,38 @@ MPO RhoOp(const SiteSet &sites, const std::string& sitetype_) {
 
 
 
+MPO NewRhoOp(const SiteSet &sites) {
+    int N = sites.length();
+    auto aux_sites = Golden(2*N);
+    auto G = std::vector<ITensor>(N+1);
+    for(auto j : range1(N))
+    {
+        G[j] = GoldenFData().RhoDefect(aux_sites(2*j-1), aux_sites(2*j));
+    }
+    auto A = std::vector<ITensor>(N+1);
+    auto B = std::vector<ITensor>(N+1);
+    for(auto j : range1(N))
+    {
+        auto [Aj,Bj] = factor(G[j],{aux_sites(2*j-1),prime(aux_sites(2*j-1))});
+        // Aj.prime("Site").prime("Site");
+        // Bj.prime("Site").prime("Site").prime("Site").prime("Site");
+        A[j] = Aj;
+        B[j] = Bj;
+    }
+    auto m = MPO(2*N);
+    for(auto j : range1(N))
+    {
+        m.set(2*j-1, A[j]);
+        m.set(2*j, B[j]);
+    }
+
+    m = nmultMPO(prime(TranslationOp(aux_sites, false)), m);
+    m.mapPrime(1,0);
+    m.mapPrime(2,1);
+
+    return m;
+}
+
 void ActLocal(MPS &psi, const ITensor &G, int b) {
     // Store original tags
     psi.position(b);
