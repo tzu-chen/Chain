@@ -10,7 +10,9 @@ itensor -> extern/itensor/include/tensor
 lib -> extern/itensor/lib
 
 5. Change the openblas/mkl/etc location in the CMakeLists.txt
-6. Run cmake
+6. Make a folder called build. Change directory into it
+7. Run "cmake .." . This should generate a makefile.
+8. Run ./make
 
 # Usage
 
