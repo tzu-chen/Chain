@@ -3,16 +3,16 @@
 1. Clone this repo.
 2. Download itensor to arbitrary directory.
 3. Build itensor against your openblas/mkl/etc.
-4. Move the resulting "itensor" and "lib" folders to the following location:
+4. Move the resulting "itensor" and "lib" folders to the following location(create new folders whenever needed):
 
-itensor -> extern/itensor/include/tensor
+itensor -> extern/itensor/include/itensor
 
 lib -> extern/itensor/lib
 
-5. Change the openblas/mkl/etc location in the CMakeLists.txt
+5. Change the openblas/mkl/etc location in CMakeLists.txt
 6. Make a folder called build. Change directory into it
 7. Run "cmake .." . This should generate a makefile.
-8. Run ./make
+8. Run make
 
 # Usage
 

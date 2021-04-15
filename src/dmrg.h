@@ -386,6 +386,7 @@ public:
         sites = dmrg_progress.Sites();
         int len = std::min((int) states.size(), num_past_states+1);
         auto rho_op = RhoOp2(sites);
+        auto translate_op = TranslationOp(sites);
         // Act translation/rho on psi to create psiT/psiR
         std::vector<MPS> pastT;
         std::vector<MPS> pastR;
@@ -395,7 +396,7 @@ public:
 
             // calculate the action of translation on wavefunction
 //            ActGlobal(psiT, sites, &FData::SwapITensor); // Old method
-            psiT = applyMPO(TranslationOp(sites), psiT);
+            psiT = applyMPO(translate_op, psiT);
             pastT.push_back(psiT);
 
             // calculate the action of rho on wavefunction
