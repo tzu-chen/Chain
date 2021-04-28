@@ -9,10 +9,16 @@ itensor -> extern/itensor/include/itensor
 
 lib -> extern/itensor/lib
 
-5. Change the openblas/mkl/etc location in CMakeLists.txt
-6. Make a folder called build. Change directory into it
-7. Run "cmake .." . This should generate a makefile.
-8. Run make
+5. Change the openblas/mkl/etc location in CMakeLists.txt, matching ITensor options.mk. For example,
+
+-L/usr/lib64 -> -L/usr/local/opt/openblas/lib
+-I/usr/include/openblas -> -I/usr/local/opt/openblas/include
+
+For cmake versions ealier than 2.8, you can manually cmake_minimum_required, but you may need to explicitly include extra libraries. If GNU version is older version, you may need to add -lstdc++fs to ITENSOR_LINK_FLAGS.
+
+6. Make a folder called build. Change directory into it.
+7. Run "cmake ..". This should generate a makefile.
+8. Run make. The program by default stores data direcrtories under the parent directory of build. To change, modify the variable prefix in src/dmrg.h.
 
 # Usage
 
