@@ -12,6 +12,7 @@ lib -> extern/itensor/lib
 5. Change the openblas/mkl/etc location in CMakeLists.txt, matching ITensor options.mk. For example,
 
 -L/usr/lib64 -> -L/usr/local/opt/openblas/lib
+
 -I/usr/include/openblas -> -I/usr/local/opt/openblas/include
 
 For cmake versions ealier than 2.8, you can manually cmake_minimum_required, but you may need to explicitly include extra libraries. If GNU version is older version, you may need to add -lstdc++fs to ITENSOR_LINK_FLAGS.
