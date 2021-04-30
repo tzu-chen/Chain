@@ -169,7 +169,7 @@ public:
         maxmaxdimension = gs_maxmaxdimension;
         noise = 0.0;
         m = 3;
-        gs_tolerance = std::pow(tolerance, 2);
+        gs_tolerance = std::pow(tolerance, 1);
         K = cos(theta * Pi);
         J = sin(theta * Pi);
         if(std::abs(K) < 1E-5){
