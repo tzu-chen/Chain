@@ -20,7 +20,7 @@ bool FData::IsInvertible(int i) const {
 
 int FData::Dual(int i) const {
     if(i<=kNu){
-        return 1+((1-i)%kNu);
+        return 1+((kNu+1-i)%kNu);
     }else{
         return i;
     }
@@ -278,6 +278,30 @@ FData::RhoDefect6(const Index &s1, const Index &s2, const Index &s3, const Index
 }
 
 double FData::FSymbol(int i, int j, int k, int l, int m, int n) { return 0; }
+
+void FData::DumpF(const std::string filename){
+    FILE * file;
+    file = fopen(filename.c_str(),"w");
+    for(int i=1;i<=kRk;i++){
+        for(int j=1;j<=kRk;j++){
+            for(int k=1;k<=kRk;k++){
+                for(int l=1;l<=kRk;l++){
+                    for(int m=1;m<=kRk;m++){
+                        for(int n=1;n<=kRk;n++){
+                            double f = FSymbol(i,j,k,l,m,n);
+                            // if(f!=0){
+                            // fprintf(file, "} = ");
+                            fprintf(file, "FFF[%d,%d,%d,%d][%d,%d] = %f;\n",i,j,k,l,m,n,f);
+                            // Op.set( s1(i),s1P(j),s2(k),s2P(l),s3(m),s3P(n), f);
+                            // }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    fclose(file);
+}
 
 GoldenFData::GoldenFData() : FData(1) {
 }
