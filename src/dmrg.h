@@ -4,6 +4,44 @@
 #include "itensor/all.h"
 #include "chain.h"
 using namespace itensor;
+
+ITensor BasisRotation(Index s, Index sP) {
+    // auto sP=prime(s);
+    auto Op=ITensor(dag(s),sP);
+    // Op.set(s(1), sP(1), 3);
+    auto norm = 1/sqrt(3);
+    auto omega = -0.5+sqrt(3)/2 * 1_i;
+    auto omega_bar = -0.5-sqrt(3)/2 * 1_i;
+    for (int i=1;i<=3;i++){
+        Op.set(s(i), sP(1), norm);
+        Op.set(s(1), sP(i), norm);
+        Op.set(s(i+3), sP(4), norm);
+        Op.set(s(4), sP(i+3), norm);
+    }
+    Op.set(s(2), sP(2), norm * omega);
+    Op.set(s(3), sP(3), norm * omega);
+    Op.set(s(5), sP(5), norm * omega);
+    Op.set(s(6), sP(6), norm * omega);
+
+    Op.set(s(2), sP(3), norm * omega_bar);
+    Op.set(s(3), sP(2), norm * omega_bar);
+    Op.set(s(5), sP(6), norm * omega_bar);
+    Op.set(s(6), sP(5), norm * omega_bar);
+
+    return Op;
+}
+
+MPS BasisRotate(MPS psi, SiteSet sites_new){
+    int N = length(psi);
+    auto new_psi = MPS(sites_new);
+    for(auto j : range1(N))
+    {
+//        new_psi.set(j, psi(j) * delta(siteIndex(psi, j), sites_new(j)));
+        new_psi.set(j, psi(j) * BasisRotation(siteIndex(psi, j), sites_new(j)));
+    }
+    return new_psi;
+}
+
 template<typename SiteSetType>
 class DMRGProgress {
 public:
@@ -373,20 +411,34 @@ public:
             dmrg_progress.write(progress_path);
         }
     }
+
     void analyze(){
         printf("\n%s: N=%d maxmaxdim=%d cutoff=%g theta=%g K=%g J=%g U=%g\n\n",job,N,gs_maxmaxdimension,cutoff,theta,K,J,U);
 
         MPS psiT;
         MPS psiR;
 
+//        auto f_data = HaagerupFData();
+//        f_data.DumpF("/Users/yinhslin/Documents/H3FChain.m");
+//        return;
+
         DMRGProgress<SiteSetType> dmrg_progress;
         dmrg_progress.read(progress_path);
 
         auto states = dmrg_progress.States();
-        sites = dmrg_progress.Sites();
+//        sites = dmrg_progress.Sites();
         int len = std::min((int) states.size(), num_past_states+1);
-        auto rho_op = RhoOp2(sites);
-        auto translate_op = TranslationOp(sites);
+
+         auto sites_new = Haagerup(N);
+         for(int i=0;i<len;i++){
+             auto states_no_qn = removeQNs(states.at(i));
+             states.at(i) = BasisRotate(states_no_qn, sites_new);
+         }
+
+//        auto sites_new = sites;
+
+        auto rho_op = RhoOp(sites_new); // changed sites to sites_new
+        auto translate_op = TranslationOp(sites_new); // changed sites to sites_new
         // Act translation/rho on psi to create psiT/psiR
         std::vector<MPS> pastT;
         std::vector<MPS> pastR;
@@ -395,7 +447,6 @@ public:
             psiR = MPS(states.at(i));
 
             // calculate the action of translation on wavefunction
-//            ActGlobal(psiT, sites, &FData::SwapITensor); // Old method
             psiT = applyMPO(translate_op, psiT);
             pastT.push_back(psiT);
 
@@ -423,33 +474,40 @@ public:
         auto OpT = ITensor(dag(s),sP);
         auto OpR = ITensor(dag(s),sP);
 
-        Real gs_en = dmrg_progress.Energies().at(0);
+        Real gs_en = 0;
+        // dmrg_progress.Energies().at(0);
 
         for(int i=0;i<len;i++){
             En.set(s(i+1),sP(i+1),dmrg_progress.Energies().at(i) - gs_en);
             for(int j=0;j<len;j++){
-                OpT.set(s(i+1),sP(j+1),Chop(innerC(states.at(i), pastT.at(j))));
-                OpR.set(s(i+1),sP(j+1),Chop(innerC(states.at(i), pastR.at(j))));
+                OpT.set(s(i+1),sP(j+1),innerC(states.at(i), pastT.at(j)));
+                OpR.set(s(i+1),sP(j+1),innerC(states.at(i), pastR.at(j)));
             }
         }
         PrintData(En);
-        PrintData(OpR);
-        PrintData(OpT);
+        // PrintData(OpR);
+        // PrintData(OpT);
 
 
         // Diagonalize translation
         auto [UT,DT] = eigen(OpT);
-        // Rotate basis for energies accordingly and create diagonal ITensor
-        En = prime(UT) * En * dag(UT);
-        std::vector<Real> diag_En;
-        diag_En.reserve(len);
-        for(int i=0;i<len;i++){
-            diag_En.push_back(eltC(En, i+1, i+1).real());
-        }
-        En = diagITensor(diag_En, dag(s), prime(s));
-        auto spins = DT.apply([this](Cplx a){return Spin(a, N);});
-        PrintData(En);
-        PrintData(spins);
+        // Diagonalize rho
+        auto [UR,DR] = eigen(OpR);
+
+        PrintData(DT);
+        PrintData(DR);
+
+        // // Rotate basis for energies accordingly and create diagonal ITensor
+        // En = prime(UT) * En * dag(UT);
+        // std::vector<Real> diag_En;
+        // diag_En.reserve(len);
+        // for(int i=0;i<len;i++){
+        //     diag_En.push_back(eltC(En, i+1, i+1).real());
+        // }
+        // En = diagITensor(diag_En, dag(s), prime(s));
+        // auto spins = DT.apply([this](Cplx a){return Spin(a, N);});
+        // PrintData(En);
+        // PrintData(spins);
     }
 };
 
