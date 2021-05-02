@@ -74,50 +74,124 @@ MPO TranslationOp(const SiteSet &sites, bool inv) {
 }
 
 
-
-MPO RhoOp(const SiteSet &sites, const std::string& sitetype_) {
+MPO RhoOp(const SiteSet &sites) {
+    // , const std::string& sitetype_) {
     int N = sites.length();
-    auto G = std::vector<ITensor>(N);
-    // fixme: modify to allow for gates which are member functions of generic site type
-    if (sitetype_ == "golden"){
-        auto f = GoldenFData();
-        for (auto j : range1(N - 1)) {
-            G[j] = f.RhoDefect(sites(j), sites(j + 1));
-        }
-    } else if (sitetype_ == "haagerup"){
+
+    auto G = std::vector<ITensor>(N+1);
+    // if (sitetype_ == "golden"){
+    //     auto f = GoldenFData();
+    //     for (auto j : range1(N - 1)) {
+    //         G[j] = f.RhoDefect(sites(j), sites(j + 1));
+    //     }
+    //     G[N] = GoldenFData().RhoDefect(sites(N), sites(1));
+    // } else if (sitetype_ == "haagerup"){
         auto f = HaagerupFData();
         for (auto j : range1(N - 1)) {
             G[j] = f.RhoDefect(sites(j), sites(j + 1));
         }
-    }
+        G[N] = f.RhoDefect(sites(N), sites(1));
+    // }
 
-    auto A = std::vector<ITensor>(N);
-    auto B = std::vector<ITensor>(N);
-    for(auto j : range1(N-1))
+    auto A = std::vector<ITensor>(N+1);
+    auto B = std::vector<ITensor>(N+1);
+    for(auto j : range1(N))
     {
-        auto [Aj,Bj] = factor(G[j],{sites(j),prime(sites(j))},{"Truncate", false});
+        auto [Aj,Bj] = factor(G[j],{sites(j),prime(sites(j))}); // Fixme: Can refactor
+        // ,{"MaxDim", 10, "Cutoff", 1E-3});
+        Aj.prime("Site").prime("Site");
+        Bj.prime("Site").prime("Site").prime("Site").prime("Site");
         A[j] = Aj;
         B[j] = Bj;
     }
-    auto t = std::vector<Index>(N+1);
+    auto long_link = commonIndex(A[N], B[N]);
+    auto BNP = ITensor(B[N]);
+    BNP.prime("Link");
+    auto D12 = std::vector<ITensor>(N+1);
+    auto D21 = std::vector<ITensor>(N+1);
     for(auto j : range1(N))
     {
-        t[j] = sim(sites(j));
+        D12[j] = Delta3ITensor(dag(sites(j)), prime(sites(j),2), prime(sites(j),4) );
+        D21[j] = Delta3ITensor(prime(sites(j)), dag(prime(sites(j), 3)), dag(prime(sites(j),5)) );
     }
-    for(auto j : range1(2,N-1))
-    {
-        B[j-1] *= delta(prime(sites(j)),t[j]);
-        A[j] *= delta(sites(j),t[j]);
-    }
+
     auto m = MPO(N);
-    m.set(1, A[1]);
+    m.set(1, BNP * A[1] * D12[1] * D21[1]);
+    for(auto j : range1(2,N))
+    {
+        m.set(j, B[j-1] * A[j] * D12[j] * D21[j]);
+    }
+
+    auto l = sim(leftLinkIndex(m, 2));
+    auto r = sim(rightLinkIndex(m, 2));
+    auto s = sim(sites(2));
+    auto dummy_i = Index(1);
+    auto dummy_j = Index(1);
+    auto dummy = ITensor(dummy_i, dummy_j);
+    dummy.set(dummy_i(1), dummy_j(1), 1);
+    auto identity_itensor = dummy * delta(l, r) * delta(s, prime(s)) * dummy;
+
+    auto identity_mpo = MPO(N);
+    identity_mpo.set(1, identity_itensor * delta(l, prime(long_link)) * delta(r, rightLinkIndex(m, 1)) * delta(s, sites(1)) * delta(prime(s), prime(sites(1))) );
+    identity_mpo.set(N, identity_itensor * delta(l, leftLinkIndex(m, N)) * delta(r, long_link) * delta(s, sites(N)) * delta(prime(s), prime(sites(N))) );
     for(auto j : range1(2,N-1))
     {
-        m.set(j, B[j - 1] * A[j]);
+        identity_mpo.set(j, identity_itensor * delta(l, leftLinkIndex(m, j)) * delta(r, rightLinkIndex(m, j)) * delta(s, sites(j)) * delta(prime(s), prime(sites(j))) );
     }
-    m.set(N, B[N - 1]);
+    identity_mpo = prime(identity_mpo);
+    identity_mpo.set(1, identity_mpo(1) * delta(prime(long_link), prime(long_link, 2)));
+    identity_mpo.set(N, identity_mpo(N) * delta(long_link, prime(long_link)));
+
+    m = nmultMPO(m, identity_mpo, {"MaxDim", 800,"Cutoff", 1E-10});
+
     return m;
 }
+
+
+
+// MPO RhoOp(const SiteSet &sites, const std::string& sitetype_) {
+//     int N = sites.length();
+//     auto G = std::vector<ITensor>(N);
+//     // fixme: modify to allow for gates which are member functions of generic site type
+//     if (sitetype_ == "golden"){
+//         auto f = GoldenFData();
+//         for (auto j : range1(N - 1)) {
+//             G[j] = f.RhoDefect(sites(j), sites(j + 1));
+//         }
+//     } else if (sitetype_ == "haagerup"){
+//         auto f = HaagerupFData();
+//         for (auto j : range1(N - 1)) {
+//             G[j] = f.RhoDefect(sites(j), sites(j + 1));
+//         }
+//     }
+
+//     auto A = std::vector<ITensor>(N);
+//     auto B = std::vector<ITensor>(N);
+//     for(auto j : range1(N-1))
+//     {
+//         auto [Aj,Bj] = factor(G[j],{sites(j),prime(sites(j))},{"Truncate", false});
+//         A[j] = Aj;
+//         B[j] = Bj;
+//     }
+//     auto t = std::vector<Index>(N+1);
+//     for(auto j : range1(N))
+//     {
+//         t[j] = sim(sites(j));
+//     }
+//     for(auto j : range1(2,N-1))
+//     {
+//         B[j-1] *= delta(prime(sites(j)),t[j]);
+//         A[j] *= delta(sites(j),t[j]);
+//     }
+//     auto m = MPO(N);
+//     m.set(1, A[1]);
+//     for(auto j : range1(2,N-1))
+//     {
+//         m.set(j, B[j - 1] * A[j]);
+//     }
+//     m.set(N, B[N - 1]);
+//     return m;
+// }
 
 
 
