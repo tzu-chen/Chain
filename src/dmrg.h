@@ -168,6 +168,7 @@ class DMRG {
     int m;
     float gs_tolerance;
     Real K, J, U;
+    int charge;
     int num_past_states;
 //    std::string progress_path, ee_path, en_path;
 //    std::string prefix = std::filesystem::current_path();
@@ -180,7 +181,7 @@ class DMRG {
     SiteSetType sites;
 public:
     // constructor
-    explicit DMRG(std::tuple<std::basic_string<char>, std::basic_string<char>, int, int, float, float, float, float, int, int> params){
+    explicit DMRG(std::tuple<std::basic_string<char>, std::basic_string<char>, int, int, float, float, float, float, int, int, int> params){
         name_ = std::get<0>(params);
         boundary_condition = std::get<1>(params);
         N = std::get<2>(params);
@@ -189,7 +190,8 @@ public:
         tolerance= std::get<5>(params);
         theta= std::get<6>(params);
         U= std::get<7>(params);
-        num_past_states= std::get<8>(params);
+        charge= std::get<8>(params);
+        num_past_states= std::get<9>(params);
 
         if(boundary_condition == "p"){
             job = name_ + " PBC";
@@ -216,7 +218,7 @@ public:
         if(std::abs(J) < 1E-5){
             J = 0;
         }
-        filename = format("%s_%s_%d_%g_%g_%g", name_, boundary_condition, N, cutoff, theta, U);
+        filename = format("%s_%s_%d_%d_%g_%g_%g_%g_%d", name_, boundary_condition, N, gs_maxmaxdimension, cutoff, gs_tolerance, theta, U, charge);
         progress_path = progress_directory / filename;
         ee_path = ee_directory / (filename + ".ee");
         en_path = en_directory / (filename + ".en");
@@ -231,7 +233,7 @@ public:
         if (not std::filesystem::exists(en_directory)){
             std::filesystem::create_directory(en_directory);
         }
-        printf("\n> %s: N=%d maxmaxdim=%d cutoff=%g theta=%g K=%g J=%g U=%g\n",job,N,gs_maxmaxdimension,cutoff,theta,K,J,U);
+        printf("\n> %s: N=%d maxmaxdim=%d cutoff=%g tolerance=%g theta=%g K=%g J=%g U=%g q=%d\n",job,N,gs_maxmaxdimension,cutoff,gs_tolerance,theta,K,J,U,charge);
 
         // Set the parameters controlling the accuracy of the DMRG
         // calculation for each DMRG sweep.
@@ -275,7 +277,12 @@ public:
         }
 
         MPO H = ConstructH(sites, boundary_condition, N, U, K, J);
-        MPS init_state = InitState(sites,"r");
+//        MPS init_state = InitState(sites,"r");
+        auto pre_init_state = InitState(sites,"0");
+        int center = (N+1)/2;
+        pre_init_state.set(center, std::to_string(charge));
+        MPS init_state = MPS(pre_init_state);
+
         int hot_start = -1;
         if(boundary_condition == "sp"){
             hot_start = 1;
@@ -317,7 +324,7 @@ public:
                 dmrg_progress.update(s,maxdim,en,psi,H);
                 dmrg_progress.putSites(sites);
                 dmrg_progress.write(progress_path);
-                printf("\n    > Times swept: %d\n      %s of %s\n      N=%d maxdim=%d cutoff=%g theta=%g K=%g J=%g U=%g\n",dmrg_progress.times_swepts.back(),state,job,N,maxdim,cutoff,theta,K,J,U);
+                printf("\n    > Times swept: %d\n      %s of %s\n      N=%d maxmaxdim=%d cutoff=%g tolerance=%g theta=%g K=%g J=%g U=%g q=%d\n",dmrg_progress.times_swepts.back(),state,job,N,gs_maxmaxdimension,cutoff,gs_tolerance,theta,K,J,U,charge);
             }else if(dmrg_progress.times_swepts.back() == 0 && hot_start == 0){
                 switch(dmrg_progress.num_past_states()){
                     case 0 : state = "Ground state"; break;
@@ -353,7 +360,7 @@ public:
                 dmrg_progress.update(s,maxdim,en,psi,H);
                 dmrg_progress.putSites(sites);
                 dmrg_progress.write(progress_path);
-                printf("\n    > Times swept: %d\n      %s of %s\n      N=%d maxdim=%d cutoff=%g theta=%g K=%g J=%g U=%g\n",dmrg_progress.times_swepts.back(),state,job,N,maxdim,cutoff,theta,K,J,U);
+                printf("\n    > Times swept: %d\n      %s of %s\n      N=%d maxmaxdim=%d cutoff=%g tolerance=%g theta=%g K=%g J=%g U=%g q=%d\n",dmrg_progress.times_swepts.back(),state,job,N,gs_maxmaxdimension,cutoff,gs_tolerance,theta,K,J,U,charge);
             }
             for(;;){
                 std::tie(s,maxdim,en,psi,H) = dmrg_progress.get();
@@ -382,11 +389,15 @@ public:
                 dmrg_progress.putSites(sites);
                 dmrg_progress.write(progress_path);
 
-                printf("\n    > Times swept: %d\n      %s of %s\n      N=%d maxdim=%d cutoff=%g theta=%g K=%g J=%g U=%g\n",dmrg_progress.times_swepts.back(),state,job,N,maxdim,cutoff,theta,K,J,U);
+                printf("\n    > Times swept: %d\n      %s of %s\n      N=%d maxmaxdim=%d cutoff=%g tolerance=%g theta=%g K=%g J=%g U=%g q=%d\n",dmrg_progress.times_swepts.back(),state,job,N,gs_maxmaxdimension,cutoff,gs_tolerance,theta,K,J,U,charge);
                 if (count == 0){
                     break;
                 }
             }
+
+            // debug
+            print(totalQN(psi));
+            print("\n");
 
             dumpEnergy(dmrg_progress.num_past_states(), en/N, en_path);
             printf("\n> E/N of %s: %g\n\n",state,en/N);
@@ -397,7 +408,11 @@ public:
                 dmrg_progress = DMRGProgress<SiteSetType>();
                 hot_start = 0;
             }else if(hot_start == 0){
-                init_state = InitState(sites,"r");
+//                init_state = InitState(sites,"r");
+                auto pre_init_state = InitState(sites,"0");
+                int center = (N+1)/2;
+                pre_init_state.set(center, std::to_string(charge));
+                MPS init_state = MPS(pre_init_state);
                 hot_start = -1;
             }
 
@@ -411,6 +426,8 @@ public:
             dmrg_progress.write(progress_path);
         }
     }
+
+
 
     void analyze(){
         printf("\n%s: N=%d maxmaxdim=%d cutoff=%g theta=%g K=%g J=%g U=%g\n\n",job,N,gs_maxmaxdimension,cutoff,theta,K,J,U);
