@@ -4,6 +4,44 @@
 #include "itensor/all.h"
 #include "chain.h"
 using namespace itensor;
+
+ITensor BasisRotation(Index s, Index sP) {
+    // auto sP=prime(s);
+    auto Op=ITensor(dag(s),sP);
+    // Op.set(s(1), sP(1), 3);
+    auto norm = 1/sqrt(3);
+    auto omega = -0.5+sqrt(3)/2 * 1_i;
+    auto omega_bar = -0.5-sqrt(3)/2 * 1_i;
+    for (int i=1;i<=3;i++){
+        Op.set(s(i), sP(1), norm);
+        Op.set(s(1), sP(i), norm);
+        Op.set(s(i+3), sP(4), norm);
+        Op.set(s(4), sP(i+3), norm);
+    }
+    Op.set(s(2), sP(2), norm * omega);
+    Op.set(s(3), sP(3), norm * omega);
+    Op.set(s(5), sP(5), norm * omega);
+    Op.set(s(6), sP(6), norm * omega);
+
+    Op.set(s(2), sP(3), norm * omega_bar);
+    Op.set(s(3), sP(2), norm * omega_bar);
+    Op.set(s(5), sP(6), norm * omega_bar);
+    Op.set(s(6), sP(5), norm * omega_bar);
+
+    return Op;
+}
+
+MPS BasisRotate(MPS psi, SiteSet sites_new){
+    int N = length(psi);
+    auto new_psi = MPS(sites_new);
+    for(auto j : range1(N))
+    {
+//        new_psi.set(j, psi(j) * delta(siteIndex(psi, j), sites_new(j)));
+        new_psi.set(j, psi(j) * BasisRotation(siteIndex(psi, j), sites_new(j)));
+    }
+    return new_psi;
+}
+
 template<typename SiteSetType>
 class DMRGProgress {
 public:
@@ -130,6 +168,7 @@ class DMRG {
     int m;
     float gs_tolerance;
     Real K, J, U;
+    int charge;
     int num_past_states;
 //    std::string progress_path, ee_path, en_path;
 //    std::string prefix = std::filesystem::current_path();
@@ -142,7 +181,7 @@ class DMRG {
     SiteSetType sites;
 public:
     // constructor
-    explicit DMRG(std::tuple<std::basic_string<char>, std::basic_string<char>, int, int, float, float, float, float, int, int> params){
+    explicit DMRG(std::tuple<std::basic_string<char>, std::basic_string<char>, int, int, float, float, float, float, int, int, int> params){
         name_ = std::get<0>(params);
         boundary_condition = std::get<1>(params);
         N = std::get<2>(params);
@@ -151,7 +190,8 @@ public:
         tolerance= std::get<5>(params);
         theta= std::get<6>(params);
         U= std::get<7>(params);
-        num_past_states= std::get<8>(params);
+        charge= std::get<8>(params);
+        num_past_states= std::get<9>(params);
 
         if(boundary_condition == "p"){
             job = name_ + " PBC";
@@ -169,7 +209,7 @@ public:
         maxmaxdimension = gs_maxmaxdimension;
         noise = 0.0;
         m = 3;
-        gs_tolerance = std::pow(tolerance, 2);
+        gs_tolerance = std::pow(tolerance, 1);
         K = cos(theta * Pi);
         J = sin(theta * Pi);
         if(std::abs(K) < 1E-5){
@@ -178,7 +218,7 @@ public:
         if(std::abs(J) < 1E-5){
             J = 0;
         }
-        filename = format("%s_%s_%d_%g_%g_%g", name_, boundary_condition, N, cutoff, theta, U);
+        filename = format("%s_%s_%d_%d_%g_%g_%g_%g_%d", name_, boundary_condition, N, gs_maxmaxdimension, cutoff, gs_tolerance, theta, U, charge);
         progress_path = progress_directory / filename;
         ee_path = ee_directory / (filename + ".ee");
         en_path = en_directory / (filename + ".en");
@@ -193,7 +233,7 @@ public:
         if (not std::filesystem::exists(en_directory)){
             std::filesystem::create_directory(en_directory);
         }
-        printf("\n> %s: N=%d maxmaxdim=%d cutoff=%g theta=%g K=%g J=%g U=%g\n",job,N,gs_maxmaxdimension,cutoff,theta,K,J,U);
+        printf("\n> %s: N=%d maxmaxdim=%d cutoff=%g tolerance=%g theta=%g K=%g J=%g U=%g q=%d\n",job,N,gs_maxmaxdimension,cutoff,gs_tolerance,theta,K,J,U,charge);
 
         // Set the parameters controlling the accuracy of the DMRG
         // calculation for each DMRG sweep.
@@ -237,7 +277,12 @@ public:
         }
 
         MPO H = ConstructH(sites, boundary_condition, N, U, K, J);
-        MPS init_state = InitState(sites,"r");
+//        MPS init_state = InitState(sites,"r");
+        auto pre_init_state = InitState(sites,"0");
+        int center = (N+1)/2;
+        pre_init_state.set(center, std::to_string(charge));
+        MPS init_state = MPS(pre_init_state);
+
         int hot_start = -1;
         if(boundary_condition == "sp"){
             hot_start = 1;
@@ -279,7 +324,7 @@ public:
                 dmrg_progress.update(s,maxdim,en,psi,H);
                 dmrg_progress.putSites(sites);
                 dmrg_progress.write(progress_path);
-                printf("\n    > Times swept: %d\n      %s of %s\n      N=%d maxdim=%d cutoff=%g theta=%g K=%g J=%g U=%g\n",dmrg_progress.times_swepts.back(),state,job,N,maxdim,cutoff,theta,K,J,U);
+                printf("\n    > Times swept: %d\n      %s of %s\n      N=%d maxmaxdim=%d cutoff=%g tolerance=%g theta=%g K=%g J=%g U=%g q=%d\n",dmrg_progress.times_swepts.back(),state,job,N,gs_maxmaxdimension,cutoff,gs_tolerance,theta,K,J,U,charge);
             }else if(dmrg_progress.times_swepts.back() == 0 && hot_start == 0){
                 switch(dmrg_progress.num_past_states()){
                     case 0 : state = "Ground state"; break;
@@ -315,7 +360,7 @@ public:
                 dmrg_progress.update(s,maxdim,en,psi,H);
                 dmrg_progress.putSites(sites);
                 dmrg_progress.write(progress_path);
-                printf("\n    > Times swept: %d\n      %s of %s\n      N=%d maxdim=%d cutoff=%g theta=%g K=%g J=%g U=%g\n",dmrg_progress.times_swepts.back(),state,job,N,maxdim,cutoff,theta,K,J,U);
+                printf("\n    > Times swept: %d\n      %s of %s\n      N=%d maxmaxdim=%d cutoff=%g tolerance=%g theta=%g K=%g J=%g U=%g q=%d\n",dmrg_progress.times_swepts.back(),state,job,N,gs_maxmaxdimension,cutoff,gs_tolerance,theta,K,J,U,charge);
             }
             for(;;){
                 std::tie(s,maxdim,en,psi,H) = dmrg_progress.get();
@@ -344,11 +389,15 @@ public:
                 dmrg_progress.putSites(sites);
                 dmrg_progress.write(progress_path);
 
-                printf("\n    > Times swept: %d\n      %s of %s\n      N=%d maxdim=%d cutoff=%g theta=%g K=%g J=%g U=%g\n",dmrg_progress.times_swepts.back(),state,job,N,maxdim,cutoff,theta,K,J,U);
+                printf("\n    > Times swept: %d\n      %s of %s\n      N=%d maxmaxdim=%d cutoff=%g tolerance=%g theta=%g K=%g J=%g U=%g q=%d\n",dmrg_progress.times_swepts.back(),state,job,N,gs_maxmaxdimension,cutoff,gs_tolerance,theta,K,J,U,charge);
                 if (count == 0){
                     break;
                 }
             }
+
+            // debug
+            print(totalQN(psi));
+            print("\n");
 
             dumpEnergy(dmrg_progress.num_past_states(), en/N, en_path);
             printf("\n> E/N of %s: %g\n\n",state,en/N);
@@ -359,7 +408,11 @@ public:
                 dmrg_progress = DMRGProgress<SiteSetType>();
                 hot_start = 0;
             }else if(hot_start == 0){
-                init_state = InitState(sites,"r");
+//                init_state = InitState(sites,"r");
+                auto pre_init_state = InitState(sites,"0");
+                int center = (N+1)/2;
+                pre_init_state.set(center, std::to_string(charge));
+                MPS init_state = MPS(pre_init_state);
                 hot_start = -1;
             }
 
@@ -373,20 +426,37 @@ public:
             dmrg_progress.write(progress_path);
         }
     }
+
+
+
     void analyze(){
         printf("\n%s: N=%d maxmaxdim=%d cutoff=%g theta=%g K=%g J=%g U=%g\n\n",job,N,gs_maxmaxdimension,cutoff,theta,K,J,U);
 
         MPS psiT;
         MPS psiR;
 
+//        auto f_data = HaagerupFData();
+//        f_data.DumpF("/Users/yinhslin/Documents/H3FChain.m");
+//        return;
+
         DMRGProgress<SiteSetType> dmrg_progress;
         dmrg_progress.read(progress_path);
 
         auto states = dmrg_progress.States();
-        sites = dmrg_progress.Sites();
+//        sites = dmrg_progress.Sites();
         int len = std::min((int) states.size(), num_past_states+1);
-        auto rho_op = RhoOp2(sites);
-        auto translate_op = TranslationOp(sites);
+        // fixme: refactor Haagerup/HaagerupQN branching
+         auto sites_new = Haagerup(N);
+         for(int i=0;i<len;i++){
+             auto states_no_qn = removeQNs(states.at(i));
+             states.at(i) = BasisRotate(states_no_qn, sites_new);
+         }
+
+//        auto sites_new = sites;
+
+        auto rho_op = RhoOp(sites_new); // changed sites to sites_new
+
+        auto translate_op = TranslationOp(sites_new); // changed sites to sites_new
         // Act translation/rho on psi to create psiT/psiR
         std::vector<MPS> pastT;
         std::vector<MPS> pastR;
@@ -395,12 +465,21 @@ public:
             psiR = MPS(states.at(i));
 
             // calculate the action of translation on wavefunction
-//            ActGlobal(psiT, sites, &FData::SwapITensor); // Old method
             psiT = applyMPO(translate_op, psiT);
             pastT.push_back(psiT);
 
-            // calculate the action of rho on wavefunction
-            psiR = applyMPO(rho_op, psiR);
+            auto left_extra = Index(36, "Site,Haagerup");
+            auto right_extra = Index(36, "Site,Haagerup");
+
+            auto new_id = augmentMPO(identity(sites_new, rho_op), left_extra, right_extra);
+
+            auto step1 = applyMPO(augmentMPO(rho_op, left_extra, right_extra),
+                                  augmentMPS(psiR, left_extra, right_extra),{"Cutoff", 1E-3}
+            );
+            auto step2 = applyMPO(new_id,step1,{"Cutoff", 1E-3});
+            println(innerC(augmentMPS(psiR, left_extra, right_extra),step2));
+
+
 //            psiR = applyMPO(TranslationOp(sites, true), psiR);
 //            if (name_ == "golden"){
 //                GoldenFData f_data = GoldenFData();
@@ -423,33 +502,40 @@ public:
         auto OpT = ITensor(dag(s),sP);
         auto OpR = ITensor(dag(s),sP);
 
-        Real gs_en = dmrg_progress.Energies().at(0);
+        Real gs_en = 0;
+        // dmrg_progress.Energies().at(0);
 
         for(int i=0;i<len;i++){
             En.set(s(i+1),sP(i+1),dmrg_progress.Energies().at(i) - gs_en);
             for(int j=0;j<len;j++){
-                OpT.set(s(i+1),sP(j+1),Chop(innerC(states.at(i), pastT.at(j))));
-                OpR.set(s(i+1),sP(j+1),Chop(innerC(states.at(i), pastR.at(j))));
+                OpT.set(s(i+1),sP(j+1),innerC(states.at(i), pastT.at(j)));
+                OpR.set(s(i+1),sP(j+1),innerC(states.at(i), pastR.at(j)));
             }
         }
         PrintData(En);
-        PrintData(OpR);
-        PrintData(OpT);
+        // PrintData(OpR);
+        // PrintData(OpT);
 
 
         // Diagonalize translation
         auto [UT,DT] = eigen(OpT);
-        // Rotate basis for energies accordingly and create diagonal ITensor
-        En = prime(UT) * En * dag(UT);
-        std::vector<Real> diag_En;
-        diag_En.reserve(len);
-        for(int i=0;i<len;i++){
-            diag_En.push_back(eltC(En, i+1, i+1).real());
-        }
-        En = diagITensor(diag_En, dag(s), prime(s));
-        auto spins = DT.apply([this](Cplx a){return Spin(a, N);});
-        PrintData(En);
-        PrintData(spins);
+        // Diagonalize rho
+        auto [UR,DR] = eigen(OpR);
+
+        PrintData(DT);
+        PrintData(DR);
+
+        // // Rotate basis for energies accordingly and create diagonal ITensor
+        // En = prime(UT) * En * dag(UT);
+        // std::vector<Real> diag_En;
+        // diag_En.reserve(len);
+        // for(int i=0;i<len;i++){
+        //     diag_En.push_back(eltC(En, i+1, i+1).real());
+        // }
+        // En = diagITensor(diag_En, dag(s), prime(s));
+        // auto spins = DT.apply([this](Cplx a){return Spin(a, N);});
+        // PrintData(En);
+        // PrintData(spins);
     }
 };
 
