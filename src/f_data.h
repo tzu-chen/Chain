@@ -51,6 +51,8 @@ public:
     ITensor RhoDefect4(const Index& s1, const Index& s2, const Index& s3, const Index& s4);
 
     ITensor RhoDefect6(const Index& s1, const Index& s2, const Index& s3, const Index& s4, const Index& s5, const Index& s6);
+
+    void DumpF(const string filename);
 };
 
 class GoldenFData : public FData {

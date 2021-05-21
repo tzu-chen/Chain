@@ -46,6 +46,8 @@ IndexVal GoldenSite::state(const string &state) {
         return s(1);
     }else if(state=="r"){
         return s(2);
+    }else{
+        return s(2);
     }
     throw ITError("State "+state+" not recognized");
 }

@@ -16,6 +16,8 @@ Index HaagerupSite::index() const { return s; }
 IndexVal HaagerupSite::state(const string &state) {
     if(state=="r"){
         return s(4);
+    }else{
+        return s(4);
     }
     throw ITError("State "+state+" not recognized");
 }

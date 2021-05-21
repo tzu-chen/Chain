@@ -303,6 +303,10 @@ MPO ConstructH(const HaagerupQ& sites, const std::string& boundary_condition, in
             ampo += -3*Uj,"m6",j,"m2",mod(j+1,N);
         }
     }
+//    if(boundary_condition == "o"){
+//        ampo += 6*Uj,"m1",1;
+//        ampo += 6*Uj,"m1",N;
+//    }
 
     L = N;
     if(boundary_condition != "p"){
@@ -342,6 +346,10 @@ MPO ConstructH(const HaagerupQ& sites, const std::string& boundary_condition, in
             ampo += 3*Kj,"m6",j,"q3",mod(j+1,N),"m6",mod(j+2,N);
         }
     }
+//    if(boundary_condition == "o"){
+//        ampo += 6*Uj,"m1",1;
+//        ampo += 6*Uj,"m1",N;
+//    }
 
     Real Jj;
     if(J!=0){

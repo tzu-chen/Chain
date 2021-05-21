@@ -15,6 +15,7 @@ int main(int argc, char** argv){
         ("t,tol", "Tolerance", cxxopts::value<float>())
         ("theta", "theta", cxxopts::value<float>())
         ("u,penalty", "Penalty size", cxxopts::value<float>())
+        ("q,charge", "Charge", cxxopts::value<int>())
         ("nstates", "# of states to solve for", cxxopts::value<int>())
         ("analysis", "dmrg mode(0)/analysis mode(1)", cxxopts::value<int>())
         ("h,help", "Print usage")
@@ -35,6 +36,7 @@ int main(int argc, char** argv){
             result["t"].as<float>(),
             result["theta"].as<float>(),
             result["u"].as<float>(),
+            result["q"].as<int>(),
             result["nstates"].as<int>(),
             result["analysis"].as<int>());
 
@@ -42,7 +44,7 @@ int main(int argc, char** argv){
 
     if(std::get<0>(params) == "golden"){
         auto dmrg_ = DMRG<Golden>(params);
-        if (std::get<9>(params) == 1){
+        if (std::get<10>(params) == 1){
             dmrg_.analyze();
         } else {
 //            auto start = std::chrono::high_resolution_clock::now();
@@ -53,7 +55,7 @@ int main(int argc, char** argv){
         return 0;
     }else if(std::get<0>(params) == "haagerup"){
         auto dmrg_ = DMRG<Haagerup>(params);
-        if (std::get<9>(params) == 1) {
+        if (std::get<10>(params) == 1) {
             dmrg_.analyze();
         } else {
             dmrg_.run();
@@ -61,7 +63,7 @@ int main(int argc, char** argv){
         return 0;
     }else if(std::get<0>(params) == "haagerupQN"){
         auto dmrg_ = DMRG<HaagerupQ>(params);
-        if (std::get<9>(params) == 1) {
+        if (std::get<10>(params) == 1) {
             dmrg_.analyze();
         } else {
             dmrg_.run();
