@@ -460,6 +460,8 @@ public:
         // Act translation/rho on psi to create psiT/psiR
         std::vector<MPS> pastT;
         std::vector<MPS> pastR;
+        auto left_extra = Index(36, "Site,Haagerup");
+        auto right_extra = Index(36, "Site,Haagerup");
         for(int i=0;i<len;i++){
             psiT = MPS(states.at(i));
             psiR = MPS(states.at(i));
@@ -468,8 +470,7 @@ public:
             psiT = applyMPO(translate_op, psiT);
             pastT.push_back(psiT);
 
-            auto left_extra = Index(36, "Site,Haagerup");
-            auto right_extra = Index(36, "Site,Haagerup");
+
 
             auto new_id = augmentMPO(identity(sites_new, rho_op), left_extra, right_extra);
 
@@ -477,7 +478,7 @@ public:
                                   augmentMPS(psiR, left_extra, right_extra),{"Cutoff", 1E-3}
             );
             auto step2 = applyMPO(new_id,step1,{"Cutoff", 1E-3});
-            println(innerC(augmentMPS(psiR, left_extra, right_extra),step2));
+            // println(innerC(augmentMPS(psiR, left_extra, right_extra),step2));
 
 
 //            psiR = applyMPO(TranslationOp(sites, true), psiR);
@@ -489,7 +490,7 @@ public:
 //                ActLocal(psiR, f_data.RhoDefect(sites(1), sites(2)),1);
 //            }
 //            psiR = applyMPO(TranslationOp(sites, false), psiR);
-            pastR.push_back(psiR);
+            pastR.push_back(step2);
         }
 
         // Create ITensors for
@@ -509,12 +510,12 @@ public:
             En.set(s(i+1),sP(i+1),dmrg_progress.Energies().at(i) - gs_en);
             for(int j=0;j<len;j++){
                 OpT.set(s(i+1),sP(j+1),innerC(states.at(i), pastT.at(j)));
-                OpR.set(s(i+1),sP(j+1),innerC(states.at(i), pastR.at(j)));
+                OpR.set(s(i+1),sP(j+1),innerC(augmentMPS(states.at(i), left_extra, right_extra), pastR.at(j)));
             }
         }
         PrintData(En);
-        // PrintData(OpR);
-        // PrintData(OpT);
+        PrintData(OpR);
+        PrintData(OpT);
 
 
         // Diagonalize translation
