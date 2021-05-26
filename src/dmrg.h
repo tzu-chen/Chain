@@ -5,42 +5,7 @@
 #include "chain.h"
 using namespace itensor;
 
-ITensor BasisRotation(Index s, Index sP) {
-    // auto sP=prime(s);
-    auto Op=ITensor(dag(s),sP);
-    // Op.set(s(1), sP(1), 3);
-    auto norm = 1/sqrt(3);
-    auto omega = -0.5+sqrt(3)/2 * 1_i;
-    auto omega_bar = -0.5-sqrt(3)/2 * 1_i;
-    for (int i=1;i<=3;i++){
-        Op.set(s(i), sP(1), norm);
-        Op.set(s(1), sP(i), norm);
-        Op.set(s(i+3), sP(4), norm);
-        Op.set(s(4), sP(i+3), norm);
-    }
-    Op.set(s(2), sP(2), norm * omega);
-    Op.set(s(3), sP(3), norm * omega);
-    Op.set(s(5), sP(5), norm * omega);
-    Op.set(s(6), sP(6), norm * omega);
 
-    Op.set(s(2), sP(3), norm * omega_bar);
-    Op.set(s(3), sP(2), norm * omega_bar);
-    Op.set(s(5), sP(6), norm * omega_bar);
-    Op.set(s(6), sP(5), norm * omega_bar);
-
-    return Op;
-}
-
-MPS BasisRotate(MPS psi, SiteSet sites_new){
-    int N = length(psi);
-    auto new_psi = MPS(sites_new);
-    for(auto j : range1(N))
-    {
-//        new_psi.set(j, psi(j) * delta(siteIndex(psi, j), sites_new(j)));
-        new_psi.set(j, psi(j) * BasisRotation(siteIndex(psi, j), sites_new(j)));
-    }
-    return new_psi;
-}
 
 template<typename SiteSetType>
 class DMRGProgress {
@@ -454,7 +419,7 @@ public:
 
 //        auto sites_new = sites;
 
-        auto rho_op = RhoOp(sites_new); // changed sites to sites_new
+        auto rho_op = RhoOp(sites_new, name_); // changed sites to sites_new
 
         auto translate_op = TranslationOp(sites_new); // changed sites to sites_new
         // Act translation/rho on psi to create psiT/psiR

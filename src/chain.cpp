@@ -146,24 +146,24 @@ MPO RhoOp_old(const SiteSet &sites) {
     return m;
 }
 
-MPO RhoOp(const SiteSet &sites) {
-    // , const std::string& sitetype_) {
+MPO RhoOp(const SiteSet &sites
+     , const std::string& sitetype_) {
     int N = sites.length();
 
     auto G = std::vector<ITensor>(N+1);
-    // if (sitetype_ == "golden"){
-    //     auto f = GoldenFData();
-    //     for (auto j : range1(N - 1)) {
-    //         G[j] = f.RhoDefect(sites(j), sites(j + 1));
-    //     }
-    //     G[N] = GoldenFData().RhoDefect(sites(N), sites(1));
-    // } else if (sitetype_ == "haagerup"){
+     if (sitetype_ == "golden"){
+         auto f = GoldenFData();
+         for (auto j : range1(N - 1)) {
+             G[j] = f.RhoDefect(sites(j), sites(j + 1));
+         }
+         G[N] = GoldenFData().RhoDefect(sites(N), sites(1));
+     } else if (sitetype_ == "haagerup" || sitetype_ == "haagerupQN"){
         auto f = HaagerupFData();
         for (auto j : range1(N - 1)) {
             G[j] = f.RhoDefect(sites(j), sites(j + 1));
         }
         G[N] = f.RhoDefect(sites(N), sites(1));
-    // }
+     }
 
     auto A = std::vector<ITensor>(N+1);
     auto B = std::vector<ITensor>(N+1);
@@ -234,8 +234,8 @@ augmentMPS(MPS const& psi, Index const& sl, Index const& sr){
     auto res = MPS(length(psi)+2);
     auto extrasiteindexleft = Index(1, "l=0,Link");
     auto extral = ITensor(sl, extrasiteindexleft);
-    for (auto i:range1(36)){
-        extral.set(i, 1,1/36.);
+    for (auto i:range1(dim(sl))){
+        extral.set(i, 1,1/dim(sl));
     }
     res.set(1, extral);
     auto vl = ITensor(extrasiteindexleft);
@@ -249,8 +249,8 @@ augmentMPS(MPS const& psi, Index const& sl, Index const& sr){
 
     auto extrasiteindexright = Index(1, "l=inf,Link");
     auto extrar = ITensor(sr, extrasiteindexright);
-    for (auto i:range1(36)){
-        extrar.set(i, 1,1/36.);
+    for (auto i:range1(dim(sr))){
+        extrar.set(i, 1,1/dim(sr));
     }
     res.set(length(psi)+2, extrar);
     auto vr = ITensor(extrasiteindexright);
@@ -282,6 +282,8 @@ MPO augmentMPO(MPO const& K, Index const& sl, Index const& sr){
 
     return res;
 }
+
+// Currently unused. Convenient for modifying applyMPO func without re-compiling itensor.
 
 MPS
 mydensityMatrixApplyMPOImpl(MPO const& K,
@@ -575,4 +577,40 @@ void ActGlobal(MPS &psi, const SiteSet &sites, TwoSiteGate gate, const std::stri
             ActLocal(psi, std::invoke(gate, f, sites(b), sites(b + 1)), b);
         }
     }
+}
+ITensor BasisRotation(Index const& s, Index const& sP) {
+    // auto sP=prime(s);
+    auto Op=ITensor(dag(s),sP);
+    // Op.set(s(1), sP(1), 3);
+    auto norm = 1/sqrt(3);
+    auto omega = -0.5+sqrt(3)/2 * 1_i;
+    auto omega_bar = -0.5-sqrt(3)/2 * 1_i;
+    for (int i=1;i<=3;i++){
+        Op.set(s(i), sP(1), norm);
+        Op.set(s(1), sP(i), norm);
+        Op.set(s(i+3), sP(4), norm);
+        Op.set(s(4), sP(i+3), norm);
+    }
+    Op.set(s(2), sP(2), norm * omega);
+    Op.set(s(3), sP(3), norm * omega);
+    Op.set(s(5), sP(5), norm * omega);
+    Op.set(s(6), sP(6), norm * omega);
+
+    Op.set(s(2), sP(3), norm * omega_bar);
+    Op.set(s(3), sP(2), norm * omega_bar);
+    Op.set(s(5), sP(6), norm * omega_bar);
+    Op.set(s(6), sP(5), norm * omega_bar);
+
+    return Op;
+}
+
+MPS BasisRotate(MPS const& psi, SiteSet const& sites_new){
+    int N = length(psi);
+    auto new_psi = MPS(sites_new);
+    for(auto j : range1(N))
+    {
+//        new_psi.set(j, psi(j) * delta(siteIndex(psi, j), sites_new(j)));
+        new_psi.set(j, psi(j) * BasisRotation(siteIndex(psi, j), sites_new(j)));
+    }
+    return new_psi;
 }
