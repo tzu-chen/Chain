@@ -425,8 +425,12 @@ public:
         // Act translation/rho on psi to create psiT/psiR
         std::vector<MPS> pastT;
         std::vector<MPS> pastR;
+
+        // Dangling indices on the edges of MPO that will be contracted using an identity tensor
+        // to construct a periodic operator.
         auto left_extra = Index(36, "Site,Haagerup");
         auto right_extra = Index(36, "Site,Haagerup");
+
         for(int i=0;i<len;i++){
             psiT = MPS(states.at(i));
             psiR = MPS(states.at(i));
@@ -438,6 +442,9 @@ public:
 
 
             auto new_id = augmentMPO(identity(sites_new, rho_op), left_extra, right_extra);
+
+            // Default cutoff for applyMPO(density matrix variant) is 1E-12. Setting to larger value will
+            // speed up the program significantly at the cost of accuracy of measurements
 
             auto step1 = applyMPO(augmentMPO(rho_op, left_extra, right_extra),
                                   augmentMPS(psiR, left_extra, right_extra),{"Cutoff", 1E-3}
