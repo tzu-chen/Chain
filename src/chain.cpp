@@ -235,7 +235,7 @@ augmentMPS(MPS const& psi, Index const& sl, Index const& sr){
     auto extrasiteindexleft = Index(1, "l=0,Link");
     auto extral = ITensor(sl, extrasiteindexleft);
     for (auto i:range1(dim(sl))){
-        extral.set(i, 1,1/dim(sl));
+        extral.set(i, 1,1./dim(sl));
     }
     res.set(1, extral);
     auto vl = ITensor(extrasiteindexleft);
@@ -250,7 +250,7 @@ augmentMPS(MPS const& psi, Index const& sl, Index const& sr){
     auto extrasiteindexright = Index(1, "l=inf,Link");
     auto extrar = ITensor(sr, extrasiteindexright);
     for (auto i:range1(dim(sr))){
-        extrar.set(i, 1,1/dim(sr));
+        extrar.set(i, 1,1./dim(sr));
     }
     res.set(length(psi)+2, extrar);
     auto vr = ITensor(extrasiteindexright);

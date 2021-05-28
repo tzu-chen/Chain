@@ -1,6 +1,7 @@
 #ifndef CHAINDMRG_DMRG_H
 #define CHAINDMRG_DMRG_H
 #include <filesystem>
+#include <variant>
 #include "itensor/all.h"
 #include "chain.h"
 using namespace itensor;
@@ -361,7 +362,7 @@ public:
             }
 
             // debug
-            print(totalQN(psi));
+            // print(totalQN(psi));
             print("\n");
 
             dumpEnergy(dmrg_progress.num_past_states(), en/N, en_path);
@@ -393,7 +394,6 @@ public:
     }
 
 
-
     void analyze(){
         printf("\n%s: N=%d maxmaxdim=%d cutoff=%g theta=%g K=%g J=%g U=%g\n\n",job,N,gs_maxmaxdimension,cutoff,theta,K,J,U);
 
@@ -411,12 +411,25 @@ public:
 //        sites = dmrg_progress.Sites();
         int len = std::min((int) states.size(), num_past_states+1);
         // fixme: refactor Haagerup/HaagerupQN branching
-         auto sites_new = Haagerup(N);
-         for(int i=0;i<len;i++){
-             auto states_no_qn = removeQNs(states.at(i));
-             states.at(i) = BasisRotate(states_no_qn, sites_new);
-         }
+        SiteSet sites_new;
+         if (name_ == "golden" or name_ == "haagerup"){
+             sites_new = sites;
+             for (int i = 0; i < len; i++) {
+                 auto new_psi = MPS(sites_new);
+                 auto psi = states.at(i);
+                 for(auto j : range1(N)) {
+                     new_psi.set(j, psi(j)* delta(siteIndex(psi, j), sites_new(j)) );
+                 }
+                 states.at(i) = new_psi;
+             }
 
+         } else {
+             sites_new = Haagerup(N);
+             for (int i = 0; i < len; i++) {
+                 auto states_no_qn = removeQNs(states.at(i));
+                 states.at(i) = BasisRotate(states_no_qn, sites_new);
+             }
+         }
 //        auto sites_new = sites;
 
         auto rho_op = RhoOp(sites_new, name_); // changed sites to sites_new
@@ -428,8 +441,8 @@ public:
 
         // Dangling indices on the edges of MPO that will be contracted using an identity tensor
         // to construct a periodic operator.
-        auto left_extra = Index(36, "Site,Haagerup");
-        auto right_extra = Index(36, "Site,Haagerup");
+        auto left_extra = Index(36, "Site");
+        auto right_extra = Index(36, "Site");
 
         for(int i=0;i<len;i++){
             psiT = MPS(states.at(i));
