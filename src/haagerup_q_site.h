@@ -39,6 +39,8 @@ public:
     op(std::string const& opname,Args const& args = Args::global()) const;
 };
 
-MPO ConstructH(const HaagerupQ& sites, const std::string& boundary_condition, int N, Real U, Real K, Real J);
+// Hamiltonian appropriate for the boundary condition, number of sites, and couplings
+// Polymorphic function specified by SiteSetType = HaagerupQ
+MPO Hamiltonian(const HaagerupQ& sites, const std::string& boundary_condition, int num_sites, Real U, Real K, Real J);
 
 #endif

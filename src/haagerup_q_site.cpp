@@ -274,15 +274,15 @@ ITensor HaagerupQSite::op(const string &opname, const Args &args) const {
     throw ITError("Operator name "+opname+" not recognized");
 }
 // fixme: (maybe) make ConstructH a method of the site specific class?
-MPO ConstructH(const HaagerupQ& sites, const std::string& boundary_condition, int N, Real U, Real K, Real J) {
+MPO Hamiltonian(const HaagerupQ& sites, const std::string& boundary_condition, int num_sites, Real U, Real K, Real J) {
     auto ampo = AutoMPO(sites);
 
-    int L = N;
+    int L = num_sites;
     if(boundary_condition != "p"){
-        L = N-1;
+        L = num_sites - 1;
     }
     if(boundary_condition == "sp"){
-        L = N-2;
+        L = num_sites - 2;
     }
     // set up excluded pairs
     Real Uj;
@@ -294,26 +294,26 @@ MPO ConstructH(const HaagerupQ& sites, const std::string& boundary_condition, in
                 Uj = U;
             }
 
-            ampo += 9*Uj,"m1",j,"m1",mod(j+1,N);
-            ampo += 6*Uj,"m1",j,"m4",mod(j+1,N);
-            ampo += -3*Uj,"m2",j,"m6",mod(j+1,N);
-            ampo += -3*Uj,"m3",j,"m5",mod(j+1,N);
-            ampo += 6*Uj,"m4",j,"m1",mod(j+1,N);
-            ampo += -3*Uj,"m5",j,"m3",mod(j+1,N);
-            ampo += -3*Uj,"m6",j,"m2",mod(j+1,N);
+            ampo += 9*Uj,"m1",j,"m1",mod(j+1, num_sites);
+            ampo += 6*Uj,"m1",j,"m4",mod(j+1, num_sites);
+            ampo += -3*Uj,"m2",j,"m6",mod(j+1, num_sites);
+            ampo += -3*Uj,"m3",j,"m5",mod(j+1, num_sites);
+            ampo += 6*Uj,"m4",j,"m1",mod(j+1, num_sites);
+            ampo += -3*Uj,"m5",j,"m3",mod(j+1, num_sites);
+            ampo += -3*Uj,"m6",j,"m2",mod(j+1, num_sites);
         }
     }
-//    if(boundary_condition == "o"){
+//    if(boundary_condition_ == "o"){
 //        ampo += 6*Uj,"m1",1;
-//        ampo += 6*Uj,"m1",N;
+//        ampo += 6*Uj,"m1",num_sites_;
 //    }
 
-    L = N;
+    L = num_sites;
     if(boundary_condition != "p"){
-        L = N-2;
+        L = num_sites - 2;
     }
     if(boundary_condition == "sp"){
-        L = N-3;
+        L = num_sites - 3;
     }
     // projectors
     Real Kj;
@@ -325,30 +325,30 @@ MPO ConstructH(const HaagerupQ& sites, const std::string& boundary_condition, in
                 Kj = K;
             }
 
-            ampo += 3*Kj,"m1",j,"m4",mod(j+1,N),"m1",mod(j+2,N);
-            ampo += 3*Kj,"m1",j,"m5",mod(j+1,N),"m3",mod(j+2,N);
-            ampo += 3*Kj,"m1",j,"m6",mod(j+1,N),"m2",mod(j+2,N);
-            ampo += 3*Kj,"m2",j,"m4",mod(j+1,N),"m3",mod(j+2,N);
-            ampo += 3*Kj,"m2",j,"m5",mod(j+1,N),"m2",mod(j+2,N);
-            ampo += 3*Kj,"m2",j,"m6",mod(j+1,N),"m1",mod(j+2,N);
-            ampo += 3*Kj,"m3",j,"m4",mod(j+1,N),"m2",mod(j+2,N);
-            ampo += 3*Kj,"m3",j,"m5",mod(j+1,N),"m1",mod(j+2,N);
-            ampo += 3*Kj,"m3",j,"m6",mod(j+1,N),"m3",mod(j+2,N);
+            ampo += 3*Kj,"m1",j,"m4",mod(j+1, num_sites),"m1",mod(j + 2, num_sites);
+            ampo += 3*Kj,"m1",j,"m5",mod(j+1, num_sites),"m3",mod(j + 2, num_sites);
+            ampo += 3*Kj,"m1",j,"m6",mod(j+1, num_sites),"m2",mod(j + 2, num_sites);
+            ampo += 3*Kj,"m2",j,"m4",mod(j+1, num_sites),"m3",mod(j + 2, num_sites);
+            ampo += 3*Kj,"m2",j,"m5",mod(j+1, num_sites),"m2",mod(j + 2, num_sites);
+            ampo += 3*Kj,"m2",j,"m6",mod(j+1, num_sites),"m1",mod(j + 2, num_sites);
+            ampo += 3*Kj,"m3",j,"m4",mod(j+1, num_sites),"m2",mod(j + 2, num_sites);
+            ampo += 3*Kj,"m3",j,"m5",mod(j+1, num_sites),"m1",mod(j + 2, num_sites);
+            ampo += 3*Kj,"m3",j,"m6",mod(j+1, num_sites),"m3",mod(j + 2, num_sites);
 
-            ampo += 3*Kj,"m4",j,"q1",mod(j+1,N),"m4",mod(j+2,N);
-            ampo += 3*Kj,"m4",j,"q2",mod(j+1,N),"m6",mod(j+2,N);
-            ampo += 3*Kj,"m4",j,"q3",mod(j+1,N),"m5",mod(j+2,N);
-            ampo += 3*Kj,"m5",j,"q1",mod(j+1,N),"m6",mod(j+2,N);
-            ampo += 3*Kj,"m5",j,"q2",mod(j+1,N),"m5",mod(j+2,N);
-            ampo += 3*Kj,"m5",j,"q3",mod(j+1,N),"m4",mod(j+2,N);
-            ampo += 3*Kj,"m6",j,"q1",mod(j+1,N),"m5",mod(j+2,N);
-            ampo += 3*Kj,"m6",j,"q2",mod(j+1,N),"m4",mod(j+2,N);
-            ampo += 3*Kj,"m6",j,"q3",mod(j+1,N),"m6",mod(j+2,N);
+            ampo += 3*Kj,"m4",j,"q1",mod(j+1, num_sites),"m4",mod(j + 2, num_sites);
+            ampo += 3*Kj,"m4",j,"q2",mod(j+1, num_sites),"m6",mod(j + 2, num_sites);
+            ampo += 3*Kj,"m4",j,"q3",mod(j+1, num_sites),"m5",mod(j + 2, num_sites);
+            ampo += 3*Kj,"m5",j,"q1",mod(j+1, num_sites),"m6",mod(j + 2, num_sites);
+            ampo += 3*Kj,"m5",j,"q2",mod(j+1, num_sites),"m5",mod(j + 2, num_sites);
+            ampo += 3*Kj,"m5",j,"q3",mod(j+1, num_sites),"m4",mod(j + 2, num_sites);
+            ampo += 3*Kj,"m6",j,"q1",mod(j+1, num_sites),"m5",mod(j + 2, num_sites);
+            ampo += 3*Kj,"m6",j,"q2",mod(j+1, num_sites),"m4",mod(j + 2, num_sites);
+            ampo += 3*Kj,"m6",j,"q3",mod(j+1, num_sites),"m6",mod(j + 2, num_sites);
         }
     }
-//    if(boundary_condition == "o"){
+//    if(boundary_condition_ == "o"){
 //        ampo += 6*Uj,"m1",1;
-//        ampo += 6*Uj,"m1",N;
+//        ampo += 6*Uj,"m1",num_sites_;
 //    }
 
     Real Jj;
@@ -360,35 +360,35 @@ MPO ConstructH(const HaagerupQ& sites, const std::string& boundary_condition, in
                 Jj = J;
             }
 
-            ampo += 3*Jj,"m1",j,"m4",mod(j+1,N),"m4",mod(j+2,N);
-            ampo += 3*Jj,"m1",j,"m5",mod(j+1,N),"m6",mod(j+2,N);
-            ampo += 3*Jj,"m1",j,"m6",mod(j+1,N),"m5",mod(j+2,N);
-            ampo += 3*Jj,"m2",j,"m4",mod(j+1,N),"m6",mod(j+2,N);
-            ampo += 3*Jj,"m2",j,"m5",mod(j+1,N),"m5",mod(j+2,N);
-            ampo += 3*Jj,"m2",j,"m6",mod(j+1,N),"m4",mod(j+2,N);
-            ampo += 3*Jj,"m3",j,"m4",mod(j+1,N),"m5",mod(j+2,N);
-            ampo += 3*Jj,"m3",j,"m5",mod(j+1,N),"m4",mod(j+2,N);
-            ampo += 3*Jj,"m3",j,"m6",mod(j+1,N),"m6",mod(j+2,N);
+            ampo += 3*Jj,"m1",j,"m4",mod(j+1, num_sites),"m4",mod(j + 2, num_sites);
+            ampo += 3*Jj,"m1",j,"m5",mod(j+1, num_sites),"m6",mod(j + 2, num_sites);
+            ampo += 3*Jj,"m1",j,"m6",mod(j+1, num_sites),"m5",mod(j + 2, num_sites);
+            ampo += 3*Jj,"m2",j,"m4",mod(j+1, num_sites),"m6",mod(j + 2, num_sites);
+            ampo += 3*Jj,"m2",j,"m5",mod(j+1, num_sites),"m5",mod(j + 2, num_sites);
+            ampo += 3*Jj,"m2",j,"m6",mod(j+1, num_sites),"m4",mod(j + 2, num_sites);
+            ampo += 3*Jj,"m3",j,"m4",mod(j+1, num_sites),"m5",mod(j + 2, num_sites);
+            ampo += 3*Jj,"m3",j,"m5",mod(j+1, num_sites),"m4",mod(j + 2, num_sites);
+            ampo += 3*Jj,"m3",j,"m6",mod(j+1, num_sites),"m6",mod(j + 2, num_sites);
 
-            ampo += 3*Jj,"m4",j,"m4",mod(j+1,N),"m1",mod(j+2,N);
-            ampo += 3*Jj,"m4",j,"m5",mod(j+1,N),"m3",mod(j+2,N);
-            ampo += 3*Jj,"m4",j,"m6",mod(j+1,N),"m2",mod(j+2,N);
-            ampo += 3*Jj,"m5",j,"m4",mod(j+1,N),"m3",mod(j+2,N);
-            ampo += 3*Jj,"m5",j,"m5",mod(j+1,N),"m2",mod(j+2,N);
-            ampo += 3*Jj,"m5",j,"m6",mod(j+1,N),"m1",mod(j+2,N);
-            ampo += 3*Jj,"m6",j,"m4",mod(j+1,N),"m2",mod(j+2,N);
-            ampo += 3*Jj,"m6",j,"m5",mod(j+1,N),"m1",mod(j+2,N);
-            ampo += 3*Jj,"m6",j,"m6",mod(j+1,N),"m3",mod(j+2,N);
+            ampo += 3*Jj,"m4",j,"m4",mod(j+1, num_sites),"m1",mod(j + 2, num_sites);
+            ampo += 3*Jj,"m4",j,"m5",mod(j+1, num_sites),"m3",mod(j + 2, num_sites);
+            ampo += 3*Jj,"m4",j,"m6",mod(j+1, num_sites),"m2",mod(j + 2, num_sites);
+            ampo += 3*Jj,"m5",j,"m4",mod(j+1, num_sites),"m3",mod(j + 2, num_sites);
+            ampo += 3*Jj,"m5",j,"m5",mod(j+1, num_sites),"m2",mod(j + 2, num_sites);
+            ampo += 3*Jj,"m5",j,"m6",mod(j+1, num_sites),"m1",mod(j + 2, num_sites);
+            ampo += 3*Jj,"m6",j,"m4",mod(j+1, num_sites),"m2",mod(j + 2, num_sites);
+            ampo += 3*Jj,"m6",j,"m5",mod(j+1, num_sites),"m1",mod(j + 2, num_sites);
+            ampo += 3*Jj,"m6",j,"m6",mod(j+1, num_sites),"m3",mod(j + 2, num_sites);
 
-            ampo += 9*Jj,"m4",j,"qr11",mod(j+1,N),"m4",mod(j+2,N);
-            ampo += 9*Jj,"m4",j,"qr12",mod(j+1,N),"m6",mod(j+2,N);
-            ampo += 9*Jj,"m4",j,"qr13",mod(j+1,N),"m5",mod(j+2,N);
-            ampo += 9*Jj,"m5",j,"qr31",mod(j+1,N),"m4",mod(j+2,N);
-            ampo += 9*Jj,"m5",j,"qr32",mod(j+1,N),"m6",mod(j+2,N);
-            ampo += 9*Jj,"m5",j,"qr33",mod(j+1,N),"m5",mod(j+2,N);
-            ampo += 9*Jj,"m6",j,"qr21",mod(j+1,N),"m4",mod(j+2,N);
-            ampo += 9*Jj,"m6",j,"qr22",mod(j+1,N),"m6",mod(j+2,N);
-            ampo += 9*Jj,"m6",j,"qr23",mod(j+1,N),"m5",mod(j+2,N);
+            ampo += 9*Jj,"m4",j,"qr11",mod(j+1, num_sites),"m4",mod(j + 2, num_sites);
+            ampo += 9*Jj,"m4",j,"qr12",mod(j+1, num_sites),"m6",mod(j + 2, num_sites);
+            ampo += 9*Jj,"m4",j,"qr13",mod(j+1, num_sites),"m5",mod(j + 2, num_sites);
+            ampo += 9*Jj,"m5",j,"qr31",mod(j+1, num_sites),"m4",mod(j + 2, num_sites);
+            ampo += 9*Jj,"m5",j,"qr32",mod(j+1, num_sites),"m6",mod(j + 2, num_sites);
+            ampo += 9*Jj,"m5",j,"qr33",mod(j+1, num_sites),"m5",mod(j + 2, num_sites);
+            ampo += 9*Jj,"m6",j,"qr21",mod(j+1, num_sites),"m4",mod(j + 2, num_sites);
+            ampo += 9*Jj,"m6",j,"qr22",mod(j+1, num_sites),"m6",mod(j + 2, num_sites);
+            ampo += 9*Jj,"m6",j,"qr23",mod(j+1, num_sites),"m5",mod(j + 2, num_sites);
         }
     }
 

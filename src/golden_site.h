@@ -31,12 +31,13 @@ public:
 private:
     Index s;
     GoldenFData golden_f_data;
-    const double kPhiInv = golden_f_data.kPhiInv;
-    const double kSqrtPhiInv = golden_f_data.kSqrtPhiInv;
+    const double kPhiInv = golden_f_data.kPhiInv_;
+    const double kSqrtPhiInv = golden_f_data.kSqrtPhiInv_;
 };
 using Golden=BasicSiteSet<GoldenSite>;
 
-// Returns Hamiltonian appropriate for the boundary condition, number of sites, and couplings
-MPO ConstructH(const Golden& sites, const std::string& boundary_condition, int N, Real U, Real K, Real J);
+// Hamiltonian appropriate for the boundary condition, number of sites, and couplings
+// Polymorphic function specified by SiteSetType = Golden
+MPO Hamiltonian(const Golden& sites, const std::string& boundary_condition, int num_sites, Real U, Real K, Real J);
 
 #endif //GOLDEN_SITE_H

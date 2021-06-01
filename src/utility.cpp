@@ -1,5 +1,7 @@
 #include "utility.h"
 
+
+// UNUSED
 Real Spin(Cplx num, int NN) {
     Real spin = log(num).imag()/(2*Pi)*NN;
     if(spin>NN/2){
@@ -9,7 +11,7 @@ Real Spin(Cplx num, int NN) {
 }
 
 
-
+// UNUSED
 Cplx Chop(Cplx num) {
     Real r = num.real();
     Real i = num.imag();
@@ -23,14 +25,12 @@ Cplx Chop(Cplx num) {
 }
 
 
-
-
-std::vector<double> calcEE(MPS psi, int N) {
+std::vector<double> CalcEE(MPS psi, int N) {
     std::vector<double> SvNs;
     for(auto b=1;b<N;b++){
         psi.position(b);
 
-        //SVD this wavefunction to get the spectrum
+        //SVD this wavefunction to All the spectrum
         //of density-matrix eigenvalues
         auto l = leftLinkIndex(psi,b);
         auto s = siteIndex(psi,b);
@@ -51,10 +51,8 @@ std::vector<double> calcEE(MPS psi, int N) {
     return SvNs;
 }
 
-// fixme: string -> filesystem::path
 
-
-void dumpEE(int N, std::vector<double> SvNs, const std::filesystem::path &p) {
+void DumpEE(int N, std::vector<double> SvNs, const std::filesystem::path &p) {
     std::string filename = std::string(p);
     FILE * eefile;
     eefile = fopen(filename.c_str(), "a");
@@ -66,10 +64,8 @@ void dumpEE(int N, std::vector<double> SvNs, const std::filesystem::path &p) {
     fclose(eefile);
 }
 
-// fixme: string -> filesystem::path
 
-
-void dumpEnergy(int state, Real en, const std::filesystem::path &p) {
+void DumpEnergy(int state, Real en, const std::filesystem::path &p) {
     std::string filename = std::string(p);
     FILE * file;
     file = fopen(filename.c_str(), "a");
@@ -82,8 +78,7 @@ void dumpEnergy(int state, Real en, const std::filesystem::path &p) {
 }
 
 
-
-void dumpMeasurement(const string &name, int len, const ITensor &i_tensor, const std::filesystem::path &p) {
+void DumpMeasurement(const string &name, int len, const ITensor &i_tensor, const std::filesystem::path &p) {
     std::string filename = std::string(p);
     FILE * file;
     file = fopen(filename.c_str(),"a");
@@ -108,11 +103,12 @@ void dumpMeasurement(const string &name, int len, const ITensor &i_tensor, const
     fclose(file);
 }
 
-void dumpMathematica(int len, const ITensor &En, const ITensor &OpT, const std::filesystem::path &p) {
+
+void DumpMathematica(int len, const ITensor &En, const ITensor &OpT, const std::filesystem::path &p) {
     std::string filename = std::string(p);
     FILE * file;
     file = fopen(filename.c_str(),"w");
     fclose(file);
-    dumpMeasurement("En", len, En, filename);
-    dumpMeasurement("OpT", len, OpT, filename);
+    DumpMeasurement("En", len, En, filename);
+    DumpMeasurement("OpT", len, OpT, filename);
 }

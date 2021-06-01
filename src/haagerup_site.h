@@ -53,7 +53,8 @@ public:
 
 
 
-// Returns Hamiltonian appropriate for the boundary condition, number of sites, and couplings
-MPO ConstructH(Haagerup sites, std::string boundary_condition, int N, Real U, Real K, Real J);
+// Hamiltonian appropriate for the boundary condition, number of sites, and couplings
+// Polymorphic function specified by SiteSetType = Haagerup
+MPO Hamiltonian(Haagerup sites, std::string boundary_condition, int num_sites, Real U, Real K, Real J);
 
 

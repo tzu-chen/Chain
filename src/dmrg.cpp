@@ -2,7 +2,7 @@
 #include <tuple>
 #include "dmrg.h"
 #include <cxxopts.hpp>
-//uncomment this and the std::chrono lines to enable timing
+// Uncomment this and the std::chrono lines to enable timing
 //#include <chrono>
 int main(int argc, char** argv){
     cxxopts::Options options("Chain", "Simulates DMRG on anyon chains.");
@@ -11,11 +11,11 @@ int main(int argc, char** argv){
         ("b,bc", "Boundary condition types(p/o/s/sp)", cxxopts::value<std::string>())
         ("n", "# of sites", cxxopts::value<int>())
         ("d", "Max dimension", cxxopts::value<int>())
-        ("c,cutoff", "Cutoff", cxxopts::value<float>())
+        ("c,svd_cutoff_", "Cutoff", cxxopts::value<float>())
         ("t,tol", "Tolerance", cxxopts::value<float>())
         ("theta", "theta", cxxopts::value<float>())
         ("u,penalty", "Penalty size", cxxopts::value<float>())
-        ("q,charge", "Charge", cxxopts::value<int>())
+        ("q,charge_", "Charge", cxxopts::value<int>())
         ("nstates", "# of states to solve for", cxxopts::value<int>())
         ("analysis", "dmrg mode(0)/analysis mode(1)", cxxopts::value<int>())
         ("h,help", "Print usage")
@@ -39,16 +39,15 @@ int main(int argc, char** argv){
             result["q"].as<int>(),
             result["nstates"].as<int>(),
             result["analysis"].as<int>());
-
     // fixme: disentangle case from task
 
     if(std::get<0>(params) == "golden"){
         auto dmrg_ = DMRG<Golden>(params);
         if (std::get<10>(params) == 1){
-            dmrg_.analyze();
+            dmrg_.Analyze();
         } else {
 //            auto start = std::chrono::high_resolution_clock::now();
-            dmrg_.run();
+            dmrg_.Run();
 //            auto stop = std::chrono::high_resolution_clock::now();
 //            std::cout << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() << std::endl;
         }
@@ -56,17 +55,17 @@ int main(int argc, char** argv){
     }else if(std::get<0>(params) == "haagerup"){
         auto dmrg_ = DMRG<Haagerup>(params);
         if (std::get<10>(params) == 1) {
-            dmrg_.analyze();
+            dmrg_.Analyze();
         } else {
-            dmrg_.run();
+            dmrg_.Run();
         }
         return 0;
     }else if(std::get<0>(params) == "haagerupQN"){
         auto dmrg_ = DMRG<HaagerupQ>(params);
         if (std::get<10>(params) == 1) {
-            dmrg_.analyze();
+            dmrg_.Analyze();
         } else {
-            dmrg_.run();
+            dmrg_.Run();
         }
         return 0;
     }else {

@@ -126,84 +126,85 @@ ITensor HaagerupSite::op(const string &opname, const Args &args) const {
     }
     throw ITError("Operator name "+opname+" not recognized");
 }
+
 // fixme: (maybe) make ConstructH a method of the site specific class?
-MPO ConstructH(Haagerup sites, std::string boundary_condition, int N, Real U, Real K, Real J) {
+MPO Hamiltonian(Haagerup sites, std::string boundary_condition, int num_sites, Real U, Real K, Real J) {
     auto ampo = AutoMPO(sites);
-    int L = N;
+    int L = num_sites;
     if(boundary_condition != "p"){
-        L = N-1;
+        L = num_sites - 1;
     }
     if(boundary_condition == "sp"){
-        L = N-2;
+        L = num_sites - 2;
     }
     // set up excluded pairs
     if(U!=0){
         for(int j = 1; j <= L; ++j){
-            ampo += U,"n1",j,"n1",mod(j+1,N);
-            ampo += U,"n1",j,"na",mod(j+1,N);
-            ampo += U,"n1",j,"nb",mod(j+1,N);
-            ampo += U,"n1",j,"nar",mod(j+1,N);
-            ampo += U,"n1",j,"nbr",mod(j+1,N);
+            ampo += U,"n1",j,"n1",mod(j+1, num_sites);
+            ampo += U,"n1",j,"na",mod(j+1, num_sites);
+            ampo += U,"n1",j,"nb",mod(j+1, num_sites);
+            ampo += U,"n1",j,"nar",mod(j+1, num_sites);
+            ampo += U,"n1",j,"nbr",mod(j+1, num_sites);
 
-            ampo += U,"na",j,"n1",mod(j+1,N);
-            ampo += U,"na",j,"na",mod(j+1,N);
-            ampo += U,"na",j,"nb",mod(j+1,N);
-            ampo += U,"na",j,"nr",mod(j+1,N);
-            ampo += U,"na",j,"nbr",mod(j+1,N);
+            ampo += U,"na",j,"n1",mod(j+1, num_sites);
+            ampo += U,"na",j,"na",mod(j+1, num_sites);
+            ampo += U,"na",j,"nb",mod(j+1, num_sites);
+            ampo += U,"na",j,"nr",mod(j+1, num_sites);
+            ampo += U,"na",j,"nbr",mod(j+1, num_sites);
 
-            ampo += U,"nb",j,"n1",mod(j+1,N);
-            ampo += U,"nb",j,"na",mod(j+1,N);
-            ampo += U,"nb",j,"nb",mod(j+1,N);
-            ampo += U,"nb",j,"nr",mod(j+1,N);
-            ampo += U,"nb",j,"nar",mod(j+1,N);
+            ampo += U,"nb",j,"n1",mod(j+1, num_sites);
+            ampo += U,"nb",j,"na",mod(j+1, num_sites);
+            ampo += U,"nb",j,"nb",mod(j+1, num_sites);
+            ampo += U,"nb",j,"nr",mod(j+1, num_sites);
+            ampo += U,"nb",j,"nar",mod(j+1, num_sites);
 
-            ampo += U,"nr",j,"na",mod(j+1,N);
-            ampo += U,"nr",j,"nb",mod(j+1,N);
+            ampo += U,"nr",j,"na",mod(j+1, num_sites);
+            ampo += U,"nr",j,"nb",mod(j+1, num_sites);
 
-            ampo += U,"nar",j,"n1",mod(j+1,N);
-            ampo += U,"nar",j,"nb",mod(j+1,N);
+            ampo += U,"nar",j,"n1",mod(j+1, num_sites);
+            ampo += U,"nar",j,"nb",mod(j+1, num_sites);
 
-            ampo += U,"nbr",j,"n1",mod(j+1,N);
-            ampo += U,"nbr",j,"na",mod(j+1,N);
+            ampo += U,"nbr",j,"n1",mod(j+1, num_sites);
+            ampo += U,"nbr",j,"na",mod(j+1, num_sites);
         }
     }
 
-    L = N;
+    L = num_sites;
     if(boundary_condition != "p"){
-        L = N-2;
+        L = num_sites - 2;
     }
     if(boundary_condition == "sp"){
-        L = N-3;
+        L = num_sites - 3;
     }
     // projectors
     if(K!=0){
         for(int j = 1; j <= L; ++j){
-            ampo += K,"n1",j,"nr",mod(j+1,N),"n1",mod(j+2,N);
-            ampo += K,"na",j,"nar",mod(j+1,N),"na",mod(j+2,N);
-            ampo += K,"nb",j,"nbr",mod(j+1,N),"nb",mod(j+2,N);
-            ampo += K,"nr",j,"FF1",mod(j+1,N),"nr",mod(j+2,N);
-            ampo += K,"nar",j,"FFa",mod(j+1,N),"nar",mod(j+2,N);
-            ampo += K,"nbr",j,"FFb",mod(j+1,N),"nbr",mod(j+2,N);
+            ampo += K,"n1",j,"nr",mod(j+1, num_sites),"n1",mod(j + 2, num_sites);
+            ampo += K,"na",j,"nar",mod(j+1, num_sites),"na",mod(j + 2, num_sites);
+            ampo += K,"nb",j,"nbr",mod(j+1, num_sites),"nb",mod(j + 2, num_sites);
+            ampo += K,"nr",j,"FF1",mod(j+1, num_sites),"nr",mod(j + 2, num_sites);
+            ampo += K,"nar",j,"FFa",mod(j+1, num_sites),"nar",mod(j + 2, num_sites);
+            ampo += K,"nbr",j,"FFb",mod(j+1, num_sites),"nbr",mod(j + 2, num_sites);
         }
     }
 
     if(J!=0){
         for(int j = 1; j <= L; ++j){
-            ampo += J,"n1",j,"nr",mod(j+1,N),"nr",mod(j+2,N);
-            ampo += J,"nr",j,"nr",mod(j+1,N),"n1",mod(j+2,N);
-            ampo += J,"na",j,"nar",mod(j+1,N),"nar",mod(j+2,N);
-            ampo += J,"nar",j,"nar",mod(j+1,N),"na",mod(j+2,N);
-            ampo += J,"nb",j,"nbr",mod(j+1,N),"nbr",mod(j+2,N);
-            ampo += J,"nbr",j,"nbr",mod(j+1,N),"nb",mod(j+2,N);
-            ampo += J,"nr",j,"Frr",mod(j+1,N),"nr",mod(j+2,N);
-            ampo += J,"nr",j,"Frar",mod(j+1,N),"nar",mod(j+2,N);
-            ampo += J,"nr",j,"Frbr",mod(j+1,N),"nbr",mod(j+2,N);
-            ampo += J,"nar",j,"Farr",mod(j+1,N),"nr",mod(j+2,N);
-            ampo += J,"nar",j,"Farar",mod(j+1,N),"nar",mod(j+2,N);
-            ampo += J,"nar",j,"Farbr",mod(j+1,N),"nbr",mod(j+2,N);
-            ampo += J,"nbr",j,"Fbrr",mod(j+1,N),"nr",mod(j+2,N);
-            ampo += J,"nbr",j,"Fbrar",mod(j+1,N),"nar",mod(j+2,N);
-            ampo += J,"nbr",j,"Fbrbr",mod(j+1,N),"nbr",mod(j+2,N);
+            ampo += J,"n1",j,"nr",mod(j+1, num_sites),"nr",mod(j + 2, num_sites);
+            ampo += J,"nr",j,"nr",mod(j+1, num_sites),"n1",mod(j + 2, num_sites);
+            ampo += J,"na",j,"nar",mod(j+1, num_sites),"nar",mod(j + 2, num_sites);
+            ampo += J,"nar",j,"nar",mod(j+1, num_sites),"na",mod(j + 2, num_sites);
+            ampo += J,"nb",j,"nbr",mod(j+1, num_sites),"nbr",mod(j + 2, num_sites);
+            ampo += J,"nbr",j,"nbr",mod(j+1, num_sites),"nb",mod(j + 2, num_sites);
+            ampo += J,"nr",j,"Frr",mod(j+1, num_sites),"nr",mod(j + 2, num_sites);
+            ampo += J,"nr",j,"Frar",mod(j+1, num_sites),"nar",mod(j + 2, num_sites);
+            ampo += J,"nr",j,"Frbr",mod(j+1, num_sites),"nbr",mod(j + 2, num_sites);
+            ampo += J,"nar",j,"Farr",mod(j+1, num_sites),"nr",mod(j + 2, num_sites);
+            ampo += J,"nar",j,"Farar",mod(j+1, num_sites),"nar",mod(j + 2, num_sites);
+            ampo += J,"nar",j,"Farbr",mod(j+1, num_sites),"nbr",mod(j + 2, num_sites);
+            ampo += J,"nbr",j,"Fbrr",mod(j+1, num_sites),"nr",mod(j + 2, num_sites);
+            ampo += J,"nbr",j,"Fbrar",mod(j+1, num_sites),"nar",mod(j + 2, num_sites);
+            ampo += J,"nbr",j,"Fbrbr",mod(j+1, num_sites),"nbr",mod(j + 2, num_sites);
         }
     }
 

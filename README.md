@@ -15,11 +15,11 @@ lib -> extern/itensor/lib
 
 -I/usr/include/openblas -> -I/usr/local/opt/openblas/include
 
-For cmake versions ealier than 2.8, you can manually cmake_minimum_required, but you may need to explicitly include extra libraries. If GNU version is older version, you may need to add -lstdc++fs to ITENSOR_LINK_FLAGS.
+For cmake versions ealier than 2.8, you can manually cmake_minimum_required, but you may need to explicitly include extra libraries. If GNU version is older version, you may need to Add -lstdc++fs to ITENSOR_LINK_FLAGS.
 
 6. Make a folder called build. Change directory into it.
 7. Run "cmake ..". This should generate a makefile.
-8. Run make. The program by default stores data direcrtories under the parent directory of build. To change, modify the variable prefix in src/dmrg.h.
+8. Run make. The program by default stores data direcrtories under the parent directory of build. To change, modify the variable prefix_ in src/dmrg.h.
 
 # Usage
 
@@ -29,9 +29,9 @@ The built binary accepts the following arguments:
 * -b, --bc: type of boundary condition [std::string]
 * -n: number of sites [int]
 * -d: max bond dimension [int]
-* -c, --cutoff: cutoff [float]
-* -t, --tol: tolerance for algorithm [float]
-* --theta: parameter used in constructing Hamiltonian [float]
+* -c, --svd_cutoff_: svd_cutoff_ [float]
+* -t, --tol: stable_tol_ for algorithm [float]
+* --theta_: parameter used in constructing Hamiltonian [float]
 * -u, --penalty: coefficient for penalty terms [float]
 * --nstates: number of excited states to solve for [int]
-* --analysis: if set to 1, run the analysis using existing files. If set to 0, run the dmrg. [int]
+* --analysis: if set to 1, Run the analysis using existing files. If set to 0, Run the dmrg. [int]
