@@ -36,13 +36,12 @@ public:
         Hs_.back() = std::move(H);
     }
 
-    // Next element corresponding to the NextState state
-    void StateComplete() {
+    void NextState() {
         times_swepts_.push_back(0);
         maxdims_.push_back(0);
         ens_.push_back(0);
-        psis_.emplace_back();
-        Hs_.emplace_back();
+        psis_.emplace_back(MPS(1));
+        Hs_.emplace_back(MPO(1));
     }
 
     std::tuple<int,int,Real,MPS,MPO> All() {
@@ -117,7 +116,7 @@ public:
                 ens_.clear();
                 psis_.clear();
                 Hs_.clear();
-                StateComplete();
+            NextState();
 //            }
         }
 
@@ -333,7 +332,7 @@ public:
             // printf("\n> Simulation: %s\n", state);
         }else{
             // New job
-            dmrg_progress.StateComplete();
+            dmrg_progress.NextState();
         }
 
         // fixme: Polymorphic based on SiteSetType
@@ -507,34 +506,23 @@ public:
                 init_state = psi;
                 dmrg_progress = DMRGProgress<SiteSetType>();
                 hot_start = 0;
-            }else if(hot_start == 0){
-                auto pre_init_state = InitState(sites_,"0");
+            }else if(hot_start == 0) {
+                auto pre_init_state = InitState(sites_, "0");
                 int center = (num_sites_ + 1) / 2;
                 pre_init_state.set(center, std::to_string(charge_));
                 MPS init_state = MPS(pre_init_state);
                 hot_start = -1;
             }
 
-            // Check whether to simulate next state
-            if(dmrg_progress.NumPastStates() >= num_states_){
-                // Finished
-                dmrg_progress.Write(progress_path_);
-                break;
-            }
-
-            // Move on to next state
-            dmrg_progress.StateComplete();
+            dmrg_progress.NextState(); // Even if no next state, this marks completion of current state
             // fixme
             dmrg_progress.SetSites(sites_);
             dmrg_progress.Write(progress_path_);
 
-//            else{
-//                // Move on to next state
-//                dmrg_progress.NextState();
-//                // fixme
-//                dmrg_progress.SetSites(sites_);
-//                dmrg_progress.Write(progress_path_);
-//            }
+            // Check whether to simulate next state
+            if(dmrg_progress.NumPastStates() >= num_states_){
+                break;
+            }
         }
     }
 
