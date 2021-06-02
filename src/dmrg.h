@@ -33,6 +33,7 @@ public:
         maxdims_.back() = max_dim;
         ens_.back() = en;
         psis_.back() = psi;
+
         Hs_.back() = std::move(H);
     }
 
