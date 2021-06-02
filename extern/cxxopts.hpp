@@ -2,7 +2,7 @@
 
 Copyright (c) 2014, 2015, 2016, 2017 Jarryd Beck
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
+Permission is hereby granted, free of charge_, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
@@ -1171,7 +1171,7 @@ namespace cxxopts
             }
 
 #ifdef CXXOPTS_NO_RTTI
-            return static_cast<const values::standard_value<T>&>(*m_value).get();
+            return static_cast<const values::standard_value<T>&>(*m_value).GetAll();
 #else
             return dynamic_cast<const values::standard_value<T>&>(*m_value).get();
 #endif
@@ -2061,7 +2061,7 @@ namespace cxxopts
                     {
                         if (m_allow_unrecognised)
                         {
-                            // keep unrecognised options in argument list, skip to next argument
+                            // keep unrecognised options in argument list, skip to NextState argument
                             unmatched.emplace_back(argv[current]);
                             ++current;
                             continue;
@@ -2081,7 +2081,7 @@ namespace cxxopts
                     }
                     else
                     {
-                        //parse the next argument
+                        //parse the NextState argument
                         checked_parse_arg(argc, argv, current, opt, name);
                     }
                 }
@@ -2182,7 +2182,7 @@ namespace cxxopts
         m_option_map[s] = iter;
         m_option_map[l] = iter;
 
-        //add the help details
+        //Add the help details
         auto& options = m_help[group];
 
         options.options.emplace_back(HelpOptionDetails{s, l, stringDesc,
