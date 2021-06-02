@@ -163,206 +163,206 @@ double HaagerupFData::FSymbol(int i, int j, int k, int l, int m, int n) {
 }
 
 // UNUSED BEGIN HERE
-ITensor FData::HasFusionITensor(const SiteSet &sites, int i1, int i2, int i3) const {
-    auto s1 = sites(i1);
-    auto s2 = sites(i2);
-    auto s3 = sites(i3);
-    auto Op = ITensor(s1, s2, s3);
-    for(int i=1; i <= kRk_; i++){
-        for(int j=1; j <= kRk_; j++){
-            for(int k=1; k <= kRk_; k++){
-                if(HasFusion(i,j,k)!=0){
-                    Op.set( s1(i),s2(j),s3(k), HasFusion(i,j,k) );
-                }
-            }
-        }
-    }
-    return Op;
-}
-
-ITensor FData::FSymbolITensor(const SiteSet &sites, int i1, int i2, int i3) {
-    auto s1 = sites(i1);
-    auto s2 = sites(i2);
-    auto s3 = sites(i3);
-    auto s1P = prime(s1);
-    auto s2P = prime(s2);
-    auto s3P = prime(s3);
-    auto Op = ITensor(dag(s1), s1P, dag(s2), s2P, dag(s3), s3P);
-
-    for(int i=1; i <= kRk_; i++){
-        for(int j=1; j <= kRk_; j++){
-            for(int k=1; k <= kRk_; k++){
-                for(int l=1; l <= kRk_; l++){
-                    for(int m=1; m <= kRk_; m++){
-                        for(int n=1; n <= kRk_; n++){
-                            auto f = FSymbol(i,j,k,l,m,n);
-                            if(f!=0){
-                                Op.set( s1(i),s1P(j),s2(k),s2P(l),s3(m),s3P(n), f);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return Op;
-}
-
-ITensor FData::SwapITensor(const Index &s1, const Index &s2) {
-    auto a = ITensor(dag(s1),prime(s2));
-    auto b = ITensor(dag(s2),prime(s1));
-    for(auto j : range1(s1))
-    {
-        a.set(dag(s1)(j),prime(s2)(j),1.);
-        b.set(dag(s2)(j),prime(s1)(j),1.);
-    }
-    return a*b;
-}
-
-ITensor FData::RhoDefect2(const Index &s1, const Index &s2) {
-    auto s1P = prime(s1);
-    auto s2P = prime(s2);
-    auto Op = ITensor(dag(s1), s1P, dag(s2), s2P);
-    for(int i1=1; i1 <= kRk_; i1++){
-        for(int j1=1; j1 <= kRk_; j1++){
-            for(int i2=1; i2 <= kRk_; i2++){
-                for(int j2=1; j2 <= kRk_; j2++){
-                    auto f = FSymbol(kRho_, i1, kRho_, j2, j1, i2) * sqrt(QD(i1) / QD(j1)) * FSymbol(kRho_, i2, kRho_, j1, j2, i1) *
-                             sqrt(QD(i2) /
-                                  QD(
-                                                  j2));
-                    if(f!=0){
-                        Op.set(s1(i1),s1P(j1),s2(i2),s2P(j2), f);
-                    }
-                }
-            }
-        }
-    }
-    return Op;
-}
-
-ITensor FData::RhoDefect3(const Index &s1, const Index &s2, const Index &s3) {
-    auto s1P = prime(s1);
-    auto s2P = prime(s2);
-    auto s3P = prime(s3);
-    auto Op = ITensor(dag(s1), s1P, dag(s2), s2P, dag(s3), s3P);
-    for(int i1=1; i1 <= kRk_; i1++){
-        for(int j1=1; j1 <= kRk_; j1++){
-            for(int i2=1; i2 <= kRk_; i2++){
-                for(int j2=1; j2 <= kRk_; j2++){
-                    for(int i3=1; i3 <= kRk_; i3++){
-                        for(int j3=1; j3 <= kRk_; j3++){
-                            auto f = FSymbol(kRho_, i1, kRho_, j2, j1, i2) * sqrt(QD(i1) / QD(j1)) * FSymbol(kRho_, i2, kRho_, j3, j2, i3) *
-                                     sqrt(QD(i2) /
-                                          QD(
-                                                          j2)) * FSymbol(kRho_, i3, kRho_, j1, j3, i1) *
-                                     sqrt(QD(i3) /
-                                          QD(
-                                                          j3));
-                            if(f!=0){
-                                Op.set(s1(i1),s1P(j1),s2(i2),s2P(j2),s3(i3),s3P(j3), f);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return Op;
-}
-
-ITensor FData::RhoDefect4(const Index &s1, const Index &s2, const Index &s3, const Index &s4) {
-    auto s1P = prime(s1);
-    auto s2P = prime(s2);
-    auto s3P = prime(s3);
-    auto s4P = prime(s4);
-    auto Op = ITensor(dag(s1), s1P, dag(s2), s2P, dag(s3), s3P, dag(s4), s4P);
-    for(int i1=1; i1 <= kRk_; i1++){
-        for(int j1=1; j1 <= kRk_; j1++){
-            for(int i2=1; i2 <= kRk_; i2++){
-                for(int j2=1; j2 <= kRk_; j2++){
-                    for(int i3=1; i3 <= kRk_; i3++){
-                        for(int j3=1; j3 <= kRk_; j3++){
-                            for(int i4=1; i4 <= kRk_; i4++){
-                                for(int j4=1; j4 <= kRk_; j4++){
-                                    auto f = FSymbol(kRho_, i1, kRho_, j2, j1, i2) * sqrt(
-                                            QD(i1) / QD(j1)) * FSymbol(kRho_, i2, kRho_, j3, j2, i3) *
-                                             sqrt(QD(i2) /
-                                                  QD(
-                                                                  j2)) * FSymbol(kRho_, i3, kRho_, j4, j3, i4) *
-                                             sqrt(QD(i3) /
-                                                  QD(
-                                                                  j3)) * FSymbol(kRho_, i4, kRho_, j1, j4, i1) *
-                                             sqrt(QD(i4) /
-                                                  QD(
-                                                                  j4));
-                                    if(f!=0){
-                                        Op.set(s1(i1),s1P(j1),s2(i2),s2P(j2),s3(i3),s3P(j3),s4(i4),s4P(j4), f);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return Op;
-}
-
-ITensor
-FData::RhoDefect6(const Index &s1, const Index &s2, const Index &s3, const Index &s4, const Index &s5, const Index &s6) {
-    auto s1P = prime(s1);
-    auto s2P = prime(s2);
-    auto s3P = prime(s3);
-    auto s4P = prime(s4);
-    auto s5P = prime(s5);
-    auto s6P = prime(s6);
-    auto Op = ITensor(dag(s1), s1P, dag(s2), s2P, dag(s3), s3P, dag(s4), s4P, dag(s5), s5P, dag(s6), s6P);
-    for(int i1=1; i1 <= kRk_; i1++){
-        for(int j1=1; j1 <= kRk_; j1++){
-            for(int i2=1; i2 <= kRk_; i2++){
-                for(int j2=1; j2 <= kRk_; j2++){
-                    for(int i3=1; i3 <= kRk_; i3++){
-                        for(int j3=1; j3 <= kRk_; j3++){
-                            for(int i4=1; i4 <= kRk_; i4++){
-                                for(int j4=1; j4 <= kRk_; j4++){
-                                    for(int i5=1; i5 <= kRk_; i5++){
-                                        for(int j5=1; j5 <= kRk_; j5++){
-                                            for(int i6=1; i6 <= kRk_; i6++){
-                                                for(int j6=1; j6 <= kRk_; j6++){
-                                                    auto f = FSymbol(kRho_, i1, kRho_, j2, j1, i2) * sqrt(QD(i1) /
-                                                                                                          QD(
-                                                                                                                   j1)) * FSymbol(kRho_, i2, kRho_, j3, j2, i3) *
-                                                             sqrt(QD(i2) /
-                                                                  QD(
-                                                                                  j2)) * FSymbol(kRho_, i3, kRho_, j4, j3, i4) *
-                                                             sqrt(QD(i3) /
-                                                                  QD(
-                                                                                  j3)) * FSymbol(kRho_, i4, kRho_, j5, j4, i5) *
-                                                             sqrt(QD(i4) /
-                                                                  QD(
-                                                                                  j4)) * FSymbol(kRho_, i5, kRho_, j6, j5, i6) *
-                                                             sqrt(QD(i5) /
-                                                                  QD(
-                                                                                  j5)) * FSymbol(kRho_, i6, kRho_, j1, j6, i1) *
-                                                             sqrt(QD(i6) /
-                                                                  QD(
-                                                                                  j6));
-                                                    if(f!=0){
-                                                        Op.set(s1(i1),s1P(j1),s2(i2),s2P(j2),s3(i3),s3P(j3),s4(i4),s4P(j4),s5(i5),s5P(j5),s6(i6),s6P(j6), f);
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return Op;
-}
+//ITensor FData::HasFusionITensor(const SiteSet &sites, int i1, int i2, int i3) const {
+//    auto s1 = sites(i1);
+//    auto s2 = sites(i2);
+//    auto s3 = sites(i3);
+//    auto Op = ITensor(s1, s2, s3);
+//    for(int i=1; i <= kRk_; i++){
+//        for(int j=1; j <= kRk_; j++){
+//            for(int k=1; k <= kRk_; k++){
+//                if(HasFusion(i,j,k)!=0){
+//                    Op.set( s1(i),s2(j),s3(k), HasFusion(i,j,k) );
+//                }
+//            }
+//        }
+//    }
+//    return Op;
+//}
+//
+//ITensor FData::FSymbolITensor(const SiteSet &sites, int i1, int i2, int i3) {
+//    auto s1 = sites(i1);
+//    auto s2 = sites(i2);
+//    auto s3 = sites(i3);
+//    auto s1P = prime(s1);
+//    auto s2P = prime(s2);
+//    auto s3P = prime(s3);
+//    auto Op = ITensor(dag(s1), s1P, dag(s2), s2P, dag(s3), s3P);
+//
+//    for(int i=1; i <= kRk_; i++){
+//        for(int j=1; j <= kRk_; j++){
+//            for(int k=1; k <= kRk_; k++){
+//                for(int l=1; l <= kRk_; l++){
+//                    for(int m=1; m <= kRk_; m++){
+//                        for(int n=1; n <= kRk_; n++){
+//                            auto f = FSymbol(i,j,k,l,m,n);
+//                            if(f!=0){
+//                                Op.set( s1(i),s1P(j),s2(k),s2P(l),s3(m),s3P(n), f);
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//    return Op;
+//}
+//
+//ITensor FData::SwapITensor(const Index &s1, const Index &s2) {
+//    auto a = ITensor(dag(s1),prime(s2));
+//    auto b = ITensor(dag(s2),prime(s1));
+//    for(auto j : range1(s1))
+//    {
+//        a.set(dag(s1)(j),prime(s2)(j),1.);
+//        b.set(dag(s2)(j),prime(s1)(j),1.);
+//    }
+//    return a*b;
+//}
+//
+//ITensor FData::RhoDefect2(const Index &s1, const Index &s2) {
+//    auto s1P = prime(s1);
+//    auto s2P = prime(s2);
+//    auto Op = ITensor(dag(s1), s1P, dag(s2), s2P);
+//    for(int i1=1; i1 <= kRk_; i1++){
+//        for(int j1=1; j1 <= kRk_; j1++){
+//            for(int i2=1; i2 <= kRk_; i2++){
+//                for(int j2=1; j2 <= kRk_; j2++){
+//                    auto f = FSymbol(kRho_, i1, kRho_, j2, j1, i2) * sqrt(QD(i1) / QD(j1)) * FSymbol(kRho_, i2, kRho_, j1, j2, i1) *
+//                             sqrt(QD(i2) /
+//                                  QD(
+//                                                  j2));
+//                    if(f!=0){
+//                        Op.set(s1(i1),s1P(j1),s2(i2),s2P(j2), f);
+//                    }
+//                }
+//            }
+//        }
+//    }
+//    return Op;
+//}
+//
+//ITensor FData::RhoDefect3(const Index &s1, const Index &s2, const Index &s3) {
+//    auto s1P = prime(s1);
+//    auto s2P = prime(s2);
+//    auto s3P = prime(s3);
+//    auto Op = ITensor(dag(s1), s1P, dag(s2), s2P, dag(s3), s3P);
+//    for(int i1=1; i1 <= kRk_; i1++){
+//        for(int j1=1; j1 <= kRk_; j1++){
+//            for(int i2=1; i2 <= kRk_; i2++){
+//                for(int j2=1; j2 <= kRk_; j2++){
+//                    for(int i3=1; i3 <= kRk_; i3++){
+//                        for(int j3=1; j3 <= kRk_; j3++){
+//                            auto f = FSymbol(kRho_, i1, kRho_, j2, j1, i2) * sqrt(QD(i1) / QD(j1)) * FSymbol(kRho_, i2, kRho_, j3, j2, i3) *
+//                                     sqrt(QD(i2) /
+//                                          QD(
+//                                                          j2)) * FSymbol(kRho_, i3, kRho_, j1, j3, i1) *
+//                                     sqrt(QD(i3) /
+//                                          QD(
+//                                                          j3));
+//                            if(f!=0){
+//                                Op.set(s1(i1),s1P(j1),s2(i2),s2P(j2),s3(i3),s3P(j3), f);
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//    return Op;
+//}
+//
+//ITensor FData::RhoDefect4(const Index &s1, const Index &s2, const Index &s3, const Index &s4) {
+//    auto s1P = prime(s1);
+//    auto s2P = prime(s2);
+//    auto s3P = prime(s3);
+//    auto s4P = prime(s4);
+//    auto Op = ITensor(dag(s1), s1P, dag(s2), s2P, dag(s3), s3P, dag(s4), s4P);
+//    for(int i1=1; i1 <= kRk_; i1++){
+//        for(int j1=1; j1 <= kRk_; j1++){
+//            for(int i2=1; i2 <= kRk_; i2++){
+//                for(int j2=1; j2 <= kRk_; j2++){
+//                    for(int i3=1; i3 <= kRk_; i3++){
+//                        for(int j3=1; j3 <= kRk_; j3++){
+//                            for(int i4=1; i4 <= kRk_; i4++){
+//                                for(int j4=1; j4 <= kRk_; j4++){
+//                                    auto f = FSymbol(kRho_, i1, kRho_, j2, j1, i2) * sqrt(
+//                                            QD(i1) / QD(j1)) * FSymbol(kRho_, i2, kRho_, j3, j2, i3) *
+//                                             sqrt(QD(i2) /
+//                                                  QD(
+//                                                                  j2)) * FSymbol(kRho_, i3, kRho_, j4, j3, i4) *
+//                                             sqrt(QD(i3) /
+//                                                  QD(
+//                                                                  j3)) * FSymbol(kRho_, i4, kRho_, j1, j4, i1) *
+//                                             sqrt(QD(i4) /
+//                                                  QD(
+//                                                                  j4));
+//                                    if(f!=0){
+//                                        Op.set(s1(i1),s1P(j1),s2(i2),s2P(j2),s3(i3),s3P(j3),s4(i4),s4P(j4), f);
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//    return Op;
+//}
+//
+//ITensor
+//FData::RhoDefect6(const Index &s1, const Index &s2, const Index &s3, const Index &s4, const Index &s5, const Index &s6) {
+//    auto s1P = prime(s1);
+//    auto s2P = prime(s2);
+//    auto s3P = prime(s3);
+//    auto s4P = prime(s4);
+//    auto s5P = prime(s5);
+//    auto s6P = prime(s6);
+//    auto Op = ITensor(dag(s1), s1P, dag(s2), s2P, dag(s3), s3P, dag(s4), s4P, dag(s5), s5P, dag(s6), s6P);
+//    for(int i1=1; i1 <= kRk_; i1++){
+//        for(int j1=1; j1 <= kRk_; j1++){
+//            for(int i2=1; i2 <= kRk_; i2++){
+//                for(int j2=1; j2 <= kRk_; j2++){
+//                    for(int i3=1; i3 <= kRk_; i3++){
+//                        for(int j3=1; j3 <= kRk_; j3++){
+//                            for(int i4=1; i4 <= kRk_; i4++){
+//                                for(int j4=1; j4 <= kRk_; j4++){
+//                                    for(int i5=1; i5 <= kRk_; i5++){
+//                                        for(int j5=1; j5 <= kRk_; j5++){
+//                                            for(int i6=1; i6 <= kRk_; i6++){
+//                                                for(int j6=1; j6 <= kRk_; j6++){
+//                                                    auto f = FSymbol(kRho_, i1, kRho_, j2, j1, i2) * sqrt(QD(i1) /
+//                                                                                                          QD(
+//                                                                                                                   j1)) * FSymbol(kRho_, i2, kRho_, j3, j2, i3) *
+//                                                             sqrt(QD(i2) /
+//                                                                  QD(
+//                                                                                  j2)) * FSymbol(kRho_, i3, kRho_, j4, j3, i4) *
+//                                                             sqrt(QD(i3) /
+//                                                                  QD(
+//                                                                                  j3)) * FSymbol(kRho_, i4, kRho_, j5, j4, i5) *
+//                                                             sqrt(QD(i4) /
+//                                                                  QD(
+//                                                                                  j4)) * FSymbol(kRho_, i5, kRho_, j6, j5, i6) *
+//                                                             sqrt(QD(i5) /
+//                                                                  QD(
+//                                                                                  j5)) * FSymbol(kRho_, i6, kRho_, j1, j6, i1) *
+//                                                             sqrt(QD(i6) /
+//                                                                  QD(
+//                                                                                  j6));
+//                                                    if(f!=0){
+//                                                        Op.set(s1(i1),s1P(j1),s2(i2),s2P(j2),s3(i3),s3P(j3),s4(i4),s4P(j4),s5(i5),s5P(j5),s6(i6),s6P(j6), f);
+//                                                    }
+//                                                }
+//                                            }
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//    return Op;
+//}

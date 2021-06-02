@@ -24,8 +24,9 @@ class HaagerupSite
     const double y2=(5-sqrt(13)+sqrt(6*(1+sqrt(13))))/12;
     Index s;
 public:
-    HaagerupSite(Index const& I);
-    HaagerupSite(Args const& args = Args::global());
+    explicit HaagerupSite(Index const& I);
+    explicit HaagerupSite(Args const& args = Args::global());
+
     Index
     index() const;
 

@@ -42,11 +42,13 @@ ITensor GoldenSite::proj(int i) const {
 }
 
 IndexVal GoldenSite::state(const string &state) {
-    if(state=="1"){
+    if (state=="1") {
         return s(1);
-    }else if(state=="r"){
-        return s(2);
-    }else{
+    }
+//    else if (state=="r"){
+//        return s(2);
+//    }
+    else {
         return s(2);
     }
     throw ITError("State "+state+" not recognized");

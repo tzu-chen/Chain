@@ -29,16 +29,18 @@ HaagerupQSite::HaagerupQSite(const Args &args) {
 Index HaagerupQSite::index() const { return s; }
 
 IndexVal HaagerupQSite::state(const string &state) {
-    if(state=="0"){
-        return s(4);
-    }else if(state=="1"){
+//    if(state=="0"){
+//        return s(4);
+//    }else
+
+    if (state=="1") {
         return s(5);
-    }else if(state=="2"){
+    } else if (state=="2"){
         return s(6);
-    }else{
+    } else {
         return s(4);
     }
-    throw ITError("State "+state+" not recognized");
+//    throw ITError("State "+state+" not recognized");
 }
 
 ITensor HaagerupQSite::m(int i) const {

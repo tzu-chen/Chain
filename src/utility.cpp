@@ -1,30 +1,6 @@
 #include "utility.h"
 
 
-// UNUSED
-Real Spin(Cplx num, int NN) {
-    Real spin = log(num).imag()/(2*Pi)*NN;
-    if(spin>NN/2){
-        spin -= NN;
-    }
-    return spin;
-}
-
-
-// UNUSED
-Cplx Chop(Cplx num) {
-    Real r = num.real();
-    Real i = num.imag();
-    if(abs(r)<1E-3){
-        r=0;
-    }
-    if(abs(i)<1E-3){
-        i=0;
-    }
-    return r + i * 1_i;
-}
-
-
 std::vector<double> CalcEE(MPS psi, int N) {
     std::vector<double> SvNs;
     for(auto b=1;b<N;b++){
@@ -64,7 +40,6 @@ void DumpEE(int N, std::vector<double> SvNs, const std::filesystem::path &p) {
     fclose(eefile);
 }
 
-
 void DumpEnergy(int state, Real en, const std::filesystem::path &p) {
     std::string filename = std::string(p);
     FILE * file;
@@ -76,7 +51,6 @@ void DumpEnergy(int state, Real en, const std::filesystem::path &p) {
     fprintf(file, "},\n");
     fclose(file);
 }
-
 
 void DumpMeasurement(const string &name, int len, const ITensor &i_tensor, const std::filesystem::path &p) {
     std::string filename = std::string(p);
@@ -103,12 +77,34 @@ void DumpMeasurement(const string &name, int len, const ITensor &i_tensor, const
     fclose(file);
 }
 
-
-void DumpMathematica(int len, const ITensor &En, const ITensor &OpT, const std::filesystem::path &p) {
+void DumpMathematica(int len, const ITensor& En, const ITensor& OpT, const ITensor& OpR, const std::filesystem::path& p) {
     std::string filename = std::string(p);
     FILE * file;
     file = fopen(filename.c_str(),"w");
     fclose(file);
     DumpMeasurement("En", len, En, filename);
     DumpMeasurement("OpT", len, OpT, filename);
+    DumpMeasurement("OpR", len, OpR, filename);
 }
+
+//// UNUSED
+//Real Spin(Cplx num, int NN) {
+//    Real spin = log(num).imag()/(2*Pi)*NN;
+//    if(spin>NN/2){
+//        spin -= NN;
+//    }
+//    return spin;
+//}
+//
+//// UNUSED
+//Cplx Chop(Cplx num) {
+//    Real r = num.real();
+//    Real i = num.imag();
+//    if(abs(r)<1E-3){
+//        r=0;
+//    }
+//    if(abs(i)<1E-3){
+//        i=0;
+//    }
+//    return r + i * 1_i;
+//}

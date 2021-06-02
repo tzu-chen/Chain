@@ -45,21 +45,21 @@ public:
 
     // UNUSED
 
-    // Package fusion coefficients into a single ITensor
-    ITensor HasFusionITensor(const SiteSet& sites, int i1, int i2, int i3) const;
-
-    // Package F symbols into a single ITensor
-    ITensor FSymbolITensor(const SiteSet& sites, int i1, int i2, int i3);
-
-    ITensor SwapITensor(const Index& s1, const Index& s2);
-    
-    ITensor RhoDefect2(const Index& s1, const Index& s2);
-
-    ITensor RhoDefect3(const Index& s1, const Index& s2, const Index& s3);
-
-    ITensor RhoDefect4(const Index& s1, const Index& s2, const Index& s3, const Index& s4);
-
-    ITensor RhoDefect6(const Index& s1, const Index& s2, const Index& s3, const Index& s4, const Index& s5, const Index& s6);
+//    // Package fusion coefficients into a single ITensor
+//    ITensor HasFusionITensor(const SiteSet& sites, int i1, int i2, int i3) const;
+//
+//    // Package F symbols into a single ITensor
+//    ITensor FSymbolITensor(const SiteSet& sites, int i1, int i2, int i3);
+//
+//    ITensor SwapITensor(const Index& s1, const Index& s2);
+//
+//    ITensor RhoDefect2(const Index& s1, const Index& s2);
+//
+//    ITensor RhoDefect3(const Index& s1, const Index& s2, const Index& s3);
+//
+//    ITensor RhoDefect4(const Index& s1, const Index& s2, const Index& s3, const Index& s4);
+//
+//    ITensor RhoDefect6(const Index& s1, const Index& s2, const Index& s3, const Index& s4, const Index& s5, const Index& s6);
 };
 
 
