@@ -204,6 +204,7 @@ public:
             job_ = site_type_ + " SSD/PBC";
         }
         // fixme: refactor so that we're passing the most basic variable type instead of a type alias
+        // fixme: pass site instead of siteset
 
         // DMRG parameters
         gs_max_bond_dim_ = es_max_bond_dim_;
@@ -316,6 +317,7 @@ public:
         }
 
         // fixme: Polymorphic based on SiteSetType
+        // fixme: Can change to method of say Golden by declaring that Golden is a class that inherits BasicSiteSet<GoldenSite>
         MPO H = Hamiltonian(sites_, boundary_condition_, num_sites_, u_, k_, j_);
 
         // If QN conserving, create charge-neutral initial state and change center site to specified charge

@@ -107,7 +107,7 @@ MPO RhoOp(const SiteSet& sites, const std::string& site_type) {
     auto B = std::vector<ITensor>(N+1);
     for(auto j : range1(N))
     {
-        auto [Aj,Bj] = factor(G[j],{sites(j),prime(sites(j))}); // Fixme: Can refactor
+        auto [Aj,Bj] = factor(G[j],{sites(j),prime(sites(j))}); // fixme: Can refactor
         Aj.prime("Site").prime("Site");
         Bj.prime("Site").prime("Site").prime("Site").prime("Site");
         A[j] = Aj;

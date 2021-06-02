@@ -275,7 +275,7 @@ ITensor HaagerupQSite::op(const string &opname, const Args &args) const {
     }
     throw ITError("Operator name "+opname+" not recognized");
 }
-// fixme: (maybe) make ConstructH a method of the site specific class?
+
 MPO Hamiltonian(const HaagerupQ& sites, const std::string& boundary_condition, int num_sites, Real U, Real K, Real J) {
     auto ampo = AutoMPO(sites);
 

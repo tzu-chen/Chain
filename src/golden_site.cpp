@@ -55,7 +55,7 @@ IndexVal GoldenSite::state(const string &state) {
 }
 
 Index GoldenSite::index() const { return s; }
-// fixme: (maybe) make ConstructH a method of the site specific class?
+
 MPO Hamiltonian(const Golden& sites, const std::string& boundary_condition, int num_sites, Real U, Real K, Real J) {
     auto ampo = AutoMPO(sites);
     int L = num_sites;
