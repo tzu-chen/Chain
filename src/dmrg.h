@@ -13,24 +13,24 @@ class DMRGProgress {
 public:
     SiteSetType sites_;
     // Each element below is the latest progress for a given state
-    std::vector<int> num_sweeps_vec_;
-    std::vector<int> max_dims_;
+    std::vector<int> times_swepts_;
+    std::vector<int> maxdims_;
     std::vector<Real> ens_;
     std::vector<MPS> psis_;
     std::vector<MPO> Hs_;
 
-    void SetSites(SiteSetType sites) {
+    void SetSites(SiteSetType sites){
         sites_ = sites;
     }
 
-    SiteSetType Sites() {
+    SiteSetType Sites(){
         return sites_;
     }
 
     // Replace the latest progress for the current state
     void Update(int times_swept, int max_dim, Real en, MPS const& psi, MPO H) {
-        num_sweeps_vec_.back() = times_swept;
-        max_dims_.back() = max_dim;
+        times_swepts_.back() = times_swept;
+        maxdims_.back() = max_dim;
         ens_.back() = en;
         psis_.back() = psi;
         Hs_.back() = std::move(H);
@@ -38,21 +38,21 @@ public:
 
     // Extend vectors to signal completion of previous state and prepare for next state
     void NextState() {
-        num_sweeps_vec_.push_back(0);
-        max_dims_.push_back(0);
+        times_swepts_.push_back(0);
+        maxdims_.push_back(0);
         ens_.push_back(0);
         psis_.emplace_back(MPS(1));
         Hs_.emplace_back(MPO(1));
     }
 
     std::tuple<int,int,Real,MPS,MPO> All() {
-        return std::tuple<int,int,Real,MPS,MPO>(num_sweeps_vec_.back(), max_dims_.back(), ens_.back(), psis_.back(), Hs_.back());
+        return std::tuple<int,int,Real,MPS,MPO>(times_swepts_.back(), maxdims_.back(), ens_.back(), psis_.back(), Hs_.back());
     }
 
     std::vector<MPS> DoneStates() {
         std::vector<MPS> past_psis;
         past_psis.reserve((int) psis_.size() - 1);
-        for (int i=0;i< (int) psis_.size() - 1; i++) {
+        for (int i=0;i< (int) psis_.size() - 1; i++){
             past_psis.push_back(psis_.at(i));
         }
         return past_psis;
@@ -79,8 +79,8 @@ public:
     {
         std::string path = std::string(p);
         writeToFile(path + ".st", sites_);
-        writeToFile(path + ".pgs", num_sweeps_vec_);
-        writeToFile(path + ".md", max_dims_);
+        writeToFile(path + ".pgs", times_swepts_);
+        writeToFile(path + ".md", maxdims_);
         writeToFile(path + ".en", ens_);
         writeToFile(path + ".psi", psis_);
         writeToFile(path + ".H", Hs_);
@@ -98,22 +98,22 @@ public:
         std::string path = std::string(p);
         try{
             readFromFile(path + ".st", sites_);
-            readFromFile(path + ".pgs", num_sweeps_vec_);
-            readFromFile(path + ".md", max_dims_);
+            readFromFile(path + ".pgs", times_swepts_);
+            readFromFile(path + ".md", maxdims_);
             readFromFile(path + ".en", ens_);
             readFromFile(path + ".psi", psis_);
             readFromFile(path + ".H", Hs_);
-        }catch(std::exception const& e) {
+        }catch(std::exception const& e){
 //            try{
 //                readFromFile(path + ".pgs.bk", times_swepts_);
 //                readFromFile(path + ".md.bk", maxdims_);
 //                readFromFile(path + ".en.bk", ens_);
 //                readFromFile(path + ".psi.bk", psis_);
 //                readFromFile(path + ".H.bk", Hs_);
-//            }catch(std::exception const& e) {
+//            }catch(std::exception const& e){
                 println(e.what());
-                num_sweeps_vec_.clear();
-                max_dims_.clear();
+                times_swepts_.clear();
+                maxdims_.clear();
                 ens_.clear();
                 psis_.clear();
                 Hs_.clear();
@@ -143,7 +143,7 @@ class DMRG {
     int es_max_bond_dim_;
     double svd_cutoff_;
     double noise_;
-    double orthogonal_weight;
+    double ortho_weight;
 
     // DMRG design
     float stable_tol;
@@ -170,7 +170,7 @@ class DMRG {
 
     double min_en_;
     int cnt_;
-    int num_sweeps_;
+    int times_swept_;
     int bond_dim_;
 
     // Variable declarations
@@ -180,7 +180,7 @@ class DMRG {
     MPS init_state_;
 
 public:
-    explicit DMRG(std::tuple<std::basic_string<char>, std::basic_string<char>, int, int, float, float, float, float, int, int, int> params) {
+    explicit DMRG(std::tuple<std::basic_string<char>, std::basic_string<char>, int, int, float, float, float, float, int, int, int> params){
         site_type_ = std::get<0>(params);
         boundary_condition_ = std::get<1>(params);
         num_sites_ = std::get<2>(params);
@@ -193,13 +193,13 @@ public:
         num_states_ = std::get<9>(params);
 
         sites_ = SiteSetType(num_sites_, {"ConserveQNs=", true});
-        if (boundary_condition_ == "p") {
+        if(boundary_condition_ == "p"){
             job_ = site_type_ + " PBC";
-        } else if (boundary_condition_ == "o") {
+        }else if(boundary_condition_ == "o"){
             job_ = site_type_ + " OBC";
-        } else if (boundary_condition_ == "s") {
+        }else if(boundary_condition_ == "s"){
             job_ = site_type_ + " SSD";
-        } else {
+        }else{
             job_ = site_type_ + " SSD/PBC";
         }
         // fixme: refactor so that we're passing the most basic variable type instead of a type alias
@@ -207,7 +207,7 @@ public:
         // DMRG parameters
         gs_max_bond_dim_ = es_max_bond_dim_;
         noise_ = 0.0;
-        orthogonal_weight = 1000.0;
+        ortho_weight = 1000.0;
 
         // DMRG design
         init_num_sweeps_per_rep_ = 5;
@@ -218,10 +218,10 @@ public:
         // Chain parameters
         k_ = cos(theta_ * Pi);
         j_ = sin(theta_ * Pi);
-        if (std::abs(k_) < 1E-5) {
+        if(std::abs(k_) < 1E-5){
             k_ = 0;
         }
-        if (std::abs(j_) < 1E-5) {
+        if(std::abs(j_) < 1E-5){
             j_ = 0;
         }
 
@@ -233,36 +233,36 @@ public:
         m_path_ = m_directory_ / (filename_ + ".m");
     }
 
-    bool IsSimulatingGroundState() {
-        if (std::filesystem::exists(progress_directory_ / (filename_ + ".pgs"))) {
+    bool IsSimulatingGroundState(){
+        if(std::filesystem::exists(progress_directory_ / (filename_ + ".pgs"))) {
             return dmrg_progress_.NumDoneStates() == 0;
-        } else {
+        }else{
             return true;
         }
     }
 
     // Adjust parameters depending on whether simulating ground state
-    void AdjustDMRGParams() {
-        if (IsSimulatingGroundState()) {
+    void AdjustDMRGParams(){
+        if(IsSimulatingGroundState()){
             max_bond_dim = gs_max_bond_dim_;
             stable_tol = gs_stable_tol_;
-        } else {
+        }else{
             max_bond_dim = es_max_bond_dim_;
             stable_tol = es_stable_tol_;
         }
     }
 
     // Reset min energy and counters to simulate new state
-    void ResetDMRG() {
+    void ResetDMRG(){
         min_en_ = 1000000;
         cnt_ = num_reps_til_stable_;
-        num_sweeps_ = 0;
+        times_swept_ = 0;
     }
 
     // Decide name of the current state to simulate based on number of completed states
-    std::string StateName() {
+    std::string StateName(){
         std::string state_name;
-        switch(dmrg_progress_.NumDoneStates()) {
+        switch(dmrg_progress_.NumDoneStates()){
             case 0 : state_name = "Ground state"; break;
             case 1 : state_name = "1st excited state"; break;
             case 2 : state_name = "2nd excited state"; break;
@@ -282,18 +282,18 @@ public:
 
     // Simulate states by DMRG
     void Run() {
-        if (not std::filesystem::exists(progress_directory_)) {
+        if (not std::filesystem::exists(progress_directory_)){
             std::filesystem::create_directory(progress_directory_);
         }
-        if (not std::filesystem::exists(ee_directory_)) {
+        if (not std::filesystem::exists(ee_directory_)){
             std::filesystem::create_directory(ee_directory_);
         }
-        if (not std::filesystem::exists(en_directory_)) {
+        if (not std::filesystem::exists(en_directory_)){
             std::filesystem::create_directory(en_directory_);
         }
         printf("\n> %s: num_sites=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g K=%g J=%g U=%g Q=%d\n", job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, k_, j_, u_, charge_);
 
-        if (std::filesystem::exists(progress_directory_ / (filename_ + ".pgs"))) {
+        if(std::filesystem::exists(progress_directory_ / (filename_ + ".pgs"))){
             // Job was run before
             // Read progress
             dmrg_progress_.Read(progress_path_);
@@ -303,13 +303,13 @@ public:
             state_name_ = StateName();
 
             // fixme
-            if (dmrg_progress_.NumDoneStates() >= num_states_) {
+            if(dmrg_progress_.NumDoneStates() >= num_states_){
                 printf("\n> Job already complete\n> Requested number of states: %d \n> Completed number of states: %d\n\n", num_states_,
                        dmrg_progress_.NumDoneStates());
                 return;
             }
             // printf("\n> Simulation: %s\n", state);
-        } else {
+        }else{
             // New job
             dmrg_progress_.NextState();
         }
@@ -328,14 +328,14 @@ public:
         // hot_start keeps track of which stage (1: SSD warmup, 0: PBC warmup, -1: PBC)
         // Otherwise just -1
         int hot_start = -1;
-        if (boundary_condition_ == "sp") {
+        if(boundary_condition_ == "sp"){
             hot_start = 1;
         }
 
         // Loop over states
         // Each iteration includes warmup and post-warmup DMRG runs until energy is stable
-        for(;;) {
-            if (dmrg_progress_.num_sweeps_vec_.back() == 0 && hot_start != 0) {
+        for(;;){
+            if(dmrg_progress_.times_swepts_.back() == 0 && hot_start != 0){
                 // Not yet run
                 // Begin DMRG with warmup
                 state_name_ = StateName();
@@ -351,14 +351,14 @@ public:
                 sweeps.cutoff() = std::max(1E-5, svd_cutoff_),std::max(1E-6, svd_cutoff_),std::max(1E-7, svd_cutoff_),std::max(1E-8, svd_cutoff_),std::max(1E-9, svd_cutoff_),std::max(1E-10, svd_cutoff_),std::max(1E-11, svd_cutoff_),std::max(1E-12, svd_cutoff_),svd_cutoff_;
                 sweeps.niter() = 2;
                 sweeps.noise() = noise_;
-                std::tie(en_, psi_) = dmrg(H, dmrg_progress_.DoneStates(), init_state_, sweeps, {"Quiet", true, "Weight=", orthogonal_weight});
+                std::tie(en_, psi_) = dmrg(H, dmrg_progress_.DoneStates(), init_state_, sweeps, {"Quiet", true, "Weight=", ortho_weight});
 
-                num_sweeps_ += init_num_sweeps_per_rep_;
-                dmrg_progress_.Update(num_sweeps_, bond_dim_, en_, psi_, H);
+                times_swept_ += init_num_sweeps_per_rep_;
+                dmrg_progress_.Update(times_swept_, bond_dim_, en_, psi_, H);
                 dmrg_progress_.SetSites(sites_);
                 dmrg_progress_.Write(progress_path_);
-                printf("\n    > Times swept: %d\n      %s of %s\n      L=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g K=%g J=%g U=%g Q=%d\n", dmrg_progress_.num_sweeps_vec_.back(), state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, k_, j_, u_, charge_);
-            } else if (dmrg_progress_.num_sweeps_vec_.back() == 0 && hot_start == 0) {
+                printf("\n    > Times swept: %d\n      %s of %s\n      L=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g K=%g J=%g U=%g Q=%d\n", dmrg_progress_.times_swepts_.back(), state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, k_, j_, u_, charge_);
+            }else if(dmrg_progress_.times_swepts_.back() == 0 && hot_start == 0) {
                 state_name_ = StateName();
                 printf("\n> Simulation: %s\n", state_name_);
 
@@ -374,31 +374,31 @@ public:
                 sweeps.niter() = 2;
                 sweeps.noise() = noise_;
                 std::tie(en_, psi_) = dmrg(H, dmrg_progress_.DoneStates(), init_state_, sweeps,
-                                           {"Quiet", true, "Weight=", orthogonal_weight});
+                                           {"Quiet", true, "Weight=", ortho_weight});
 
-                num_sweeps_ += init_num_sweeps_per_rep_;
-                dmrg_progress_.Update(num_sweeps_, bond_dim_, en_, psi_, H);
+                times_swept_ += init_num_sweeps_per_rep_;
+                dmrg_progress_.Update(times_swept_, bond_dim_, en_, psi_, H);
                 dmrg_progress_.SetSites(sites_);
                 dmrg_progress_.Write(progress_path_);
                 printf("\n    > Times swept: %d\n      %s of %s\n      L=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g K=%g J=%g U=%g Q=%d\n",
-                       dmrg_progress_.num_sweeps_vec_.back(), state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_,
+                       dmrg_progress_.times_swepts_.back(), state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_,
                        gs_stable_tol_, theta_, k_, j_, u_, charge_);
             }
 
             // Post-warmup DMRG runs
             AdjustDMRGParams();
-            for(;;) {
+            for(;;){
                 // Read progress
-                std::tie(num_sweeps_, bond_dim_, en_, psi_, H) = dmrg_progress_.All();
+                std::tie(times_swept_, bond_dim_, en_, psi_, H) = dmrg_progress_.All();
 
                 // Dump entanglement entropy curve
                 // Only for simulation of ground state
-                if (IsSimulatingGroundState()) {
+                if(IsSimulatingGroundState()){
                     DumpEE(num_sites_, CalcEE(psi_, num_sites_), ee_path_);
                 }
 
                 // Gradually increase bond dimension each run until maximum
-                if (bond_dim_ <= max_bond_dim - 200) {
+                if(bond_dim_ <= max_bond_dim - 200){
                     bond_dim_ += 200;
                 }
 
@@ -408,23 +408,23 @@ public:
                 sw.cutoff() = svd_cutoff_;
                 sw.niter() = 2;
                 sw.noise() = noise_;
-                std::tie(en_, psi_) = dmrg(H, dmrg_progress_.DoneStates(), psi_, sw, {"Quiet=", true, "Weight=", orthogonal_weight});
+                std::tie(en_, psi_) = dmrg(H, dmrg_progress_.DoneStates(), psi_, sw, {"Quiet=", true, "Weight=", ortho_weight});
 
                 // Decide whether energy has stabilized
-                if (abs(min_en_ - en_) * num_sites_ < stable_tol) {
+                if (abs(min_en_ - en_) * num_sites_ < stable_tol){
                     cnt_ -= 1;
                 } else {
                     cnt_ = num_reps_til_stable_;
                     min_en_ = en_;
                 }
-                num_sweeps_ += num_sweeps_per_rep_;
-                dmrg_progress_.Update(num_sweeps_, bond_dim_, en_, psi_, H);
+                times_swept_ += num_sweeps_per_rep_;
+                dmrg_progress_.Update(times_swept_, bond_dim_, en_, psi_, H);
                 // fixme
                 dmrg_progress_.SetSites(sites_);
                 dmrg_progress_.Write(progress_path_);
 
-                printf("\n    > Times swept: %d\n      %s of %s\n      L=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g K=%g J=%g U=%g Q=%d\n", dmrg_progress_.num_sweeps_vec_.back(), state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, k_, j_, u_, charge_);
-                if (cnt_ == 0) {
+                printf("\n    > Times swept: %d\n      %s of %s\n      L=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g K=%g J=%g U=%g Q=%d\n", dmrg_progress_.times_swepts_.back(), state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, k_, j_, u_, charge_);
+                if (cnt_ == 0){
                     break;
                 }
             }
@@ -437,12 +437,12 @@ public:
 
             // If using sine-squared deformed to hot start for periodic
             // Make appropriate transition from SSD to PBC while using SSD result as initial state for PBC
-            if (hot_start == 1) {
+            if(hot_start == 1){
                 H = Hamiltonian(sites_, "p", num_sites_, u_, k_, j_);
                 init_state_ = psi_;
                 dmrg_progress_ = DMRGProgress<SiteSetType>();
                 hot_start = 0;
-            } else if (hot_start == 0) {
+            }else if(hot_start == 0) {
 //                auto pre_init_state = InitState(sites_, "0");
 //                int center = (num_sites_ + 1) / 2;
 //                pre_init_state.set(center, std::to_string(charge_));
@@ -457,15 +457,15 @@ public:
             dmrg_progress_.Write(progress_path_);
 
             // Check whether to simulate next state
-            if (dmrg_progress_.NumDoneStates() >= num_states_) {
+            if(dmrg_progress_.NumDoneStates() >= num_states_){
                 break;
             }
         }
     }
 
     // Measure matrix elements of translation operator and rho defect operator
-    void Analyze() {
-        if (not std::filesystem::exists(m_directory_)) {
+    void Analyze(){
+        if (not std::filesystem::exists(m_directory_)){
             std::filesystem::create_directory(m_directory_);
         }
 
@@ -474,7 +474,7 @@ public:
 
         // Default svd_cutoff for applyMPO(density matrix variant) is 1E-12
         // Setting to larger value will speed up the program significantly at the cost of accuracy of measurements
-        float svd_cutoff = 1E-8;
+        float svd_cutoff = 1E-3;
 
         // Variable declaration
         MPS psi_translated;
@@ -482,9 +482,9 @@ public:
         std::vector<MPS> states_translated;
         std::vector<MPS> states_acted_by_rho;
 
-        if (std::filesystem::exists(progress_directory_ / (filename_ + ".pgs"))) {
+        if(std::filesystem::exists(progress_directory_ / (filename_ + ".pgs"))){
             dmrg_progress_.Read(progress_path_);
-        } else {
+        }else{
             printf("\n> No progress file available\n");
             return;
         }
@@ -497,7 +497,7 @@ public:
         // Rotate HaagerupQ to Haagerup
         // Golden -> Golden, Haagerup, HaagerupQ -> Haagerup
         SiteSet sites;
-        if (site_type_ == "golden" or site_type_ == "haagerup") {
+        if (site_type_ == "golden" or site_type_ == "haagerup"){
             sites = sites_;
             for (int i = 0; i < num_states; i++) {
                 auto new_psi = MPS(sites);
@@ -548,10 +548,10 @@ public:
             // println(innerC(AugmentMPS(psiR, left_extra, right_extra),step2));
 
 //            psiR = applyMPO(TranslationOp(sites, true), psiR);
-//            if (site_name_ == "golden") {
+//            if (site_name_ == "golden"){
 //                GoldenFData f_data = GoldenFData();
 //                ActLocal(psiR, f_data.RhoDefectCell(sites(1), sites(2)),1);
-//            } else if (site_name_ == "haagerup") {
+//            } else if (site_name_ == "haagerup"){
 //                HaagerupFData f_data = HaagerupFData();
 //                ActLocal(psiR, f_data.RhoDefectCell(sites(1), sites(2)),1);
 //            }
@@ -572,9 +572,9 @@ public:
         // Uncomment if shift by ground state energy
         // en_shift = dmrg_progress.Energies().at(0);
 
-        for(int i=0; i < num_states; i++) {
+        for(int i=0; i < num_states; i++){
             en_matrix.set(s(i + 1), sP(i + 1), dmrg_progress_.Energies().at(i) - en_shift);
-            for(int j=0; j < num_states; j++) {
+            for(int j=0; j < num_states; j++){
                 translation_matrix.set(s(i + 1), sP(j + 1), innerC(states.at(i), states_translated.at(j)));
                 rho_matrix.set(s(i + 1), sP(j + 1), innerC(AugmentMPS(states.at(i), left_dangling_ind, right_dangling_ind), states_acted_by_rho.at(j)));
             }
@@ -598,11 +598,11 @@ public:
         // En = prime(UT) * En * dag(UT);
         // std::vector<Real> diag_En;
         // diag_En.reserve(len);
-        // for(int i=0;i<len;i++) {
+        // for(int i=0;i<len;i++){
         //     diag_En.push_back(eltC(En, i+1, i+1).real());
         // }
         // En = diagITensor(diag_En, dag(s), prime(s));
-        // auto spins = DT.apply([this](Cplx a) {return Spin(a, num_sites_);});
+        // auto spins = DT.apply([this](Cplx a){return Spin(a, num_sites_);});
         // PrintData(En);
         // PrintData(spins);
     }

@@ -1,7 +1,7 @@
 #include "golden_site.h"
 
-inline int mod(int x,int N) {
-    if (x>N)
+inline int mod(int x,int N){
+    if(x>N)
         return x-N;
     return x;
 }
@@ -14,11 +14,11 @@ GoldenSite::GoldenSite(const Args &args) {
 }
 
 ITensor GoldenSite::op(const string &opname, const Args &args) const {
-    if (opname=="n1") {
+    if(opname=="n1"){
         return proj(1);
-    } else if (opname=="nt") {
+    }else if(opname=="nt"){
         return proj(2);
-    } else if (opname=="FF") {
+    }else if(opname=="FF"){
         return FF();
     }
     throw ITError("Operator name "+opname+" not recognized");
@@ -45,7 +45,7 @@ IndexVal GoldenSite::state(const string &state) {
     if (state=="1") {
         return s(1);
     }
-//    else if (state=="r") {
+//    else if (state=="r"){
 //        return s(2);
 //    }
     else {
@@ -59,21 +59,21 @@ Index GoldenSite::index() const { return s; }
 MPO Hamiltonian(const Golden& sites, const std::string& boundary_condition, int num_sites, Real U, Real K, Real J) {
     auto ampo = AutoMPO(sites);
     int L = num_sites;
-    if (boundary_condition != "p") {
+    if(boundary_condition != "p"){
         L = num_sites - 1;
     }
-    if (boundary_condition == "sp") {
+    if(boundary_condition == "sp"){
         L = num_sites - 2;
     }
     // set up excluded pairs
     Real U_j;
-    if (U != 0) {
-        for(int j = 1; j <= L; ++j) {
-            if (boundary_condition == "s" || boundary_condition == "sp") {
+    if(U != 0){
+        for(int j = 1; j <= L; ++j){
+            if(boundary_condition == "s" || boundary_condition == "sp"){
                 // Uj = u_ * std::pow(sin(Pi*(j-0.5)/(num_sites_-1)),2);
                 // Uj = u_ * std::pow(sin(Pi*(j+(j%2)-0.5)/(L+1)),2);
                 U_j = U * std::pow(sin(Pi * (j) / (L + 1)), 2);
-            } else {
+            }else{
                 U_j = U;
             }
 
@@ -82,22 +82,22 @@ MPO Hamiltonian(const Golden& sites, const std::string& boundary_condition, int 
     }
 
     L = num_sites;
-    if (boundary_condition != "p") {
+    if(boundary_condition != "p"){
         L = num_sites - 2;
     }
-    if (boundary_condition == "sp") {
+    if(boundary_condition == "sp"){
         L = num_sites - 3;
     }
     // projectors
     Real K_j;
-    if (K != 0) {
-        for(int j = 1; j <= L; ++j) {
-            if (boundary_condition == "s" || boundary_condition == "sp") {
+    if(K != 0){
+        for(int j = 1; j <= L; ++j){
+            if(boundary_condition == "s" || boundary_condition == "sp"){
                 // Kj = k_ * std::pow(sin(Pi*(j)/(num_sites_-1)),2);
                 // Kj = k_ * std::pow(sin(Pi*(j+0.25)/(num_sites_-0.5)),2);
                 // Kj = k_ * std::pow(sin(Pi*(j+(j%2)-0.5+0.5)/(L+2)),2);
                 K_j = K * std::pow(sin(Pi * (j + 0.5) / (L + 2)), 2);
-            } else {
+            }else{
                 K_j = K;
             }
 

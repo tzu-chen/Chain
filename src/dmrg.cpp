@@ -4,7 +4,7 @@
 #include <cxxopts.hpp>
 // Uncomment this and the std::chrono lines to enable timing
 //#include <chrono>
-int main(int argc, char** argv) {
+int main(int argc, char** argv){
     cxxopts::Options options("Chain", "Simulates DMRG on anyon chains.");
     options.add_options()
         ("s,site", "Site types(golden/haagerup/haagerup_q)", cxxopts::value<std::string>())
@@ -41,15 +41,15 @@ int main(int argc, char** argv) {
             result["analysis"].as<int>());
     // fixme: disentangle case from task
 
-    if (std::get<0>(params) == "golden") {
+    if(std::get<0>(params) == "golden"){
         auto dmrg_ = DMRG<Golden>(params);
-        if (std::get<10>(params) == 1) {
+        if (std::get<10>(params) == 1){
             dmrg_.Analyze();
         } else {
             dmrg_.Run();
         }
         return 0;
-    } else if (std::get<0>(params) == "haagerup") {
+    }else if(std::get<0>(params) == "haagerup"){
         auto dmrg_ = DMRG<Haagerup>(params);
         if (std::get<10>(params) == 1) {
             dmrg_.Analyze();
@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
             dmrg_.Run();
         }
         return 0;
-    } else if (std::get<0>(params) == "haagerup_q") {
+    }else if(std::get<0>(params) == "haagerup_q"){
         auto dmrg_ = DMRG<HaagerupQ>(params);
         if (std::get<10>(params) == 1) {
             auto start = std::chrono::high_resolution_clock::now();
@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
             dmrg_.Run();
         }
         return 0;
-    } else {
+    }else {
         throw std::invalid_argument("Invalid site type.");
     }
 }

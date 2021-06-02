@@ -1,7 +1,7 @@
 #include "haagerup_site.h"
 
-inline int mod(int x,int N) {
-    if (x>N)
+inline int mod(int x,int N){
+    if(x>N)
         return x-N;
     return x;
 }
@@ -14,9 +14,9 @@ HaagerupSite::HaagerupSite(const Args &args) {
 Index HaagerupSite::index() const { return s; }
 
 IndexVal HaagerupSite::state(const string &state) {
-    if (state=="r") {
+    if(state=="r"){
         return s(4);
-    } else {
+    }else{
         return s(4);
     }
     throw ITError("State "+state+" not recognized");
@@ -33,12 +33,12 @@ ITensor HaagerupSite::FF(int i) const {
     auto sP=prime(s);
     auto Op=ITensor(dag(s),sP);
     Op.set(s(i),sP(i),zetainv*zetainv);
-    for(int j : {4,5,6}) {
+    for(int j : {4,5,6}){
         Op.set(s(i),sP(j),zetainv*sqrtzetainv);
         Op.set(s(j),sP(i),zetainv*sqrtzetainv);
     }
-    for(int j: {4,5,6}) {
-        for(int k: {4,5,6}) {
+    for(int j: {4,5,6}){
+        for(int k: {4,5,6}){
             Op.set(s(j),sP(k),zetainv);
         }
     }
@@ -87,41 +87,41 @@ ITensor HaagerupSite::Frbr(int i) const {
 }
 
 ITensor HaagerupSite::op(const string &opname, const Args &args) const {
-    if (opname=="n1") {
+    if(opname=="n1"){
         return proj(1);
-    } else if (opname=="na") {
+    }else if(opname=="na"){
         return proj(2);
-    } else if (opname=="nb") {
+    }else if(opname=="nb"){
         return proj(3);
-    } else if (opname=="nr") {
+    }else if(opname=="nr"){
         return proj(4);
-    } else if (opname=="nar") {
+    }else if(opname=="nar"){
         return proj(5);
-    } else if (opname=="nbr") {
+    }else if(opname=="nbr"){
         return proj(6);
-    } else if (opname=="FF1") {
+    }else if(opname=="FF1"){
         return FF(1);
-    } else if (opname=="FFa") {
+    }else if(opname=="FFa"){
         return FF(2);
-    } else if (opname=="FFb") {
+    }else if(opname=="FFb"){
         return FF(3);
-    } else if (opname=="Frr") {
+    }else if(opname=="Frr"){
         return Frr(1);
-    } else if (opname=="Farar") {
+    }else if(opname=="Farar"){
         return Frr(2);
-    } else if (opname=="Fbrbr") {
+    }else if(opname=="Fbrbr"){
         return Frr(3);
-    } else if (opname=="Frar") {
+    }else if(opname=="Frar"){
         return Frar(1);
-    } else if (opname=="Farbr") {
+    }else if(opname=="Farbr"){
         return Frar(2);
-    } else if (opname=="Fbrr") {
+    }else if(opname=="Fbrr"){
         return Frar(3);
-    } else if (opname=="Frbr") {
+    }else if(opname=="Frbr"){
         return Frbr(1);
-    } else if (opname=="Farr") {
+    }else if(opname=="Farr"){
         return Frbr(2);
-    } else if (opname=="Fbrar") {
+    }else if(opname=="Fbrar"){
         return Frbr(3);
     }
     throw ITError("Operator name "+opname+" not recognized");
@@ -131,15 +131,15 @@ ITensor HaagerupSite::op(const string &opname, const Args &args) const {
 MPO Hamiltonian(Haagerup sites, std::string boundary_condition, int num_sites, Real U, Real K, Real J) {
     auto ampo = AutoMPO(sites);
     int L = num_sites;
-    if (boundary_condition != "p") {
+    if(boundary_condition != "p"){
         L = num_sites - 1;
     }
-    if (boundary_condition == "sp") {
+    if(boundary_condition == "sp"){
         L = num_sites - 2;
     }
     // set up excluded pairs
-    if (U!=0) {
-        for(int j = 1; j <= L; ++j) {
+    if(U!=0){
+        for(int j = 1; j <= L; ++j){
             ampo += U,"n1",j,"n1",mod(j+1, num_sites);
             ampo += U,"n1",j,"na",mod(j+1, num_sites);
             ampo += U,"n1",j,"nb",mod(j+1, num_sites);
@@ -170,15 +170,15 @@ MPO Hamiltonian(Haagerup sites, std::string boundary_condition, int num_sites, R
     }
 
     L = num_sites;
-    if (boundary_condition != "p") {
+    if(boundary_condition != "p"){
         L = num_sites - 2;
     }
-    if (boundary_condition == "sp") {
+    if(boundary_condition == "sp"){
         L = num_sites - 3;
     }
     // projectors
-    if (K!=0) {
-        for(int j = 1; j <= L; ++j) {
+    if(K!=0){
+        for(int j = 1; j <= L; ++j){
             ampo += K,"n1",j,"nr",mod(j+1, num_sites),"n1",mod(j + 2, num_sites);
             ampo += K,"na",j,"nar",mod(j+1, num_sites),"na",mod(j + 2, num_sites);
             ampo += K,"nb",j,"nbr",mod(j+1, num_sites),"nb",mod(j + 2, num_sites);
@@ -188,8 +188,8 @@ MPO Hamiltonian(Haagerup sites, std::string boundary_condition, int num_sites, R
         }
     }
 
-    if (J!=0) {
-        for(int j = 1; j <= L; ++j) {
+    if(J!=0){
+        for(int j = 1; j <= L; ++j){
             ampo += J,"n1",j,"nr",mod(j+1, num_sites),"nr",mod(j + 2, num_sites);
             ampo += J,"nr",j,"nr",mod(j+1, num_sites),"n1",mod(j + 2, num_sites);
             ampo += J,"na",j,"nar",mod(j+1, num_sites),"nar",mod(j + 2, num_sites);
