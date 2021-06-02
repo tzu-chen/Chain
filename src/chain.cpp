@@ -96,7 +96,7 @@ MPO RhoOp(const SiteSet& sites, const std::string& site_type) {
             G[j] = f.RhoDefectCell(sites(j), sites(j + 1));
         }
         G[N] = GoldenFData().RhoDefectCell(sites(N), sites(1));
-    } else if (site_type == "haagerup" || site_type == "haagerupQN"){
+    } else if (site_type == "haagerup" || site_type == "haagerup_q"){
         auto f = HaagerupFData();
         for (auto j : range1(N - 1)) {
             G[j] = f.RhoDefectCell(sites(j), sites(j + 1));

@@ -127,7 +127,7 @@ public:
 // Examples of SiteSetType are Golden, Haagerup, HaagerupQ
 template<typename SiteSetType>
 class DMRG {
-    std::string site_type_; // eg. golden, haagerup
+    std::string site_type_; // eg. golden, haagerup, haagerup_q
     std::string boundary_condition_; // "p" for periodic, "o" for open, "s" for sine-squared deformed
     std::string job_; // site_name_ + boundary_condition_
 
@@ -485,17 +485,17 @@ public:
         if(std::filesystem::exists(progress_directory_ / (filename_ + ".pgs"))){
             dmrg_progress_.Read(progress_path_);
         }else{
-            printf("\n> No progress file available");
+            printf("\n> No progress file available\n");
             return;
         }
 
         auto states = dmrg_progress_.DoneStates();
         int num_states = std::min(dmrg_progress_.NumDoneStates(), num_states_);
 
-        // fixme: refactor Haagerup/HaagerupQN branching
+        // fixme: refactor Haagerup/HaagerupQ branching
         // Perform change of basis if appropriate in order to use F symbols
-        // Rotate HaagerupQN to Haagerup
-        // Golden -> Golden, Haagerup, HaagerupQN -> Haagerup
+        // Rotate HaagerupQ to Haagerup
+        // Golden -> Golden, Haagerup, HaagerupQ -> Haagerup
         SiteSet sites;
         if (site_type_ == "golden" or site_type_ == "haagerup"){
             sites = sites_;
@@ -524,6 +524,7 @@ public:
         auto left_dangling_ind = Index(36, "Site");
         auto right_dangling_ind = Index(36, "Site");
 
+        // fixme: Can we use OpenMP for this?
         for (int i=0; i < num_states; i++) {
             // Initialize
             psi_translated = MPS(states.at(i));

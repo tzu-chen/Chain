@@ -7,7 +7,7 @@
 int main(int argc, char** argv){
     cxxopts::Options options("Chain", "Simulates DMRG on anyon chains.");
     options.add_options()
-        ("s,site", "Site types(golden/haagerup/haagerupQN)", cxxopts::value<std::string>())
+        ("s,site", "Site types(golden/haagerup/haagerup_q)", cxxopts::value<std::string>())
         ("b,bc", "Boundary condition types(p/o/s/sp)", cxxopts::value<std::string>())
         ("n", "# of sites", cxxopts::value<int>())
         ("d", "Max dimension", cxxopts::value<int>())
@@ -46,10 +46,7 @@ int main(int argc, char** argv){
         if (std::get<10>(params) == 1){
             dmrg_.Analyze();
         } else {
-//            auto start = std::chrono::high_resolution_clock::now();
             dmrg_.Run();
-//            auto stop = std::chrono::high_resolution_clock::now();
-//            std::cout << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() << std::endl;
         }
         return 0;
     }else if(std::get<0>(params) == "haagerup"){
@@ -60,10 +57,13 @@ int main(int argc, char** argv){
             dmrg_.Run();
         }
         return 0;
-    }else if(std::get<0>(params) == "haagerupQN"){
+    }else if(std::get<0>(params) == "haagerup_q"){
         auto dmrg_ = DMRG<HaagerupQ>(params);
         if (std::get<10>(params) == 1) {
+            auto start = std::chrono::high_resolution_clock::now();
             dmrg_.Analyze();
+            auto stop = std::chrono::high_resolution_clock::now();
+            std::cout << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() / 1000000 << std::endl;
         } else {
             dmrg_.Run();
         }
