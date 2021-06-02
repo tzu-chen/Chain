@@ -13,8 +13,8 @@ class DMRGProgress {
 public:
     SiteSetType sites_;
     // Each element below is the latest progress for a given state
-    std::vector<int> times_swepts_;
-    std::vector<int> maxdims_;
+    std::vector<int> num_sweeps_vec_;
+    std::vector<int> max_dims_;
     std::vector<Real> ens_;
     std::vector<MPS> psis_;
     std::vector<MPO> Hs_;
@@ -29,8 +29,8 @@ public:
 
     // Replace the latest progress for the current state
     void Update(int times_swept, int max_dim, Real en, MPS const& psi, MPO H) {
-        times_swepts_.back() = times_swept;
-        maxdims_.back() = max_dim;
+        num_sweeps_vec_.back() = times_swept;
+        max_dims_.back() = max_dim;
         ens_.back() = en;
         psis_.back() = psi;
         Hs_.back() = std::move(H);
@@ -38,15 +38,15 @@ public:
 
     // Extend vectors to signal completion of previous state and prepare for next state
     void NextState() {
-        times_swepts_.push_back(0);
-        maxdims_.push_back(0);
+        num_sweeps_vec_.push_back(0);
+        max_dims_.push_back(0);
         ens_.push_back(0);
         psis_.emplace_back(MPS(1));
         Hs_.emplace_back(MPO(1));
     }
 
     std::tuple<int,int,Real,MPS,MPO> All() {
-        return std::tuple<int,int,Real,MPS,MPO>(times_swepts_.back(), maxdims_.back(), ens_.back(), psis_.back(), Hs_.back());
+        return std::tuple<int,int,Real,MPS,MPO>(num_sweeps_vec_.back(), max_dims_.back(), ens_.back(), psis_.back(), Hs_.back());
     }
 
     std::vector<MPS> DoneStates() {
@@ -79,8 +79,8 @@ public:
     {
         std::string path = std::string(p);
         writeToFile(path + ".st", sites_);
-        writeToFile(path + ".pgs", times_swepts_);
-        writeToFile(path + ".md", maxdims_);
+        writeToFile(path + ".pgs", num_sweeps_vec_);
+        writeToFile(path + ".md", max_dims_);
         writeToFile(path + ".en", ens_);
         writeToFile(path + ".psi", psis_);
         writeToFile(path + ".H", Hs_);
@@ -98,8 +98,8 @@ public:
         std::string path = std::string(p);
         try{
             readFromFile(path + ".st", sites_);
-            readFromFile(path + ".pgs", times_swepts_);
-            readFromFile(path + ".md", maxdims_);
+            readFromFile(path + ".pgs", num_sweeps_vec_);
+            readFromFile(path + ".md", max_dims_);
             readFromFile(path + ".en", ens_);
             readFromFile(path + ".psi", psis_);
             readFromFile(path + ".H", Hs_);
@@ -112,8 +112,8 @@ public:
 //                readFromFile(path + ".H.bk", Hs_);
 //            }catch(std::exception const& e) {
                 println(e.what());
-                times_swepts_.clear();
-                maxdims_.clear();
+                num_sweeps_vec_.clear();
+                max_dims_.clear();
                 ens_.clear();
                 psis_.clear();
                 Hs_.clear();
@@ -143,7 +143,7 @@ class DMRG {
     int es_max_bond_dim_;
     double svd_cutoff_;
     double noise_;
-    double ortho_weight;
+    double orthogonal_weight;
 
     // DMRG design
     float stable_tol;
@@ -170,7 +170,7 @@ class DMRG {
 
     double min_en_;
     int cnt_;
-    int times_swept_;
+    int num_sweeps_;
     int bond_dim_;
 
     // Variable declarations
@@ -207,7 +207,7 @@ public:
         // DMRG parameters
         gs_max_bond_dim_ = es_max_bond_dim_;
         noise_ = 0.0;
-        ortho_weight = 1000.0;
+        orthogonal_weight = 1000.0;
 
         // DMRG design
         init_num_sweeps_per_rep_ = 5;
@@ -256,7 +256,7 @@ public:
     void ResetDMRG() {
         min_en_ = 1000000;
         cnt_ = num_reps_til_stable_;
-        times_swept_ = 0;
+        num_sweeps_ = 0;
     }
 
     // Decide name of the current state to simulate based on number of completed states
@@ -335,7 +335,7 @@ public:
         // Loop over states
         // Each iteration includes warmup and post-warmup DMRG runs until energy is stable
         for(;;) {
-            if (dmrg_progress_.times_swepts_.back() == 0 && hot_start != 0) {
+            if (dmrg_progress_.num_sweeps_vec_.back() == 0 && hot_start != 0) {
                 // Not yet run
                 // Begin DMRG with warmup
                 state_name_ = StateName();
@@ -351,14 +351,14 @@ public:
                 sweeps.cutoff() = std::max(1E-5, svd_cutoff_),std::max(1E-6, svd_cutoff_),std::max(1E-7, svd_cutoff_),std::max(1E-8, svd_cutoff_),std::max(1E-9, svd_cutoff_),std::max(1E-10, svd_cutoff_),std::max(1E-11, svd_cutoff_),std::max(1E-12, svd_cutoff_),svd_cutoff_;
                 sweeps.niter() = 2;
                 sweeps.noise() = noise_;
-                std::tie(en_, psi_) = dmrg(H, dmrg_progress_.DoneStates(), init_state_, sweeps, {"Quiet", true, "Weight=", ortho_weight});
+                std::tie(en_, psi_) = dmrg(H, dmrg_progress_.DoneStates(), init_state_, sweeps, {"Quiet", true, "Weight=", orthogonal_weight});
 
-                times_swept_ += init_num_sweeps_per_rep_;
-                dmrg_progress_.Update(times_swept_, bond_dim_, en_, psi_, H);
+                num_sweeps_ += init_num_sweeps_per_rep_;
+                dmrg_progress_.Update(num_sweeps_, bond_dim_, en_, psi_, H);
                 dmrg_progress_.SetSites(sites_);
                 dmrg_progress_.Write(progress_path_);
-                printf("\n    > Times swept: %d\n      %s of %s\n      L=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g K=%g J=%g U=%g Q=%d\n", dmrg_progress_.times_swepts_.back(), state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, k_, j_, u_, charge_);
-            } else if (dmrg_progress_.times_swepts_.back() == 0 && hot_start == 0) {
+                printf("\n    > Times swept: %d\n      %s of %s\n      L=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g K=%g J=%g U=%g Q=%d\n", dmrg_progress_.num_sweeps_vec_.back(), state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, k_, j_, u_, charge_);
+            } else if (dmrg_progress_.num_sweeps_vec_.back() == 0 && hot_start == 0) {
                 state_name_ = StateName();
                 printf("\n> Simulation: %s\n", state_name_);
 
@@ -374,14 +374,14 @@ public:
                 sweeps.niter() = 2;
                 sweeps.noise() = noise_;
                 std::tie(en_, psi_) = dmrg(H, dmrg_progress_.DoneStates(), init_state_, sweeps,
-                                           {"Quiet", true, "Weight=", ortho_weight});
+                                           {"Quiet", true, "Weight=", orthogonal_weight});
 
-                times_swept_ += init_num_sweeps_per_rep_;
-                dmrg_progress_.Update(times_swept_, bond_dim_, en_, psi_, H);
+                num_sweeps_ += init_num_sweeps_per_rep_;
+                dmrg_progress_.Update(num_sweeps_, bond_dim_, en_, psi_, H);
                 dmrg_progress_.SetSites(sites_);
                 dmrg_progress_.Write(progress_path_);
                 printf("\n    > Times swept: %d\n      %s of %s\n      L=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g K=%g J=%g U=%g Q=%d\n",
-                       dmrg_progress_.times_swepts_.back(), state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_,
+                       dmrg_progress_.num_sweeps_vec_.back(), state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_,
                        gs_stable_tol_, theta_, k_, j_, u_, charge_);
             }
 
@@ -389,7 +389,7 @@ public:
             AdjustDMRGParams();
             for(;;) {
                 // Read progress
-                std::tie(times_swept_, bond_dim_, en_, psi_, H) = dmrg_progress_.All();
+                std::tie(num_sweeps_, bond_dim_, en_, psi_, H) = dmrg_progress_.All();
 
                 // Dump entanglement entropy curve
                 // Only for simulation of ground state
@@ -408,7 +408,7 @@ public:
                 sw.cutoff() = svd_cutoff_;
                 sw.niter() = 2;
                 sw.noise() = noise_;
-                std::tie(en_, psi_) = dmrg(H, dmrg_progress_.DoneStates(), psi_, sw, {"Quiet=", true, "Weight=", ortho_weight});
+                std::tie(en_, psi_) = dmrg(H, dmrg_progress_.DoneStates(), psi_, sw, {"Quiet=", true, "Weight=", orthogonal_weight});
 
                 // Decide whether energy has stabilized
                 if (abs(min_en_ - en_) * num_sites_ < stable_tol) {
@@ -417,13 +417,13 @@ public:
                     cnt_ = num_reps_til_stable_;
                     min_en_ = en_;
                 }
-                times_swept_ += num_sweeps_per_rep_;
-                dmrg_progress_.Update(times_swept_, bond_dim_, en_, psi_, H);
+                num_sweeps_ += num_sweeps_per_rep_;
+                dmrg_progress_.Update(num_sweeps_, bond_dim_, en_, psi_, H);
                 // fixme
                 dmrg_progress_.SetSites(sites_);
                 dmrg_progress_.Write(progress_path_);
 
-                printf("\n    > Times swept: %d\n      %s of %s\n      L=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g K=%g J=%g U=%g Q=%d\n", dmrg_progress_.times_swepts_.back(), state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, k_, j_, u_, charge_);
+                printf("\n    > Times swept: %d\n      %s of %s\n      L=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g K=%g J=%g U=%g Q=%d\n", dmrg_progress_.num_sweeps_vec_.back(), state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, k_, j_, u_, charge_);
                 if (cnt_ == 0) {
                     break;
                 }
