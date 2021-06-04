@@ -36,7 +36,7 @@ public:
     qr(int i, int j) const;
 
     ITensor
-    qr_ar(int i, int j) const;
+    qar(int i, int j) const;
     
     ITensor
     op(std::string const& opname,Args const& args = Args::global()) const;
