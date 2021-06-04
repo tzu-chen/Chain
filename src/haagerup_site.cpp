@@ -211,8 +211,13 @@ ITensor HaagerupSite::op(const string &opname, const Args &args) const {
     throw ITError("Operator name "+opname+" not recognized");
 }
 
-MPO Haagerup::Hamiltonian(const std::string& boundary_condition, int num_sites, Real U, Real K, Real J, Real M) {
+MPO Haagerup::Hamiltonian(const std::string& boundary_condition, int num_sites, Real U, std::vector<Real> couplings) {
+    Real K = couplings.at(0);
+    Real J = couplings.at(1);
+    Real M = couplings.at(2);
+
     auto ampo = AutoMPO(*this);
+
     int L = num_sites;
     if (boundary_condition != "p") {
         L = num_sites - 1;
@@ -320,113 +325,3 @@ MPO Haagerup::Hamiltonian(const std::string& boundary_condition, int num_sites, 
 
     return H;
 }
-
-//MPO Hamiltonian(const Haagerup& sites, const std::string& boundary_condition, int num_sites, Real U, Real K, Real J, Real M) {
-//    auto ampo = AutoMPO(sites);
-//    int L = num_sites;
-//    if (boundary_condition != "p") {
-//        L = num_sites - 1;
-//    }
-//    if (boundary_condition == "sp") {
-//        L = num_sites - 2;
-//    }
-//    // set up excluded pairs
-//    if (U!=0) {
-//        for(int j = 1; j <= L; ++j) {
-//            ampo += U,"n1",j,"n1",mod(j+1, num_sites);
-//            ampo += U,"n1",j,"na",mod(j+1, num_sites);
-//            ampo += U,"n1",j,"nb",mod(j+1, num_sites);
-//            ampo += U,"n1",j,"nar",mod(j+1, num_sites);
-//            ampo += U,"n1",j,"nbr",mod(j+1, num_sites);
-//
-//            ampo += U,"na",j,"n1",mod(j+1, num_sites);
-//            ampo += U,"na",j,"na",mod(j+1, num_sites);
-//            ampo += U,"na",j,"nb",mod(j+1, num_sites);
-//            ampo += U,"na",j,"nr",mod(j+1, num_sites);
-//            ampo += U,"na",j,"nbr",mod(j+1, num_sites);
-//
-//            ampo += U,"nb",j,"n1",mod(j+1, num_sites);
-//            ampo += U,"nb",j,"na",mod(j+1, num_sites);
-//            ampo += U,"nb",j,"nb",mod(j+1, num_sites);
-//            ampo += U,"nb",j,"nr",mod(j+1, num_sites);
-//            ampo += U,"nb",j,"nar",mod(j+1, num_sites);
-//
-//            ampo += U,"nr",j,"na",mod(j+1, num_sites);
-//            ampo += U,"nr",j,"nb",mod(j+1, num_sites);
-//
-//            ampo += U,"nar",j,"n1",mod(j+1, num_sites);
-//            ampo += U,"nar",j,"nb",mod(j+1, num_sites);
-//
-//            ampo += U,"nbr",j,"n1",mod(j+1, num_sites);
-//            ampo += U,"nbr",j,"na",mod(j+1, num_sites);
-//        }
-//    }
-//
-//    L = num_sites;
-//    if (boundary_condition != "p") {
-//        L = num_sites - 2;
-//    }
-//    if (boundary_condition == "sp") {
-//        L = num_sites - 3;
-//    }
-//    // Projectors
-//    // Identity
-//    if (K!=0) {
-//        for(int j = 1; j <= L; ++j) {
-//            ampo += K,"n1",j,"nr",mod(j+1, num_sites),"n1",mod(j+2, num_sites);
-//            ampo += K,"na",j,"nar",mod(j+1, num_sites),"na",mod(j+2, num_sites);
-//            ampo += K,"nb",j,"nbr",mod(j+1, num_sites),"nb",mod(j+2, num_sites);
-//            ampo += K,"nr",j,"FF1",mod(j+1, num_sites),"nr",mod(j+2, num_sites);
-//            ampo += K,"nar",j,"FFa",mod(j+1, num_sites),"nar",mod(j+2, num_sites);
-//            ampo += K,"nbr",j,"FFb",mod(j+1, num_sites),"nbr",mod(j+2, num_sites);
-//        }
-//    }
-//
-//    // rho
-//    if (J!=0) {
-//        for(int j = 1; j <= L; ++j) {
-//            ampo += J,"n1",j,"nr",mod(j+1, num_sites),"nr",mod(j+2, num_sites);
-//            ampo += J,"nr",j,"nr",mod(j+1, num_sites),"n1",mod(j+2, num_sites);
-//            ampo += J,"na",j,"nar",mod(j+1, num_sites),"nar",mod(j+2, num_sites);
-//            ampo += J,"nar",j,"nar",mod(j+1, num_sites),"na",mod(j+2, num_sites);
-//            ampo += J,"nb",j,"nbr",mod(j+1, num_sites),"nbr",mod(j+2, num_sites);
-//            ampo += J,"nbr",j,"nbr",mod(j+1, num_sites),"nb",mod(j+2, num_sites);
-//
-//            ampo += J,"nr",j,"Frr",mod(j+1, num_sites),"nr",mod(j+2, num_sites);
-//            ampo += J,"nr",j,"Frar",mod(j+1, num_sites),"nar",mod(j+2, num_sites);
-//            ampo += J,"nr",j,"Frbr",mod(j+1, num_sites),"nbr",mod(j+2, num_sites);
-//            ampo += J,"nar",j,"Farr",mod(j+1, num_sites),"nr",mod(j+2, num_sites);
-//            ampo += J,"nar",j,"Farar",mod(j+1, num_sites),"nar",mod(j+2, num_sites);
-//            ampo += J,"nar",j,"Farbr",mod(j+1, num_sites),"nbr",mod(j+2, num_sites);
-//            ampo += J,"nbr",j,"Fbrr",mod(j+1, num_sites),"nr",mod(j+2, num_sites);
-//            ampo += J,"nbr",j,"Fbrar",mod(j+1, num_sites),"nar",mod(j+2, num_sites);
-//            ampo += J,"nbr",j,"Fbrbr",mod(j+1, num_sites),"nbr",mod(j+2, num_sites);
-//        }
-//    }
-//
-//    // a * rho
-//    if (M!=0) {
-//        for(int j = 1; j <= L; ++j) {
-//            ampo += M,"n1",j,"nr",mod(j+1, num_sites),"nar",mod(j+2, num_sites);
-//            ampo += M,"nar",j,"nr",mod(j+1, num_sites),"n1",mod(j+2, num_sites);
-//            ampo += M,"na",j,"nar",mod(j+1, num_sites),"nbr",mod(j+2, num_sites);
-//            ampo += M,"nbr",j,"nar",mod(j+1, num_sites),"na",mod(j+2, num_sites);
-//            ampo += M,"nb",j,"nbr",mod(j+1, num_sites),"nr",mod(j+2, num_sites);
-//            ampo += M,"nr",j,"nbr",mod(j+1, num_sites),"nb",mod(j+2, num_sites);
-//
-//            ampo += M,"nr",j,"Far_rr",mod(j+1, num_sites),"nr",mod(j+2, num_sites);
-//            ampo += M,"nr",j,"Far_rar",mod(j+1, num_sites),"nar",mod(j+2, num_sites);
-//            ampo += M,"nr",j,"Far_rbr",mod(j+1, num_sites),"nbr",mod(j+2, num_sites);
-//            ampo += M,"nar",j,"Far_arr",mod(j+1, num_sites),"nr",mod(j+2, num_sites);
-//            ampo += M,"nar",j,"Far_arar",mod(j+1, num_sites),"nar",mod(j+2, num_sites);
-//            ampo += M,"nar",j,"Far_arbr",mod(j+1, num_sites),"nbr",mod(j+2, num_sites);
-//            ampo += M,"nbr",j,"Far_brr",mod(j+1, num_sites),"nr",mod(j+2, num_sites);
-//            ampo += M,"nbr",j,"Far_brar",mod(j+1, num_sites),"nar",mod(j+2, num_sites);
-//            ampo += M,"nbr",j,"Far_brbr",mod(j+1, num_sites),"nbr",mod(j+2, num_sites);
-//        }
-//    }
-//
-//    auto H = toMPO(ampo);
-//
-//    return H;
-//}

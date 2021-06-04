@@ -58,9 +58,7 @@ public:
     Haagerup(int N, Args const& args = Args::global()) : BasicSiteSet<HaagerupSite>(N, args) {};
 
     // Hamiltonian appropriate for the boundary condition, number of sites, and couplings
-    MPO Hamiltonian(const std::string& boundary_condition, int num_sites, Real U, Real K, Real J, Real M);
+    MPO Hamiltonian(const std::string& boundary_condition, int num_sites, Real U, std::vector<Real> couplings);
 };
-
-//MPO Hamiltonian(const Haagerup& sites, const std::string& boundary_condition, int num_sites, Real U, Real K, Real J, Real M);
 
 #endif

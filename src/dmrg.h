@@ -37,7 +37,6 @@ public:
         max_dims_.back() = max_dim;
         ens_.back() = en;
         psis_.back() = psi;
-
         Hs_.back() = std::move(H);
     }
 
@@ -253,7 +252,7 @@ public:
         if (with_sweeps) {
             int num_sweeps = dmrg_progress_.num_sweeps_vec_.back();
             if (num_sweeps == 0) {
-                printf("\n  > Sweeps #1-%d\n    %s of %s\n    L=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g phi=%g K=%g J=%g M=%g U=%g Q=%d\n", init_num_sweeps_per_rep_, state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, phi_, k_, j_, m_, u_, charge_);
+                printf("\n  > Sweeps #1-#%d\n    %s of %s\n    L=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g phi=%g K=%g J=%g M=%g U=%g Q=%d\n", init_num_sweeps_per_rep_, state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, phi_, k_, j_, m_, u_, charge_);
             } else {
 //                printf("\n    > Times swept: %d\n      %s of %s\n      L=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g phi=%g K=%g J=%g M=%g U=%g Q=%d\n", dmrg_progress_.num_sweeps_vec_.back(), state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, phi_, k_, j_, m_, u_, charge_);
 //                printf("\n  > Times swept: %d\n    %s of %s\n    L=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g phi=%g K=%g J=%g M=%g U=%g Q=%d\n", dmrg_progress_.num_sweeps_vec_.back(), state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, phi_, k_, j_, m_, u_, charge_);
@@ -336,7 +335,7 @@ public:
 
         // fixme: Can change to method of say Golden by declaring that Golden is a class that inherits BasicSiteSet<GoldenSite>
 //        MPO H = Hamiltonian(sites_, boundary_condition_, num_sites_, u_, k_, j_, m_);
-        MPO H = sites_.Hamiltonian(boundary_condition_, num_sites_, u_, k_, j_, m_);
+        MPO H = sites_.Hamiltonian(boundary_condition_, num_sites_, u_, std::vector<Real>({k_, j_, m_}));
 
         // If QN conserving, create charge-neutral initial state and change center site to specified charge
 //        auto pre_init_state = InitState(sites_,"0");
@@ -458,7 +457,7 @@ public:
             // Make appropriate transition from SSD to PBC while using SSD result as initial state for PBC
             if (hot_start == 1) {
 //                H = Hamiltonian(sites_, "p", num_sites_, u_, k_, j_, m_);
-                H = sites_.Hamiltonian("p", num_sites_, u_, k_, j_, m_);
+                H = sites_.Hamiltonian("p", num_sites_, u_, std::vector<Real>({k_, j_, m_}));
                 init_state_ = psi_;
                 dmrg_progress_ = DMRGProgress<SiteSetType>();
                 hot_start = 0;
