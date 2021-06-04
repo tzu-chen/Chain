@@ -251,8 +251,14 @@ public:
 
     void PrintJob(bool with_sweeps) {
         if (with_sweeps) {
-//            printf("\n    > Times swept: %d\n      %s of %s\n      L=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g phi=%g K=%g J=%g M=%g U=%g Q=%d\n", dmrg_progress_.num_sweeps_vec_.back(), state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, phi_, k_, j_, m_, u_, charge_);
-            printf("\n  > Times swept: %d\n    %s of %s\n    L=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g phi=%g K=%g J=%g M=%g U=%g Q=%d\n", dmrg_progress_.num_sweeps_vec_.back(), state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, phi_, k_, j_, m_, u_, charge_);
+            int num_sweeps = dmrg_progress_.num_sweeps_vec_.back();
+            if (num_sweeps == 0) {
+                printf("\n  > Sweeps #1-%d\n    %s of %s\n    L=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g phi=%g K=%g J=%g M=%g U=%g Q=%d\n", init_num_sweeps_per_rep_, state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, phi_, k_, j_, m_, u_, charge_);
+            } else {
+//                printf("\n    > Times swept: %d\n      %s of %s\n      L=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g phi=%g K=%g J=%g M=%g U=%g Q=%d\n", dmrg_progress_.num_sweeps_vec_.back(), state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, phi_, k_, j_, m_, u_, charge_);
+//                printf("\n  > Times swept: %d\n    %s of %s\n    L=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g phi=%g K=%g J=%g M=%g U=%g Q=%d\n", dmrg_progress_.num_sweeps_vec_.back(), state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, phi_, k_, j_, m_, u_, charge_);
+                printf("\n  > Sweep #%d\n    %s of %s\n    L=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g phi=%g K=%g J=%g M=%g U=%g Q=%d\n", num_sweeps+1, state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, phi_, k_, j_, m_, u_, charge_);
+            }
         } else {
             printf("\n> %s: num_sites=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g phi=%g K=%g J=%g M=%g U=%g Q=%d\n", job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, phi_, k_, j_, m_, u_, charge_);
         }
@@ -329,7 +335,8 @@ public:
         }
 
         // fixme: Can change to method of say Golden by declaring that Golden is a class that inherits BasicSiteSet<GoldenSite>
-        MPO H = Hamiltonian(sites_, boundary_condition_, num_sites_, u_, k_, j_, m_);
+//        MPO H = Hamiltonian(sites_, boundary_condition_, num_sites_, u_, k_, j_, m_);
+        MPO H = sites_.Hamiltonian(boundary_condition_, num_sites_, u_, k_, j_, m_);
 
         // If QN conserving, create charge-neutral initial state and change center site to specified charge
 //        auto pre_init_state = InitState(sites_,"0");
@@ -358,6 +365,7 @@ public:
                 AdjustDMRGParams();
                 ResetDMRG();
 
+                PrintJob(true);
                 // DMRG Warmup
                 bond_dim_ = 200;
                 auto sweeps = Sweeps(init_num_sweeps_per_rep_);
@@ -371,7 +379,6 @@ public:
                 dmrg_progress_.Update(num_sweeps_, bond_dim_, en_, psi_, H);
 //                dmrg_progress_.SetSites(sites_);
                 dmrg_progress_.Write(progress_path_);
-                PrintJob(true);
             } else if (dmrg_progress_.num_sweeps_vec_.back() == 0 && hot_start == 0) {
                 state_name_ = StateName();
                 printf("\n> Simulation: %s\n", state_name_);
@@ -379,6 +386,7 @@ public:
                 AdjustDMRGParams();
                 ResetDMRG();
 
+                PrintJob(true);
                 // DMRG
                 // Warmup by maintaining previous warmup DMRG parameters
                 bond_dim_ = 200;
@@ -394,7 +402,6 @@ public:
                 dmrg_progress_.Update(num_sweeps_, bond_dim_, en_, psi_, H);
 //                dmrg_progress_.SetSites(sites_);
                 dmrg_progress_.Write(progress_path_);
-                PrintJob(true);
             } else {
                 state_name_ = StateName();
                 printf("\n> Simulation: %s\n", state_name_);
@@ -417,6 +424,7 @@ public:
                     bond_dim_ += 200;
                 }
 
+                PrintJob(true);
                 // DMRG
                 auto sw = Sweeps(num_sweeps_per_rep_);
                 sw.maxdim() = bond_dim_;
@@ -437,7 +445,6 @@ public:
 //                dmrg_progress_.SetSites(sites_);
                 dmrg_progress_.Write(progress_path_);
 
-                PrintJob(true);
                 if (cnt_ == 0) {
                     break;
                 }
@@ -450,7 +457,8 @@ public:
             // If using sine-squared deformed to hot start for periodic
             // Make appropriate transition from SSD to PBC while using SSD result as initial state for PBC
             if (hot_start == 1) {
-                H = Hamiltonian(sites_, "p", num_sites_, u_, k_, j_, m_);
+//                H = Hamiltonian(sites_, "p", num_sites_, u_, k_, j_, m_);
+                H = sites_.Hamiltonian("p", num_sites_, u_, k_, j_, m_);
                 init_state_ = psi_;
                 dmrg_progress_ = DMRGProgress<SiteSetType>();
                 hot_start = 0;

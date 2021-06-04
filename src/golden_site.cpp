@@ -56,8 +56,8 @@ IndexVal GoldenSite::state(const string &state) {
 
 Index GoldenSite::index() const { return s; }
 
-MPO Hamiltonian(const Golden& sites, const std::string& boundary_condition, int num_sites, Real U, Real K, Real J, Real M) {
-    auto ampo = AutoMPO(sites);
+MPO Golden::Hamiltonian(const std::string& boundary_condition, int num_sites, Real U, Real K, Real J, Real M) {
+    auto mpo = AutoMPO(*this);
     int L = num_sites;
     if (boundary_condition != "p") {
         L = num_sites - 1;
@@ -77,7 +77,7 @@ MPO Hamiltonian(const Golden& sites, const std::string& boundary_condition, int 
                 U_j = U;
             }
 
-            ampo += U_j,"n1",j,"n1",mod(j+1, num_sites);
+            mpo += U_j,"n1",j,"n1",mod(j + 1, num_sites);
         }
     }
 
@@ -101,12 +101,67 @@ MPO Hamiltonian(const Golden& sites, const std::string& boundary_condition, int 
                 K_j = K;
             }
 
-            ampo += K_j,"n1",j,"nt",mod(j+1, num_sites),"n1",mod(j+2, num_sites);
-            ampo += K_j,"nt",j,"FF",mod(j+1, num_sites),"nt",mod(j+2, num_sites);
+            mpo += K_j,"n1",j,"nt",mod(j + 1, num_sites),"n1",mod(j + 2, num_sites);
+            mpo += K_j,"nt",j,"FF",mod(j + 1, num_sites),"nt",mod(j + 2, num_sites);
         }
     }
 
-    auto H = toMPO(ampo);
+    auto H = toMPO(mpo);
 
     return H;
 }
+
+//MPO Hamiltonian(const Golden& sites, const std::string& boundary_condition, int num_sites, Real U, Real K, Real J, Real M) {
+//    auto mpo = AutoMPO(sites);
+//    int L = num_sites;
+//    if (boundary_condition != "p") {
+//        L = num_sites - 1;
+//    }
+//    if (boundary_condition == "sp") {
+//        L = num_sites - 2;
+//    }
+//    // set up excluded pairs
+//    Real U_j;
+//    if (U != 0) {
+//        for(int j = 1; j <= L; ++j) {
+//            if (boundary_condition == "s" || boundary_condition == "sp") {
+//                // Uj = u_ * std::pow(sin(Pi*(j-0.5)/(num_sites_-1)),2);
+//                // Uj = u_ * std::pow(sin(Pi*(j+(j%2)-0.5)/(L+1)),2);
+//                U_j = U * std::pow(sin(Pi * (j) / (L + 1)), 2);
+//            } else {
+//                U_j = U;
+//            }
+//
+//            mpo += U_j,"n1",j,"n1",mod(j + 1, num_sites);
+//        }
+//    }
+//
+//    L = num_sites;
+//    if (boundary_condition != "p") {
+//        L = num_sites - 2;
+//    }
+//    if (boundary_condition == "sp") {
+//        L = num_sites - 3;
+//    }
+//    // projectors
+//    Real K_j;
+//    if (K != 0) {
+//        for(int j = 1; j <= L; ++j) {
+//            if (boundary_condition == "s" || boundary_condition == "sp") {
+//                // Kj = k_ * std::pow(sin(Pi*(j)/(num_sites_-1)),2);
+//                // Kj = k_ * std::pow(sin(Pi*(j+0.25)/(num_sites_-0.5)),2);
+//                // Kj = k_ * std::pow(sin(Pi*(j+(j%2)-0.5+0.5)/(L+2)),2);
+//                K_j = K * std::pow(sin(Pi * (j + 0.5) / (L + 2)), 2);
+//            } else {
+//                K_j = K;
+//            }
+//
+//            mpo += K_j,"n1",j,"nt",mod(j + 1, num_sites),"n1",mod(j + 2, num_sites);
+//            mpo += K_j,"nt",j,"FF",mod(j + 1, num_sites),"nt",mod(j + 2, num_sites);
+//        }
+//    }
+//
+//    auto H = toMPO(mpo);
+//
+//    return H;
+//}

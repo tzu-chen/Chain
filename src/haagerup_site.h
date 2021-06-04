@@ -1,23 +1,22 @@
+#ifndef HAAGERUP_SITE_H
+#define HAAGERUP_SITE_H
+
 #include "itensor/all.h"
 #include "f_data.h"
 
 using namespace itensor;
 
-class HaagerupSite;
-using Haagerup=BasicSiteSet<HaagerupSite>;
 // 1    1
 // 2    a
 // 3    b=a^2
 // 4    r=\rho
 // 5    ar
 // 6    br
-
-
-using  std::sqrt;
+using std::sqrt;
 class HaagerupSite
 {
-    const double zetainv=(sqrt(13)-3)/2;
-    const double sqrtzetainv=sqrt(zetainv);
+    const double zeta_inv= (sqrt(13) - 3) / 2;
+    const double sqrt_zeta_inv=sqrt(zeta_inv);
     const double x=(2-sqrt(13))/3;
     const double z=(1+sqrt(13))/6;
     const double y1=(5-sqrt(13)-sqrt(6*(1+sqrt(13))))/12;
@@ -51,8 +50,17 @@ public:
     ITensor op(std::string const& opname,Args const& args = Args::global()) const;
 };
 
-// Hamiltonian appropriate for the boundary condition, number of sites, and couplings
-// Polymorphic function specified by SiteSetType = Haagerup
-MPO Hamiltonian(Haagerup sites, std::string boundary_condition, int num_sites, Real U, Real K, Real J, Real M);
+//using Haagerup=BasicSiteSet<HaagerupSite>;
 
+class Haagerup: public BasicSiteSet<HaagerupSite> {
+public:
+    Haagerup() : BasicSiteSet<HaagerupSite>() {};
+    Haagerup(int N, Args const& args = Args::global()) : BasicSiteSet<HaagerupSite>(N, args) {};
 
+    // Hamiltonian appropriate for the boundary condition, number of sites, and couplings
+    MPO Hamiltonian(const std::string& boundary_condition, int num_sites, Real U, Real K, Real J, Real M);
+};
+
+//MPO Hamiltonian(const Haagerup& sites, const std::string& boundary_condition, int num_sites, Real U, Real K, Real J, Real M);
+
+#endif

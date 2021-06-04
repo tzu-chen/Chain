@@ -31,10 +31,17 @@ private:
     const double kSqrtPhiInv = golden_f_data.kSqrtPhiInv_;
 };
 
-using Golden=BasicSiteSet<GoldenSite>;
+//using Golden=BasicSiteSet<GoldenSite>;
 
-// Hamiltonian appropriate for the boundary condition, number of sites, and couplings
-// Polymorphic function specified by SiteSetType = Golden
-MPO Hamiltonian(const Golden& sites, const std::string& boundary_condition, int num_sites, Real U, Real K, Real J, Real M);
+class Golden: public BasicSiteSet<GoldenSite> {
+public:
+    Golden() : BasicSiteSet<GoldenSite>() {};
+    Golden(int N, Args const& args = Args::global()) : BasicSiteSet<GoldenSite>(N, args) {};
 
-#endif //GOLDEN_SITE_H
+    // Hamiltonian appropriate for the boundary condition, number of sites, and couplings
+    MPO Hamiltonian(const std::string& boundary_condition, int num_sites, Real U, Real K, Real J, Real M);
+};
+
+//MPO Hamiltonian(const Golden& sites, const std::string& boundary_condition, int num_sites, Real U, Real K, Real J, Real M);
+
+#endif

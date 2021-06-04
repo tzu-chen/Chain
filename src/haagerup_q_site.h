@@ -39,15 +39,21 @@ public:
 
 };
 
-using HaagerupQ=BasicSiteSet<HaagerupQSite>;
+//using HaagerupQ=BasicSiteSet<HaagerupQSite>;
 
 //class HaagerupQ: public BasicSiteSet<HaagerupQSite> {
 //    MPO Hamiltonian(const std::string& boundary_condition, int num_sites, Real U, Real K, Real J, Real M);
 //};
 
-// Hamiltonian appropriate for the boundary condition, number of sites, and couplings
-// Polymorphic function specified by SiteSetType = HaagerupQ
-// fixme: Combine Real K, Real J, Real M into a params vector
-MPO Hamiltonian(const HaagerupQ& sites, const std::string& boundary_condition, int num_sites, Real U, Real K, Real J, Real M);
+class HaagerupQ: public BasicSiteSet<HaagerupQSite> {
+public:
+    HaagerupQ() : BasicSiteSet<HaagerupQSite>() {};
+    HaagerupQ(int N, Args const& args = Args::global()) : BasicSiteSet<HaagerupQSite>(N, args) {};
+
+    // Hamiltonian appropriate for the boundary condition, number of sites, and couplings
+    MPO Hamiltonian(const std::string& boundary_condition, int num_sites, Real U, Real K, Real J, Real M);
+};
+
+//MPO Hamiltonian(const HaagerupQ& sites, const std::string& boundary_condition, int num_sites, Real U, Real K, Real J, Real M);
 
 #endif
