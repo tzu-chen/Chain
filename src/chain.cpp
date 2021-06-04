@@ -50,7 +50,7 @@ MPO TranslationOp(const SiteSet& sites, bool inv) {
 }
 
 
-MPO IdentityOp(const SiteSet& sites, MPO const& op){
+MPO IdentityOp(const SiteSet& sites, MPO const& op) {
     int N = sites.length();
 
     auto l = sim(leftLinkIndex(op, 2));
@@ -90,13 +90,13 @@ MPO RhoOp(const SiteSet& sites, const std::string& site_type) {
     int N = sites.length();
 
     auto G = std::vector<ITensor>(N+1);
-    if (site_type == "golden"){
+    if (site_type == "golden") {
         auto f = GoldenFData();
         for (auto j : range1(N - 1)) {
             G[j] = f.RhoDefectCell(sites(j), sites(j + 1));
         }
         G[N] = GoldenFData().RhoDefectCell(sites(N), sites(1));
-    } else if (site_type == "haagerup" || site_type == "haagerup_q"){
+    } else if (site_type == "haagerup" || site_type == "haagerup_q") {
         auto f = HaagerupFData();
         for (auto j : range1(N - 1)) {
             G[j] = f.RhoDefectCell(sites(j), sites(j + 1));
@@ -134,11 +134,11 @@ MPO RhoOp(const SiteSet& sites, const std::string& site_type) {
     return m;
 }
 
-MPS AugmentMPS(MPS const& psi, Index const& sl, Index const& sr){
+MPS AugmentMPS(MPS const& psi, Index const& sl, Index const& sr) {
     auto res = MPS(length(psi)+2);
     auto extra_site_index_left = Index(1, "l=0,Link");
     auto extra_l = ITensor(sl, extra_site_index_left);
-    for (auto i:range1(dim(sl))){
+    for (auto i:range1(dim(sl))) {
         extra_l.set(i, 1, 1. / dim(sl));
     }
     res.set(1, extra_l);
@@ -146,13 +146,13 @@ MPS AugmentMPS(MPS const& psi, Index const& sl, Index const& sr){
     vl.set(1, 1);
     res.set(2, vl*psi(1));
 
-    for (auto i:range1(length(psi)-2)){
+    for (auto i:range1(length(psi)-2)) {
         res.set(i+2, psi(i+1));
     }
 
     auto extra_site_index_right = Index(1, "l=inf,Link");
     auto extra_r = ITensor(sr, extra_site_index_right);
-    for (auto i:range1(dim(sr))){
+    for (auto i:range1(dim(sr))) {
         extra_r.set(i, 1, 1. / dim(sr));
     }
     res.set(length(psi)+2, extra_r);
@@ -163,7 +163,7 @@ MPS AugmentMPS(MPS const& psi, Index const& sl, Index const& sr){
     return res;
 }
 
-MPO AugmentMPO(MPO const& K, Index const& sl, Index const& sr){
+MPO AugmentMPO(MPO const& K, Index const& sl, Index const& sr) {
     auto res = MPO(length(K)+2);
 
     auto vl = ITensor(sl);
@@ -172,7 +172,7 @@ MPO AugmentMPO(MPO const& K, Index const& sl, Index const& sr){
     auto Tl = delta(prime(sl,1), index_left);
     res.set(1, vl * Tl);
 
-    for (auto i:range1(length(K)+1)){
+    for (auto i:range1(length(K)+1)) {
         res.set(i+1, K(i));
     }
 
@@ -191,7 +191,7 @@ ITensor Z3FourierMatrix(Index const& s, Index const& sP) {
     auto omega = -0.5+sqrt(3)/2 * 1_i;
     auto omega_bar = -0.5-sqrt(3)/2 * 1_i;
 
-    for (int i=1;i<=3;i++){
+    for (int i=1;i<=3;i++) {
         op.set(s(i), sP(1), norm);
         op.set(s(1), sP(i), norm);
         op.set(s(i + 3), sP(4), norm);
@@ -211,7 +211,7 @@ ITensor Z3FourierMatrix(Index const& s, Index const& sP) {
     return op;
 }
 
-MPS Z3FourierTransform(MPS const& psi, SiteSet const& sites_new){
+MPS Z3FourierTransform(MPS const& psi, SiteSet const& sites_new) {
     int N = length(psi);
     auto new_psi = MPS(sites_new);
     for(auto j : range1(N))
@@ -227,9 +227,9 @@ MPS Z3FourierTransform(MPS const& psi, SiteSet const& sites_new){
 //MPS
 //mydensityMatrixApplyMPOImpl(MPO const& K, MPS const& psi, Args args)
 //{
-//    if( args.defined("Maxm") )
+//    if ( args.defined("Maxm") )
 //    {
-//        if( args.defined("MaxDim") )
+//        if ( args.defined("MaxDim") )
 //        {
 //            Global::warnDeprecated("Args Maxm and MaxDim are both defined. Maxm is deprecated in favor of MaxDim, MaxDim will be used.");
 //        }
@@ -243,7 +243,7 @@ MPS Z3FourierTransform(MPS const& psi, SiteSet const& sites_new){
 //    auto cutoff = args.getReal("Cutoff",1E-13);
 //    auto dargs = Args{"Cutoff",cutoff};
 //    auto maxdim_set = args.defined("MaxDim");
-//    if(maxdim_set) dargs.add("MaxDim",args.getInt("MaxDim"));
+//    if (maxdim_set) dargs.add("MaxDim",args.getInt("MaxDim"));
 //    dargs.add("RespectDegenerate",args.getBool("RespectDegenerate",true));
 //    auto verbose = args.getBool("Verbose",false);
 //    auto normalize = args.getBool("Normalize",false);
@@ -252,7 +252,7 @@ MPS Z3FourierTransform(MPS const& psi, SiteSet const& sites_new){
 //
 //    for( auto n : range1(N) )
 //    {
-//        if( commonIndex(psi(n),K(n)) != siteIndex(psi,n) )
+//        if ( commonIndex(psi(n),K(n)) != siteIndex(psi,n) )
 //            Error("MPS and MPO have different site indices in applyMPO method 'DensityMatrix'");
 //    }
 //
@@ -274,14 +274,14 @@ MPS Z3FourierTransform(MPS const& psi, SiteSet const& sites_new){
 //    }
 //
 //    //Build environment tensors from the left
-//    if(verbose) print("Building environment tensors...");
+//    if (verbose) print("Building environment tensors...");
 //    auto E = std::vector<ITensor>(N+1);
 //    E[1] = psi(1)*K(1)*Kc(1)*psic(1);
 //    for(int j = 2; j < N; ++j)
 //    {
 //        E[j] = E[j-1]*psi(j)*K(j)*Kc(j)*psic(j);
 //    }
-//    if(verbose) println("done");
+//    if (verbose) println("done");
 //
 //    //O is the representation of the product of k_*psi in the new MPS basis
 //    auto O = psi(N)*K(N);
@@ -291,7 +291,7 @@ MPS Z3FourierTransform(MPS const& psi, SiteSet const& sites_new){
 //    ITensor U,D;
 //    auto ts = tags(linkIndex(psi,N-1));
 //    auto spec = diagPosSemiDef(rho,U,D,{dargs,"Tags=",ts});
-//    if(verbose) printfln("  j=%02d truncerr=%.2E dim=%d",N-1,spec.truncerr(),dim(commonIndex(U,D)));
+//    if (verbose) printfln("  j=%02d truncerr=%.2E dim=%d",N-1,spec.truncerr(),dim(commonIndex(U,D)));
 //
 //    res.ref(N) = dag(U);
 //
@@ -299,7 +299,7 @@ MPS Z3FourierTransform(MPS const& psi, SiteSet const& sites_new){
 //
 //    for(int j = N-1; j > 1; --j)
 //    {
-//        if(not maxdim_set)
+//        if (not maxdim_set)
 //        {
 //            //Infer maxdim from bond dim of original MPS
 //            //times bond dim of MPO
@@ -315,10 +315,10 @@ MPS Z3FourierTransform(MPS const& psi, SiteSet const& sites_new){
 //        auto spec = diagPosSemiDef(rho,U,D,{dargs,"Tags=",ts});
 //        O = O*U*psi(j-1)*K(j-1);
 //        res.ref(j) = dag(U);
-//        if(verbose) printfln("  j=%02d truncerr=%.2E dim=%d",j,spec.truncerr(),dim(commonIndex(U,D)));
+//        if (verbose) printfln("  j=%02d truncerr=%.2E dim=%d",j,spec.truncerr(),dim(commonIndex(U,D)));
 //    }
 //
-//    if(normalize) O /= norm(O);
+//    if (normalize) O /= norm(O);
 //    res.ref(1) = O;
 //    res.leftLim(0);
 //    res.rightLim(2);
@@ -330,12 +330,12 @@ MPS Z3FourierTransform(MPS const& psi, SiteSet const& sites_new){
 ////     int num_sites_ = sites.length();
 ////     auto G = std::vector<ITensor>(num_sites_);
 ////     // fixme: modify to allow for gates which are member functions of generic site type
-////     if (sitetype_ == "golden"){
+////     if (sitetype_ == "golden") {
 ////         auto f = GoldenFData();
 ////         for (auto j : range1(num_sites_ - 1)) {
 ////             G[j] = f.RhoDefectCell(sites(j), sites(j + 1));
 ////         }
-////     } else if (sitetype_ == "haagerup"){
+////     } else if (sitetype_ == "haagerup") {
 ////         auto f = HaagerupFData();
 ////         for (auto j : range1(num_sites_ - 1)) {
 ////             G[j] = f.RhoDefectCell(sites(j), sites(j + 1));
@@ -394,13 +394,13 @@ MPS Z3FourierTransform(MPS const& psi, SiteSet const& sites_new){
 //    int N = sites.length();
 //
 //    auto G = std::vector<ITensor>(N+1);
-//    // if (sitetype_ == "golden"){
+//    // if (sitetype_ == "golden") {
 //    //     auto f = GoldenFData();
 //    //     for (auto j : range1(num_sites_ - 1)) {
 //    //         G[j] = f.RhoDefectCell(sites(j), sites(j + 1));
 //    //     }
 //    //     G[num_sites_] = GoldenFData().RhoDefectCell(sites(num_sites_), sites(1));
-//    // } else if (sitetype_ == "haagerup"){
+//    // } else if (sitetype_ == "haagerup") {
 //    auto f = HaagerupFData();
 //    for (auto j : range1(N - 1)) {
 //        G[j] = f.RhoDefectCell(sites(j), sites(j + 1));
@@ -543,12 +543,12 @@ MPS Z3FourierTransform(MPS const& psi, SiteSet const& sites_new){
 //    //     A[j] *= delta(sites(j),t[j]);
 //    // }
 //    // auto num_reps_til_stable_ = MPO(num_sites_);
-//    if(boundary){
+//    if (boundary) {
 //        // num_reps_til_stable_.set(1, B[num_sites_] * A[1] * D12[1] * D21[1]);
 //        // num_reps_til_stable_.set(num_sites_, B[num_sites_-1] * A[num_sites_] * D12[num_sites_] * D21[num_sites_]);
 //        m.set(min, A[min] * delta(dag(sites(min)), prime(sites(min), 2)) * delta(dag(prime(sites(min))), prime(sites(min), 3)) );
 //        m.set(N, B[N-1] * delta(dag(sites(N)), prime(sites(N), 4)) * delta(dag(prime(sites(N))), prime(sites(N), 5)) );
-//    }else{
+//    } else {
 //        auto ind_min_old = commonIndex(B[min], A[min]);
 //        auto ind_max_old = commonIndex(B[max-1], A[max-1]);
 //        auto ind_min_new = rightLinkIndex(m, min);
@@ -586,7 +586,7 @@ MPS Z3FourierTransform(MPS const& psi, SiteSet const& sites_new){
 //// fixme: modify to allow for gates which are member functions of generic site type
 //void ActGlobal(MPS &psi, const SiteSet &sites, TwoSiteGate gate, const std::string& sitetype_) {
 //    int len = psi.length();
-//    if (sitetype_ == "golden"){
+//    if (sitetype_ == "golden") {
 //        auto f = GoldenFData();
 //        for (int b = 1; b < len; b++) {
 //            ActLocal(psi, std::invoke(gate, f, sites(b), sites(b + 1)), b);

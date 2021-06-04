@@ -35,9 +35,9 @@ public:
 
     // Relate a general nontrivial F-symbol to one of the form F^{rho,rho,rho}_{*}(rho,*)
     // Valid for transparent Haagerup-Izumi
-    double FSymbolPattern(int i, int j, int k, int l, int m, int n);
+    double FSymbolPattern(int i, int j, int k, int l, int m, int n) const;
 
-    virtual double FSymbol(int i, int j, int k, int l, int m, int n);
+    virtual double FSymbol(int i, int j, int k, int l, int m, int n) const;
 
     // Save the F-symbols to a Mathematica .num_reps_til_stable_ file
     void DumpFMathematica(const string filename);
@@ -71,7 +71,7 @@ public:
     GoldenFData();
 
     // F symbol for the Fibonacci category
-    double FSymbol(int i, int j, int k, int l, int m, int n) override;
+    double FSymbol(int i, int j, int k, int l, int m, int n) const override;
 };
 
 // Haagerup H3
@@ -85,6 +85,6 @@ public:
     HaagerupFData();
 
     // F symbol for the Fibonacci category
-    double FSymbol(int i, int j, int k, int l, int m, int n) override;
+    double FSymbol(int i, int j, int k, int l, int m, int n) const override;
 };
 #endif

@@ -38,6 +38,6 @@ using Golden=BasicSiteSet<GoldenSite>;
 
 // Hamiltonian appropriate for the boundary condition, number of sites, and couplings
 // Polymorphic function specified by SiteSetType = Golden
-MPO Hamiltonian(const Golden& sites, const std::string& boundary_condition, int num_sites, Real U, Real K, Real J);
+MPO Hamiltonian(const Golden& sites, const std::string& boundary_condition, int num_sites, Real U, Real K, Real J, Real M);
 
 #endif //GOLDEN_SITE_H

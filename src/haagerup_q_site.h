@@ -34,6 +34,9 @@ public:
 
     ITensor
     qr(int i, int j) const;
+
+    ITensor
+    qr_ar(int i, int j) const;
     
     ITensor
     op(std::string const& opname,Args const& args = Args::global()) const;
@@ -41,6 +44,6 @@ public:
 
 // Hamiltonian appropriate for the boundary condition, number of sites, and couplings
 // Polymorphic function specified by SiteSetType = HaagerupQ
-MPO Hamiltonian(const HaagerupQ& sites, const std::string& boundary_condition, int num_sites, Real U, Real K, Real J);
+MPO Hamiltonian(const HaagerupQ& sites, const std::string& boundary_condition, int num_sites, Real U, Real K, Real J, Real M);
 
 #endif
