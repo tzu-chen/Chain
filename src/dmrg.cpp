@@ -13,8 +13,9 @@ int main(int argc, char** argv) {
         ("d", "Max dimension", cxxopts::value<int>())
         ("c,svd_cutoff_", "Cutoff", cxxopts::value<float>())
         ("t,tol", "Tolerance", cxxopts::value<float>())
-        ("theta", "theta", cxxopts::value<float>())
-        ("phi", "phi", cxxopts::value<float>())
+//        ("theta", "theta", cxxopts::value<float>())
+//        ("phi", "phi", cxxopts::value<float>())
+        ("couplings", "couplings", cxxopts::value<std::string>())
         ("u,penalty", "Penalty size", cxxopts::value<float>())
         ("q,charge_", "Charge", cxxopts::value<int>())
         ("nstates", "# of states to solve for", cxxopts::value<int>())
@@ -34,8 +35,9 @@ int main(int argc, char** argv) {
             result["d"].as<int>(),
             result["c"].as<float>(),
             result["t"].as<float>(),
-            result["theta"].as<float>(),
-            result["phi"].as<float>(),
+            result["couplings"].as<std::string>(),
+//            result["theta"].as<float>(),
+//            result["phi"].as<float>(),
             result["u"].as<float>(),
             result["q"].as<int>(),
             result["nstates"].as<int>(),
@@ -43,7 +45,7 @@ int main(int argc, char** argv) {
     // Currently cannot disentangle case from task because the type of dmrg is specific to each case
     if (std::get<0>(params) == "golden") {
         auto dmrg = DMRG<Golden>(params);
-        if (std::get<11>(params) == 1) {
+        if (std::get<10>(params) == 1) {
             dmrg.Analyze();
         } else {
             dmrg.Run();
@@ -51,7 +53,7 @@ int main(int argc, char** argv) {
         return 0;
     } else if (std::get<0>(params) == "haagerup") {
         auto dmrg_ = DMRG<Haagerup>(params);
-        if (std::get<11>(params) == 1) {
+        if (std::get<10>(params) == 1) {
             dmrg_.Analyze();
         } else {
             dmrg_.Run();
@@ -59,7 +61,7 @@ int main(int argc, char** argv) {
         return 0;
     } else if (std::get<0>(params) == "haagerup_q") {
         auto dmrg_ = DMRG<HaagerupQ>(params);
-        if (std::get<11>(params) == 1) {
+        if (std::get<10>(params) == 1) {
             auto start = std::chrono::high_resolution_clock::now();
             dmrg_.Analyze();
             auto stop = std::chrono::high_resolution_clock::now();

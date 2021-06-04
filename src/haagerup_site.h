@@ -12,7 +12,7 @@ using namespace itensor;
 // 4    r=\rho
 // 5    ar
 // 6    br
-using std::sqrt;
+//using std::sqrt;
 class HaagerupSite
 {
     const double zeta_inv= (sqrt(13) - 3) / 2;

@@ -1,9 +1,12 @@
 #ifndef CHAINDMRG_DMRG_H
 #define CHAINDMRG_DMRG_H
+
 #include <filesystem>
 #include <variant>
 #include "itensor/all.h"
 #include "chain.h"
+#include <sstream>
+
 using namespace itensor;
 
 //#ifdef ITENSOR_USE_OMP
@@ -70,10 +73,6 @@ public:
         return (int) psis_.size() - 1;
     }
 
-//    int NumStates() {
-//        return (int) psis_.size();
-//    }
-
     void Write(const std::filesystem::path& p) const
     {
         std::string path = std::string(p);
@@ -135,7 +134,10 @@ class DMRG {
     Real theta_; // angle between K (identity) and J (rho)
     Real phi_;
     // fixme: Combine K, J, M into Couplings
-    Real k_, j_, u_, m_; // K (identity), J (rho), M (a * rho), U (penalty)
+//    Real k_, j_, u_, m_; // K (identity), J (rho), M (a * rho), U (penalty)
+    Real u_;
+    std::string coupling_str_;
+    std::vector<Real> couplings_;
     int charge_; // Choose total QN of the chain when conserving by specifying the charge of the central site eg. "0"
 
     // DMRG parameters
@@ -181,18 +183,20 @@ class DMRG {
     MPS init_state_;
 
 public:
-    explicit DMRG(std::tuple<std::basic_string<char>, std::basic_string<char>, int, int, float, float, float, float, float, int, int, int> params) {
+    explicit DMRG(std::tuple<std::basic_string<char>, std::basic_string<char>, int, int, float, float, std::string, float, int, int, int> params) {
         site_type_ = std::get<0>(params);
         boundary_condition_ = std::get<1>(params);
         num_sites_ = std::get<2>(params);
         es_max_bond_dim_ = std::get<3>(params);
         svd_cutoff_ = std::get<4>(params);
         es_stable_tol_ = std::get<5>(params);
-        theta_ = std::get<6>(params);
-        phi_ = std::get<7>(params);
-        u_ = std::get<8>(params);
-        charge_ = std::get<9>(params);
-        num_states_ = std::get<10>(params);
+        coupling_str_ = std::get<6>(params);
+        couplings_ = ParseCouplings(coupling_str_);
+//        theta_ = std::get<6>(params);
+//        phi_ = std::get<7>(params);
+        u_ = std::get<7>(params);
+        charge_ = std::get<8>(params);
+        num_states_ = std::get<9>(params);
 
         sites_ = SiteSetType(num_sites_, {"ConserveQNs=", true});
         if (boundary_condition_ == "p") {
@@ -219,21 +223,21 @@ public:
         gs_stable_tol_ = std::pow(es_stable_tol_, 1);
 
         // Chain parameters
-        k_ = cos(theta_ * Pi);
-        j_ = sin(theta_ * Pi) * cos(phi_ * Pi);
-        m_ = sin(theta_ * Pi) * sin(phi_ * Pi);
-        if (std::abs(k_) < 1E-5) {
-            k_ = 0;
-        }
-        if (std::abs(j_) < 1E-5) {
-            j_ = 0;
-        }
-        if (std::abs(m_) < 1E-5) {
-            m_ = 0;
-        }
+//        k_ = cos(theta_ * Pi);
+//        j_ = sin(theta_ * Pi) * cos(phi_ * Pi);
+//        m_ = sin(theta_ * Pi) * sin(phi_ * Pi);
+//        if (std::abs(k_) < 1E-5) {
+//            k_ = 0;
+//        }
+//        if (std::abs(j_) < 1E-5) {
+//            j_ = 0;
+//        }
+//        if (std::abs(m_) < 1E-5) {
+//            m_ = 0;
+//        }
 
         // File I/O
-        filename_ = format("%s_%s_%d_%d_%g_%g_%g_%g_%g_%d", site_type_, boundary_condition_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, phi_, u_, charge_);
+        filename_ = format("%s_%s_%d_%d_%g_%g_%g_%s_%d", site_type_, boundary_condition_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, coupling_str_, u_, charge_);
         progress_path_ = progress_directory_ / filename_;
         ee_path_ = ee_directory_ / (filename_ + ".ee");
         en_path_ = en_directory_ / (filename_ + ".en");
@@ -252,14 +256,14 @@ public:
         if (with_sweeps) {
             int num_sweeps = dmrg_progress_.num_sweeps_vec_.back();
             if (num_sweeps == 0) {
-                printf("\n  > Sweeps #1-#%d\n    %s of %s\n    L=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g phi=%g K=%g J=%g M=%g U=%g Q=%d\n", init_num_sweeps_per_rep_, state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, phi_, k_, j_, m_, u_, charge_);
+                printf("\n  > Sweeps #1-#%d\n    %s of %s\n    L=%d  bond_dim=%d  svd_cutoff=%g  stable_tol=%g  couplings=%s  U=%g  charge=%d\n", init_num_sweeps_per_rep_, state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, coupling_str_, u_, charge_);
             } else {
 //                printf("\n    > Times swept: %d\n      %s of %s\n      L=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g phi=%g K=%g J=%g M=%g U=%g Q=%d\n", dmrg_progress_.num_sweeps_vec_.back(), state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, phi_, k_, j_, m_, u_, charge_);
 //                printf("\n  > Times swept: %d\n    %s of %s\n    L=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g phi=%g K=%g J=%g M=%g U=%g Q=%d\n", dmrg_progress_.num_sweeps_vec_.back(), state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, phi_, k_, j_, m_, u_, charge_);
-                printf("\n  > Sweep #%d\n    %s of %s\n    L=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g phi=%g K=%g J=%g M=%g U=%g Q=%d\n", num_sweeps+1, state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, phi_, k_, j_, m_, u_, charge_);
+                printf("\n  > Sweep #%d\n    %s of %s\n    L=%d  bond_dim=%d  svd_cutoff=%g  stable_tol=%g  couplings=%s  U=%g  charge=%d\n", num_sweeps+1, state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, coupling_str_, u_, charge_);
             }
         } else {
-            printf("\n> %s: num_sites=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g phi=%g K=%g J=%g M=%g U=%g Q=%d\n", job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, phi_, k_, j_, m_, u_, charge_);
+            printf("\n> %s:  L=%d  bond_dim=%d  svd_cutoff=%g  stable_tol=%g  couplings=%s  U=%g  charge=%d\n", job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, coupling_str_, u_, charge_);
         }
     }
 
@@ -294,12 +298,28 @@ public:
         return state_name;
     }
 
+    // If QN conserving, create charge-neutral initial state and change center site to specified charge
     MPS DefaultInitState() {
         auto pre_init_state = InitState(sites_,"0");
         int center = (num_sites_ + 1) / 2;
         pre_init_state.set(center, std::to_string(charge_));
         MPS init_state = MPS(pre_init_state);
         return init_state;
+    }
+
+    std::vector<Real> ParseCouplings(std::string coupling_string) {
+        std::vector<Real> couplings;
+        std::stringstream s_stream(coupling_string);
+        while(s_stream.good()) {
+            string substr;
+            getline(s_stream, substr, ',');
+            int val = std::stod(substr);
+            if (abs(val) < 1E-5){
+                val = 0;
+            }
+            couplings.push_back(val);
+        };
+        return couplings;
     }
 
     // Simulate states by DMRG
@@ -334,14 +354,7 @@ public:
         }
 
         // fixme: Can change to method of say Golden by declaring that Golden is a class that inherits BasicSiteSet<GoldenSite>
-//        MPO H = Hamiltonian(sites_, boundary_condition_, num_sites_, u_, k_, j_, m_);
-        MPO H = sites_.Hamiltonian(boundary_condition_, num_sites_, u_, std::vector<Real>({k_, j_, m_}));
-
-        // If QN conserving, create charge-neutral initial state and change center site to specified charge
-//        auto pre_init_state = InitState(sites_,"0");
-//        int center = (num_sites_ + 1) / 2;
-//        pre_init_state.set(center, std::to_string(charge_));
-//        MPS init_state = MPS(pre_init_state);
+        MPO H = sites_.Hamiltonian(boundary_condition_, num_sites_, u_, couplings_);
         init_state_ = DefaultInitState();
 
         // If using sine-squared deformed to hot start for periodic
@@ -373,10 +386,8 @@ public:
                 sweeps.niter() = 2;
                 sweeps.noise() = noise_;
                 std::tie(en_, psi_) = dmrg(H, dmrg_progress_.DoneStates(), init_state_, sweeps, {"Quiet", true, "Weight=", ortho_weight});
-
                 num_sweeps_ += init_num_sweeps_per_rep_;
                 dmrg_progress_.Update(num_sweeps_, bond_dim_, en_, psi_, H);
-//                dmrg_progress_.SetSites(sites_);
                 dmrg_progress_.Write(progress_path_);
             } else if (dmrg_progress_.num_sweeps_vec_.back() == 0 && hot_start == 0) {
                 state_name_ = StateName();
@@ -396,10 +407,8 @@ public:
                 sweeps.noise() = noise_;
                 std::tie(en_, psi_) = dmrg(H, dmrg_progress_.DoneStates(), init_state_, sweeps,
                                            {"Quiet", true, "Weight=", ortho_weight});
-
                 num_sweeps_ += init_num_sweeps_per_rep_;
                 dmrg_progress_.Update(num_sweeps_, bond_dim_, en_, psi_, H);
-//                dmrg_progress_.SetSites(sites_);
                 dmrg_progress_.Write(progress_path_);
             } else {
                 state_name_ = StateName();
@@ -417,12 +426,10 @@ public:
                 if (IsSimulatingGroundState()) {
                     DumpEE(num_sites_, CalcEE(psi_, num_sites_), ee_path_);
                 }
-
                 // Gradually increase bond dimension each run until maximum
                 if (bond_dim_ <= max_bond_dim - 200) {
                     bond_dim_ += 200;
                 }
-
                 PrintJob(true);
                 // DMRG
                 auto sw = Sweeps(num_sweeps_per_rep_);
@@ -431,7 +438,6 @@ public:
                 sw.niter() = 2;
                 sw.noise() = noise_;
                 std::tie(en_, psi_) = dmrg(H, dmrg_progress_.DoneStates(), psi_, sw, {"Quiet=", true, "Weight=", ortho_weight});
-
                 // Decide whether energy has stabilized
                 if (abs(min_en_ - en_) * num_sites_ < stable_tol) {
                     cnt_ -= 1;
@@ -441,9 +447,7 @@ public:
                 }
                 num_sweeps_ += num_sweeps_per_rep_;
                 dmrg_progress_.Update(num_sweeps_, bond_dim_, en_, psi_, H);
-//                dmrg_progress_.SetSites(sites_);
                 dmrg_progress_.Write(progress_path_);
-
                 if (cnt_ == 0) {
                     break;
                 }
@@ -456,22 +460,16 @@ public:
             // If using sine-squared deformed to hot start for periodic
             // Make appropriate transition from SSD to PBC while using SSD result as initial state for PBC
             if (hot_start == 1) {
-//                H = Hamiltonian(sites_, "p", num_sites_, u_, k_, j_, m_);
-                H = sites_.Hamiltonian("p", num_sites_, u_, std::vector<Real>({k_, j_, m_}));
+                H = sites_.Hamiltonian("p", num_sites_, u_, couplings_);
                 init_state_ = psi_;
                 dmrg_progress_ = DMRGProgress<SiteSetType>();
                 hot_start = 0;
             } else if (hot_start == 0) {
-//                auto pre_init_state = InitState(sites_, "0");
-//                int center = (num_sites_ + 1) / 2;
-//                pre_init_state.set(center, std::to_string(charge_));
-//                MPS init_state = MPS(pre_init_state);
                 init_state_ = DefaultInitState();
                 hot_start = -1;
             }
 
             dmrg_progress_.NextState(); // Even if no next state, this marks completion of current state
-//            dmrg_progress_.SetSites(sites_);
             dmrg_progress_.Write(progress_path_);
 
             // Check whether to simulate next state
@@ -487,7 +485,6 @@ public:
             std::filesystem::create_directory(m_directory_);
         }
 
-//        printf("\n%s: num_sites=%d max_bond_dim=%d svd_cutoff=%g theta=%g K=%g J=%g U=%g\n\n", job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, theta_, k_, j_, u_);
         PrintJob(false);
 
         // Default svd_cutoff for applyMPO(density matrix variant) is 1E-12
@@ -538,7 +535,7 @@ public:
         auto id_op = IdentityOp(sites, rho_op); // dangling periodic MPS with matching indices with rho_op
 
         // Dangling bond indices at the edges of MPO
-        // fixme
+        // fixme: 36?
         auto left_dangling_ind = Index(36, "Site");
         auto right_dangling_ind = Index(36, "Site");
 
@@ -637,4 +634,5 @@ public:
         // PrintData(spins);
     }
 };
-#endif //CHAINDMRG_DMRG_H
+
+#endif
