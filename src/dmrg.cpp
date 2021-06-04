@@ -27,7 +27,6 @@ int main(int argc, char** argv) {
         std::cout << options.help() << std::endl;
         exit(0);
     }
-    //fixme: print parameters used
     auto params = std::make_tuple(
             result["s"].as<std::string>(),
             result["b"].as<std::string>(),
@@ -41,17 +40,16 @@ int main(int argc, char** argv) {
             result["q"].as<int>(),
             result["nstates"].as<int>(),
             result["analysis"].as<int>());
-    // fixme: disentangle case from task
-
+    // Currently cannot disentangle case from task because the type of dmrg is specific to each case
     if (std::get<0>(params) == "golden") {
-        auto dmrg_ = DMRG<Golden>(params);
+        auto dmrg = DMRG<Golden>(params);
         if (std::get<11>(params) == 1) {
-            dmrg_.Analyze();
+            dmrg.Analyze();
         } else {
-            dmrg_.Run();
+            dmrg.Run();
         }
         return 0;
-    }else if (std::get<0>(params) == "haagerup") {
+    } else if (std::get<0>(params) == "haagerup") {
         auto dmrg_ = DMRG<Haagerup>(params);
         if (std::get<11>(params) == 1) {
             dmrg_.Analyze();
@@ -59,7 +57,7 @@ int main(int argc, char** argv) {
             dmrg_.Run();
         }
         return 0;
-    }else if (std::get<0>(params) == "haagerup_q") {
+    } else if (std::get<0>(params) == "haagerup_q") {
         auto dmrg_ = DMRG<HaagerupQ>(params);
         if (std::get<11>(params) == 1) {
             auto start = std::chrono::high_resolution_clock::now();
@@ -70,7 +68,7 @@ int main(int argc, char** argv) {
             dmrg_.Run();
         }
         return 0;
-    }else {
+    } else {
         throw std::invalid_argument("Invalid site type.");
     }
 }

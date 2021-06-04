@@ -31,7 +31,7 @@ Index HaagerupQSite::index() const { return s; }
 IndexVal HaagerupQSite::state(const string &state) {
 //    if (state=="0") {
 //        return s(4);
-//    }else
+//    } else
 
     if (state=="1") {
         return s(5);
@@ -50,23 +50,23 @@ ITensor HaagerupQSite::m(int i) const {
         Op.set(s(1),sP(1),1.0/3);
         Op.set(s(2),sP(2),1.0/3);
         Op.set(s(3),sP(3),1.0/3);
-    }else if (i==2) {
+    } else if (i==2) {
         Op.set(s(1),sP(3),1.0/3);
         Op.set(s(2),sP(1),1.0/3);
         Op.set(s(3),sP(2),1.0/3);
-    }else if (i==3) {
+    } else if (i==3) {
         Op.set(s(1),sP(2),1.0/3);
         Op.set(s(2),sP(3),1.0/3);
         Op.set(s(3),sP(1),1.0/3);
-    }else if (i==4) {
+    } else if (i==4) {
         Op.set(s(4),sP(4),1.0/3);
         Op.set(s(5),sP(5),1.0/3);
         Op.set(s(6),sP(6),1.0/3);
-    }else if (i==5) {
+    } else if (i==5) {
         Op.set(s(4),sP(6),1.0/3);
         Op.set(s(5),sP(4),1.0/3);
         Op.set(s(6),sP(5),1.0/3);
-    }else if (i==6) {
+    } else if (i==6) {
         Op.set(s(4),sP(5),1.0/3);
         Op.set(s(5),sP(6),1.0/3);
         Op.set(s(6),sP(4),1.0/3);
@@ -84,13 +84,13 @@ ITensor HaagerupQSite::q(int i) const {
         Op.set(s(4),sP(4),0.90832691319598393968);
         Op.set(s(1),sP(4),0.16660245292295808691);
         Op.set(s(4),sP(1),0.16660245292295808691);
-    }else if (i==2) {
+    } else if (i==2) {
         Op.set(s(1),sP(3),0.030557695601338686774);
         Op.set(s(2),sP(1),0.030557695601338686774);
         Op.set(s(3),sP(2),0.030557695601338686774);
         Op.set(s(2),sP(4),0.16660245292295808691);
         Op.set(s(4),sP(3),0.16660245292295808691);
-    }else if (i==3) {
+    } else if (i==3) {
         Op.set(s(1),sP(2),0.030557695601338686774);
         Op.set(s(2),sP(3),0.030557695601338686774);
         Op.set(s(3),sP(1),0.030557695601338686774);
@@ -126,7 +126,7 @@ ITensor HaagerupQSite::q_all(Cplx c_3, Cplx c_5, Cplx c_6, Cplx c_7, int i, int 
             Op.set(s(5),sP(5),1.0/3);
             Op.set(s(6),sP(3),c_3);
             Op.set(s(6),sP(6),1.0/3);
-        }else if (j==2) {
+        } else if (j==2) {
             Op.set(s(1),sP(3),c_1);
             Op.set(s(1),sP(6),c_3_bar);
             Op.set(s(2),sP(1),c_1);
@@ -140,7 +140,7 @@ ITensor HaagerupQSite::q_all(Cplx c_3, Cplx c_5, Cplx c_6, Cplx c_7, int i, int 
             Op.set(s(5),sP(4),c_5);
             Op.set(s(6),sP(2),c_3);
             Op.set(s(6),sP(5),c_6);
-        }else if (j==3) {
+        } else if (j==3) {
             Op.set(s(1),sP(2),c_1);
             Op.set(s(1),sP(5),c_3);
             Op.set(s(2),sP(3),c_1);
@@ -155,7 +155,7 @@ ITensor HaagerupQSite::q_all(Cplx c_3, Cplx c_5, Cplx c_6, Cplx c_7, int i, int 
             Op.set(s(6),sP(1),c_3);
             Op.set(s(6),sP(4),c_5_bar);
         }
-    }else if (i==2) {
+    } else if (i==2) {
         if (j==1) {
             Op.set(s(1),sP(3),c_1);
             Op.set(s(1),sP(6),c_3_bar);
@@ -170,7 +170,7 @@ ITensor HaagerupQSite::q_all(Cplx c_3, Cplx c_5, Cplx c_6, Cplx c_7, int i, int 
             Op.set(s(5),sP(4),c_5);
             Op.set(s(6),sP(2),c_3);
             Op.set(s(6),sP(5),c_6);
-        }else if (j==2) {
+        } else if (j==2) {
             Op.set(s(1),sP(2),c_1);
             Op.set(s(1),sP(5),c_3);
             Op.set(s(2),sP(3),c_1);
@@ -184,7 +184,7 @@ ITensor HaagerupQSite::q_all(Cplx c_3, Cplx c_5, Cplx c_6, Cplx c_7, int i, int 
             Op.set(s(5),sP(6),c_5_bar);
             Op.set(s(6),sP(1),c_3);
             Op.set(s(6),sP(4),c_7);
-        }else if (j==3) {
+        } else if (j==3) {
             Op.set(s(1),sP(1),c_1);
             Op.set(s(1),sP(4),c_2);
             Op.set(s(2),sP(2),c_1);
@@ -197,7 +197,7 @@ ITensor HaagerupQSite::q_all(Cplx c_3, Cplx c_5, Cplx c_6, Cplx c_7, int i, int 
             Op.set(s(5),sP(2),c_3_bar);
             Op.set(s(6),sP(3),c_3);
         }
-    }else if (i==3) {
+    } else if (i==3) {
         if (j==1) {
             Op.set(s(1),sP(2),c_1);
             Op.set(s(1),sP(5),c_3);
@@ -212,7 +212,7 @@ ITensor HaagerupQSite::q_all(Cplx c_3, Cplx c_5, Cplx c_6, Cplx c_7, int i, int 
             Op.set(s(5),sP(6),c_6_bar);
             Op.set(s(6),sP(1),c_3);
             Op.set(s(6),sP(4),c_5_bar);
-        }else if (j==2) {
+        } else if (j==2) {
             Op.set(s(1),sP(1),c_1);
             Op.set(s(1),sP(4),c_2);
             Op.set(s(2),sP(2),c_1);
@@ -224,7 +224,7 @@ ITensor HaagerupQSite::q_all(Cplx c_3, Cplx c_5, Cplx c_6, Cplx c_7, int i, int 
             Op.set(s(4),sP(4),c_8);
             Op.set(s(5),sP(2),c_3_bar);
             Op.set(s(6),sP(3),c_3);
-        }else if (j==3) {
+        } else if (j==3) {
             Op.set(s(1),sP(3),c_1);
             Op.set(s(1),sP(6),c_3_bar);
             Op.set(s(2),sP(1),c_1);
@@ -272,75 +272,75 @@ ITensor HaagerupQSite::qbr(int i, int j) const {
 ITensor HaagerupQSite::op(const string &opname, const Args &args) const {
     if (opname=="m1") {
         return m(1);
-    }else if (opname=="m2") {
+    } else if (opname=="m2") {
         return m(2);
-    }else if (opname=="m3") {
+    } else if (opname=="m3") {
         return m(3);
-    }else if (opname=="m4") {
+    } else if (opname=="m4") {
         return m(4);
-    }else if (opname=="m5") {
+    } else if (opname=="m5") {
         return m(5);
-    }else if (opname=="m6") {
+    } else if (opname=="m6") {
         return m(6);
-    }else if (opname=="q1") {
+    } else if (opname=="q1") {
         return q(1);
-    }else if (opname=="q2") {
+    } else if (opname=="q2") {
         return q(2);
-    }else if (opname=="q3") {
+    } else if (opname=="q3") {
         return q(3);
-    }else if (opname=="qr11") {
+    } else if (opname=="qr11") {
         return qr(1,1);
-    }else if (opname=="qr12") {
+    } else if (opname=="qr12") {
         return qr(1,2);
-    }else if (opname=="qr13") {
+    } else if (opname=="qr13") {
         return qr(1,3);
-    }else if (opname=="qr21") {
+    } else if (opname=="qr21") {
         return qr(2,1);
-    }else if (opname=="qr22") {
+    } else if (opname=="qr22") {
         return qr(2,2);
-    }else if (opname=="qr23") {
+    } else if (opname=="qr23") {
         return qr(2,3);
-    }else if (opname=="qr31") {
+    } else if (opname=="qr31") {
         return qr(3,1);
-    }else if (opname=="qr32") {
+    } else if (opname=="qr32") {
         return qr(3,2);
-    }else if (opname=="qr33") {
+    } else if (opname=="qr33") {
         return qr(3,3);
-    }else if (opname=="qar11") {
+    } else if (opname=="qar11") {
         return qar(1,1);
-    }else if (opname=="qar12") {
+    } else if (opname=="qar12") {
         return qar(1,2);
-    }else if (opname=="qar13") {
+    } else if (opname=="qar13") {
         return qar(1,3);
-    }else if (opname=="qar21") {
+    } else if (opname=="qar21") {
         return qar(2,1);
-    }else if (opname=="qar22") {
+    } else if (opname=="qar22") {
         return qar(2,2);
-    }else if (opname=="qar23") {
+    } else if (opname=="qar23") {
         return qar(2,3);
-    }else if (opname=="qar31") {
+    } else if (opname=="qar31") {
         return qar(3,1);
-    }else if (opname=="qar32") {
+    } else if (opname=="qar32") {
         return qar(3,2);
-    }else if (opname=="qar33") {
+    } else if (opname=="qar33") {
         return qar(3,3);
-    }else if (opname=="qbr11") {
+    } else if (opname=="qbr11") {
         return qbr(1,1);
-    }else if (opname=="qbr12") {
+    } else if (opname=="qbr12") {
         return qbr(1,2);
-    }else if (opname=="qbr13") {
+    } else if (opname=="qbr13") {
         return qbr(1,3);
-    }else if (opname=="qbr21") {
+    } else if (opname=="qbr21") {
         return qbr(2,1);
-    }else if (opname=="qbr22") {
+    } else if (opname=="qbr22") {
         return qbr(2,2);
-    }else if (opname=="qbr23") {
+    } else if (opname=="qbr23") {
         return qbr(2,3);
-    }else if (opname=="qbr31") {
+    } else if (opname=="qbr31") {
         return qbr(3,1);
-    }else if (opname=="qbr32") {
+    } else if (opname=="qbr32") {
         return qbr(3,2);
-    }else if (opname=="qbr33") {
+    } else if (opname=="qbr33") {
         return qbr(3,3);
     }
     throw ITError("Operator name "+opname+" not recognized");

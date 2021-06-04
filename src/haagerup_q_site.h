@@ -5,8 +5,6 @@
 
 using namespace itensor;
 
-class HaagerupQSite;
-using HaagerupQ=BasicSiteSet<HaagerupQSite>;
 // 1    1
 // 2    a
 // 3    b=a^2
@@ -40,6 +38,12 @@ public:
     ITensor op(std::string const& opname,Args const& args = Args::global()) const;
 
 };
+
+using HaagerupQ=BasicSiteSet<HaagerupQSite>;
+
+//class HaagerupQ: public BasicSiteSet<HaagerupQSite> {
+//    MPO Hamiltonian(const std::string& boundary_condition, int num_sites, Real U, Real K, Real J, Real M);
+//};
 
 // Hamiltonian appropriate for the boundary condition, number of sites, and couplings
 // Polymorphic function specified by SiteSetType = HaagerupQ

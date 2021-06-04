@@ -16,9 +16,9 @@ GoldenSite::GoldenSite(const Args &args) {
 ITensor GoldenSite::op(const string &opname, const Args &args) const {
     if (opname=="n1") {
         return proj(1);
-    }else if (opname=="nt") {
+    } else if (opname=="nt") {
         return proj(2);
-    }else if (opname=="FF") {
+    } else if (opname=="FF") {
         return FF();
     }
     throw ITError("Operator name "+opname+" not recognized");

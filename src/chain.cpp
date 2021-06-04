@@ -34,8 +34,6 @@ MPO TranslationOp(const SiteSet& sites, bool inv) {
     }
     for(auto j : range1(2,N-1))
     {
-        // fixme: investigate why this fails for HaagerupQ
-        // Update 1: some operations involving delta is not currently defined for sparse storage. see ticket #176
         A[j] *= delta(sites(j),t[j]);
         B[j-1] *= delta(prime(sites(j)),t[j]);
     }
@@ -57,19 +55,21 @@ MPO IdentityOp(const SiteSet& sites, MPO const& op) {
     auto r = sim(rightLinkIndex(op, 2));
     auto s = sim(sites(2));
 
-    auto dummy_i = Index(1);
-    auto dummy_j = Index(1);
-    auto dummy = ITensor(dummy_i, dummy_j);
-    dummy.set(dummy_i(1), dummy_j(1), 1);
-    auto identity_itensor = dummy * delta(l, r) * delta(s, prime(s)) * dummy;
+//    auto dummy_i = Index(1);
+//    auto dummy_j = Index(1);
+//    auto dummy = ITensor(dummy_i, dummy_j);
+//    dummy.set(dummy_i(1), dummy_j(1), 1);
+//    auto identity_tensor = dummy * delta(l, r) * delta(s, prime(s)) * dummy;
+//    See https://github.com/ITensor/ITensor/issues/176.
+    auto identity_tensor = toDense(delta(l, r) ) * toDense( delta(s, prime(s)) );
 
     auto long_link = uniqueIndex(op(1), op(2), "Link");
     auto identity_mpo = MPO(N);
-    identity_mpo.set(1, identity_itensor * delta(l, prime(long_link)) * delta(r, rightLinkIndex(op, 1)) * delta(s, sites(1)) * delta(prime(s), prime(sites(1))) );
-    identity_mpo.set(N, identity_itensor * delta(l, leftLinkIndex(op, N)) * delta(r, long_link) * delta(s, sites(N)) * delta(prime(s), prime(sites(N))) );
+    identity_mpo.set(1, identity_tensor * delta(l, prime(long_link)) * delta(r, rightLinkIndex(op, 1)) * delta(s, sites(1)) * delta(prime(s), prime(sites(1))) );
+    identity_mpo.set(N, identity_tensor * delta(l, leftLinkIndex(op, N)) * delta(r, long_link) * delta(s, sites(N)) * delta(prime(s), prime(sites(N))) );
     for(auto j : range1(2,N-1))
     {
-        identity_mpo.set(j, identity_itensor * delta(l, leftLinkIndex(op, j)) * delta(r, rightLinkIndex(op, j)) * delta(s, sites(j)) * delta(prime(s), prime(sites(j))) );
+        identity_mpo.set(j, identity_tensor * delta(l, leftLinkIndex(op, j)) * delta(r, rightLinkIndex(op, j)) * delta(s, sites(j)) * delta(prime(s), prime(sites(j))) );
     }
 
     identity_mpo.set(1, identity_mpo(1) * delta(prime(long_link), prime(long_link, 2)));
@@ -99,7 +99,7 @@ MPO RhoOp(const SiteSet& sites, const std::string& site_type) {
     } else if (site_type == "haagerup" || site_type == "haagerup_q") {
         auto f = HaagerupFData();
         for (auto j : range1(N - 1)) {
-            G[j] = f.RhoDefectCell(sites(j), sites(j + 1));
+            G[j] = f.RhoDefectCell(sites(j), sites(j+1));
         }
         G[N] = f.RhoDefectCell(sites(N), sites(1));
     }
@@ -263,7 +263,6 @@ MPS Z3FourierTransform(MPS const& psi, SiteSet const& sites_new) {
 //    //Set up conjugate psi and k_
 //    auto psic = psi;
 //    auto Kc = K;
-//    //TODO: use sim(linkInds), sim(siteInds)
 //    psic.dag().prime(rand_plev);
 //    Kc.dag().prime(rand_plev);
 //
@@ -326,50 +325,6 @@ MPS Z3FourierTransform(MPS const& psi, SiteSet const& sites_new) {
 //    return res;
 //}
 //
-//// MPO RhoOp(const SiteSet &sites, const std::string& sitetype_) {
-////     int num_sites_ = sites.length();
-////     auto G = std::vector<ITensor>(num_sites_);
-////     // fixme: modify to allow for gates which are member functions of generic site type
-////     if (sitetype_ == "golden") {
-////         auto f = GoldenFData();
-////         for (auto j : range1(num_sites_ - 1)) {
-////             G[j] = f.RhoDefectCell(sites(j), sites(j + 1));
-////         }
-////     } else if (sitetype_ == "haagerup") {
-////         auto f = HaagerupFData();
-////         for (auto j : range1(num_sites_ - 1)) {
-////             G[j] = f.RhoDefectCell(sites(j), sites(j + 1));
-////         }
-////     }
-//
-////     auto A = std::vector<ITensor>(num_sites_);
-////     auto B = std::vector<ITensor>(num_sites_);
-////     for(auto j : range1(num_sites_-1))
-////     {
-////         auto [Aj,Bj] = factor(G[j],{sites(j),prime(sites(j))},{"Truncate", false});
-////         A[j] = Aj;
-////         B[j] = Bj;
-////     }
-////     auto t = std::vector<Index>(num_sites_+1);
-////     for(auto j : range1(num_sites_))
-////     {
-////         t[j] = sim(sites(j));
-////     }
-////     for(auto j : range1(2,num_sites_-1))
-////     {
-////         B[j-1] *= delta(prime(sites(j)),t[j]);
-////         A[j] *= delta(sites(j),t[j]);
-////     }
-////     auto num_reps_til_stable_ = MPO(num_sites_);
-////     num_reps_til_stable_.set(1, A[1]);
-////     for(auto j : range1(2,num_sites_-1))
-////     {
-////         num_reps_til_stable_.set(j, B[j - 1] * A[j]);
-////     }
-////     num_reps_til_stable_.set(num_sites_, B[num_sites_ - 1]);
-////     return num_reps_til_stable_;
-//// }
-//
 //void Swap(MPS &psi, const SiteSet &sites, int b) {
 //    // Store original tags
 //    psi.position(b);
@@ -388,182 +343,6 @@ MPS Z3FourierTransform(MPS const& psi, SiteSet const& sites_new) {
 //    psi.set(b,U);
 //    psi.set(b+1,S*V);
 //}
-//
-//MPO RhoOp_old(const SiteSet &sites) {
-//    // , const std::string& sitetype_) {
-//    int N = sites.length();
-//
-//    auto G = std::vector<ITensor>(N+1);
-//    // if (sitetype_ == "golden") {
-//    //     auto f = GoldenFData();
-//    //     for (auto j : range1(num_sites_ - 1)) {
-//    //         G[j] = f.RhoDefectCell(sites(j), sites(j + 1));
-//    //     }
-//    //     G[num_sites_] = GoldenFData().RhoDefectCell(sites(num_sites_), sites(1));
-//    // } else if (sitetype_ == "haagerup") {
-//    auto f = HaagerupFData();
-//    for (auto j : range1(N - 1)) {
-//        G[j] = f.RhoDefectCell(sites(j), sites(j + 1));
-//    }
-//    G[N] = f.RhoDefectCell(sites(N), sites(1));
-//    // }
-//
-//    auto A = std::vector<ITensor>(N+1);
-//    auto B = std::vector<ITensor>(N+1);
-//    for(auto j : range1(N))
-//    {
-//        auto [Aj,Bj] = factor(G[j],{sites(j),prime(sites(j))}); // Fixme: Can refactor
-//        // ,{"MaxDim", 10, "Cutoff", 1E-3});
-//        Aj.prime("Site").prime("Site");
-//        Bj.prime("Site").prime("Site").prime("Site").prime("Site");
-//        A[j] = Aj;
-//        B[j] = Bj;
-//    }
-//    auto long_link = commonIndex(A[N], B[N]);
-//    auto BNP = ITensor(B[N]);
-//    BNP.prime("Link");
-//    auto D12 = std::vector<ITensor>(N+1);
-//    auto D21 = std::vector<ITensor>(N+1);
-//    for(auto j : range1(N))
-//    {
-//        D12[j] = Delta3ITensor(dag(sites(j)), prime(sites(j),2), prime(sites(j),4) );
-//        D21[j] = Delta3ITensor(prime(sites(j)), dag(prime(sites(j), 3)), dag(prime(sites(j),5)) );
-//    }
-//
-//    auto m = MPO(N);
-//    m.set(1, BNP * A[1] * D12[1] * D21[1]);
-//    for(auto j : range1(2,N))
-//    {
-//        m.set(j, B[j-1] * A[j] * D12[j] * D21[j]);
-//    }
-//
-//    auto l = sim(leftLinkIndex(m, 2));
-//    auto r = sim(rightLinkIndex(m, 2));
-//    auto s = sim(sites(2));
-//    auto dummy_i = Index(1);
-//    auto dummy_j = Index(1);
-//    auto dummy = ITensor(dummy_i, dummy_j);
-//    dummy.set(dummy_i(1), dummy_j(1), 1);
-//    auto identity_itensor = dummy * delta(l, r) * delta(s, prime(s)) * dummy;
-//
-//    auto identity_mpo = MPO(N);
-//    identity_mpo.set(1, identity_itensor * delta(l, prime(long_link)) * delta(r, rightLinkIndex(m, 1)) * delta(s, sites(1)) * delta(prime(s), prime(sites(1))) );
-//    identity_mpo.set(N, identity_itensor * delta(l, leftLinkIndex(m, N)) * delta(r, long_link) * delta(s, sites(N)) * delta(prime(s), prime(sites(N))) );
-//    for(auto j : range1(2,N-1))
-//    {
-//        identity_mpo.set(j, identity_itensor * delta(l, leftLinkIndex(m, j)) * delta(r, rightLinkIndex(m, j)) * delta(s, sites(j)) * delta(prime(s), prime(sites(j))) );
-//    }
-//    identity_mpo = prime(identity_mpo);
-//    identity_mpo.set(1, identity_mpo(1) * delta(prime(long_link), prime(long_link, 2)));
-//    identity_mpo.set(N, identity_mpo(N) * delta(long_link, prime(long_link)));
-//
-//    m = nmultMPO(m, identity_mpo, {"MaxDim", 800,"Cutoff", 1E-10});
-//
-//    return m;
-//
-////    Replace by the following
-////    auto rho_op = RhoOp(sites, sitetype_);
-////    return nmultMPO(rho_op, IdentityOp(sites, rhoOp), {"MaxDim", 800,"Cutoff", 1E-10});
-//}
-//
-//MPO RhoOp2(const SiteSet &sites) {
-//    int N = sites.length();
-//    auto m = MPO(N);
-//    SetRho(sites, m, 1, N, true);
-//    return m;
-//}
-//
-//MPO NewRhoOp(const SiteSet &sites) {
-//    int N = sites.length();
-//    auto aux_sites = Golden(2*N);
-//    auto G = std::vector<ITensor>(N+1);
-//    for(auto j : range1(N))
-//    {
-//        G[j] = GoldenFData().RhoDefectCell(aux_sites(2 * j - 1), aux_sites(2 * j));
-//    }
-//    auto A = std::vector<ITensor>(N+1);
-//    auto B = std::vector<ITensor>(N+1);
-//    for(auto j : range1(N))
-//    {
-//        auto [Aj,Bj] = factor(G[j],{aux_sites(2*j-1),prime(aux_sites(2*j-1))});
-//        // Aj.prime("Site").prime("Site");
-//        // Bj.prime("Site").prime("Site").prime("Site").prime("Site");
-//        A[j] = Aj;
-//        B[j] = Bj;
-//    }
-//    auto m = MPO(2*N);
-//    for(auto j : range1(N))
-//    {
-//        m.set(2*j-1, A[j]);
-//        m.set(2*j, B[j]);
-//    }
-//
-//    m = nmultMPO(prime(TranslationOp(aux_sites, false)), m);
-//    m.mapPrime(1,0);
-//    m.mapPrime(2,1);
-//
-//    return m;
-//}
-//
-//
-//void SetRho(const SiteSet &sites, MPO &m, int min, int max, bool boundary) {
-//    int N = max;
-//    auto G = std::vector<ITensor>(N+1);
-//    for(auto j : range1(N-1))
-//    {
-//        G[j] = GoldenFData().RhoDefectCell(sites(j), sites(j + 1));
-//    }
-//    G[N] = GoldenFData().RhoDefectCell(sites(N), sites(1));
-//
-//    auto A = std::vector<ITensor>(N+1);
-//    auto B = std::vector<ITensor>(N+1);
-//    for(auto j : range1(N))
-//    {
-//        auto [Aj,Bj] = factor(G[j],{sites(j),prime(sites(j))});
-//        Aj.prime("Site").prime("Site");
-//        Bj.prime("Site").prime("Site").prime("Site").prime("Site");
-//        A[j] = Aj;
-//        B[j] = Bj;
-//    }
-//    auto D12 = std::vector<ITensor>(N+1);
-//    auto D21 = std::vector<ITensor>(N+1);
-//    for(auto j : range1(N))
-//    {
-//        D12[j] = Delta3ITensor(dag(sites(j)), prime(sites(j),2), prime(sites(j),4) );
-//        D21[j] = Delta3ITensor(prime(sites(j)), dag(prime(sites(j), 3)), dag(prime(sites(j),5)) );
-//    }
-//    // auto t = std::vector<Index>(num_sites_+1);
-//    // for(auto j : range1(num_sites_))
-//    // {
-//    //     t[j] = sim(sites(j));
-//    // }
-//    // for(auto j : range1(2,num_sites_-1))
-//    // {
-//    //     B[j-1] *= delta(prime(sites(j)),t[j]);
-//    //     A[j] *= delta(sites(j),t[j]);
-//    // }
-//    // auto num_reps_til_stable_ = MPO(num_sites_);
-//    if (boundary) {
-//        // num_reps_til_stable_.set(1, B[num_sites_] * A[1] * D12[1] * D21[1]);
-//        // num_reps_til_stable_.set(num_sites_, B[num_sites_-1] * A[num_sites_] * D12[num_sites_] * D21[num_sites_]);
-//        m.set(min, A[min] * delta(dag(sites(min)), prime(sites(min), 2)) * delta(dag(prime(sites(min))), prime(sites(min), 3)) );
-//        m.set(N, B[N-1] * delta(dag(sites(N)), prime(sites(N), 4)) * delta(dag(prime(sites(N))), prime(sites(N), 5)) );
-//    } else {
-//        auto ind_min_old = commonIndex(B[min], A[min]);
-//        auto ind_max_old = commonIndex(B[max-1], A[max-1]);
-//        auto ind_min_new = rightLinkIndex(m, min);
-//        auto ind_max_new = leftLinkIndex(m, max);
-//        B[min] *= delta(ind_min_old, ind_min_new);
-//        A[max-1] *= delta(ind_max_old, ind_max_new);
-//    }
-//    for(auto j : range1(min+1,N-1))
-//    {
-//        // print(j);
-//        // print("\n");
-//        m.set(j, B[j-1] * A[j] * D12[j] * D21[j]);
-//    }
-//}
-//
 //
 //void ActLocal(MPS &psi, const ITensor &G, int b) {
 //    // Store original tags

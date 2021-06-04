@@ -17,8 +17,8 @@ class DMRGProgress {
 public:
     SiteSetType sites_;
     // Each element below is the latest progress for a given state
-    std::vector<int> times_swepts_;
-    std::vector<int> maxdims_;
+    std::vector<int> num_sweeps_vec_;
+    std::vector<int> max_dims_;
     std::vector<Real> ens_;
     std::vector<MPS> psis_;
     std::vector<MPO> Hs_;
@@ -33,8 +33,8 @@ public:
 
     // Replace the latest progress for the current state
     void Update(int times_swept, int max_dim, Real en, MPS const& psi, MPO H) {
-        times_swepts_.back() = times_swept;
-        maxdims_.back() = max_dim;
+        num_sweeps_vec_.back() = times_swept;
+        max_dims_.back() = max_dim;
         ens_.back() = en;
         psis_.back() = psi;
 
@@ -43,15 +43,15 @@ public:
 
     // Extend vectors to signal completion of previous state and prepare for next state
     void NextState() {
-        times_swepts_.push_back(0);
-        maxdims_.push_back(0);
+        num_sweeps_vec_.push_back(0);
+        max_dims_.push_back(0);
         ens_.push_back(0);
         psis_.emplace_back(MPS(1));
         Hs_.emplace_back(MPO(1));
     }
 
     std::tuple<int,int,Real,MPS,MPO> All() {
-        return std::tuple<int,int,Real,MPS,MPO>(times_swepts_.back(), maxdims_.back(), ens_.back(), psis_.back(), Hs_.back());
+        return std::tuple<int,int,Real,MPS,MPO>(num_sweeps_vec_.back(), max_dims_.back(), ens_.back(), psis_.back(), Hs_.back());
     }
 
     std::vector<MPS> DoneStates() {
@@ -62,11 +62,6 @@ public:
         }
         return past_psis;
     }
-
-//    // fixme
-//    std::vector<MPS> States() {
-//        return psis_;
-//    }
 
     std::vector<Real> Energies() const {
         return ens_;
@@ -84,8 +79,8 @@ public:
     {
         std::string path = std::string(p);
         writeToFile(path + ".st", sites_);
-        writeToFile(path + ".pgs", times_swepts_);
-        writeToFile(path + ".md", maxdims_);
+        writeToFile(path + ".pgs", num_sweeps_vec_);
+        writeToFile(path + ".md", max_dims_);
         writeToFile(path + ".en", ens_);
         writeToFile(path + ".psi", psis_);
         writeToFile(path + ".H", Hs_);
@@ -103,8 +98,8 @@ public:
         std::string path = std::string(p);
         try{
             readFromFile(path + ".st", sites_);
-            readFromFile(path + ".pgs", times_swepts_);
-            readFromFile(path + ".md", maxdims_);
+            readFromFile(path + ".pgs", num_sweeps_vec_);
+            readFromFile(path + ".md", max_dims_);
             readFromFile(path + ".en", ens_);
             readFromFile(path + ".psi", psis_);
             readFromFile(path + ".H", Hs_);
@@ -117,8 +112,8 @@ public:
 //                readFromFile(path + ".H.bk", Hs_);
 //            } catch (std::exception const& e) {
                 println(e.what());
-                times_swepts_.clear();
-                maxdims_.clear();
+                num_sweeps_vec_.clear();
+                max_dims_.clear();
                 ens_.clear();
                 psis_.clear();
                 Hs_.clear();
@@ -177,7 +172,7 @@ class DMRG {
 
     double min_en_;
     int cnt_;
-    int times_swept_;
+    int num_sweeps_;
     int bond_dim_;
 
     // Variable declarations
@@ -203,15 +198,15 @@ public:
         sites_ = SiteSetType(num_sites_, {"ConserveQNs=", true});
         if (boundary_condition_ == "p") {
             job_ = site_type_ + " PBC";
-        }else if (boundary_condition_ == "o") {
+        } else if (boundary_condition_ == "o") {
             job_ = site_type_ + " OBC";
-        }else if (boundary_condition_ == "s") {
+        } else if (boundary_condition_ == "s") {
             job_ = site_type_ + " SSD";
         } else {
             job_ = site_type_ + " SSD/PBC";
         }
         // fixme: refactor so that we're passing the most basic variable type instead of a type alias
-        // fixme: pass site instead of siteset
+        // fixme: pass site instead of SiteSet
 
         // DMRG parameters
         gs_max_bond_dim_ = es_max_bond_dim_;
@@ -254,6 +249,15 @@ public:
         }
     }
 
+    void PrintJob(bool with_sweeps) {
+        if (with_sweeps) {
+//            printf("\n    > Times swept: %d\n      %s of %s\n      L=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g phi=%g K=%g J=%g M=%g U=%g Q=%d\n", dmrg_progress_.num_sweeps_vec_.back(), state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, phi_, k_, j_, m_, u_, charge_);
+            printf("\n  > Times swept: %d\n    %s of %s\n    L=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g phi=%g K=%g J=%g M=%g U=%g Q=%d\n", dmrg_progress_.num_sweeps_vec_.back(), state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, phi_, k_, j_, m_, u_, charge_);
+        } else {
+            printf("\n> %s: num_sites=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g phi=%g K=%g J=%g M=%g U=%g Q=%d\n", job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, phi_, k_, j_, m_, u_, charge_);
+        }
+    }
+
     // Adjust parameters depending on whether simulating ground state
     void AdjustDMRGParams() {
         if (IsSimulatingGroundState()) {
@@ -269,7 +273,7 @@ public:
     void ResetDMRG() {
         min_en_ = 1000000;
         cnt_ = num_reps_til_stable_;
-        times_swept_ = 0;
+        num_sweeps_ = 0;
     }
 
     // Decide name of the current state to simulate based on number of completed states
@@ -304,30 +308,26 @@ public:
         if (not std::filesystem::exists(en_directory_)) {
             std::filesystem::create_directory(en_directory_);
         }
-        printf("\n> %s: num_sites=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g phi=%g K=%g J=%g M=%g U=%g Q=%d\n", job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, phi_, k_, j_, m_, u_, charge_);
+        PrintJob(false);
 
         if (std::filesystem::exists(progress_directory_ / (filename_ + ".pgs"))) {
             // Job was run before
             // Read progress
             dmrg_progress_.Read(progress_path_);
             sites_ = dmrg_progress_.Sites();
-
-            // fixme
-            state_name_ = StateName();
-
-            // fixme
             if (dmrg_progress_.NumDoneStates() >= num_states_) {
                 printf("\n> Job already complete\n> Requested number of states: %d \n> Completed number of states: %d\n\n", num_states_,
                        dmrg_progress_.NumDoneStates());
                 return;
             }
-            // printf("\n> Simulation: %s\n", state);
         } else {
             // New job
             dmrg_progress_.NextState();
+            dmrg_progress_.SetSites(sites_);
+            dmrg_progress_.Write(progress_path_);
+
         }
 
-        // fixme: Polymorphic based on SiteSetType
         // fixme: Can change to method of say Golden by declaring that Golden is a class that inherits BasicSiteSet<GoldenSite>
         MPO H = Hamiltonian(sites_, boundary_condition_, num_sites_, u_, k_, j_, m_);
 
@@ -349,7 +349,7 @@ public:
         // Loop over states
         // Each iteration includes warmup and post-warmup DMRG runs until energy is stable
         for(;;) {
-            if (dmrg_progress_.times_swepts_.back() == 0 && hot_start != 0) {
+            if (dmrg_progress_.num_sweeps_vec_.back() == 0 && hot_start != 0) {
                 // Not yet run
                 // Begin DMRG with warmup
                 state_name_ = StateName();
@@ -367,12 +367,12 @@ public:
                 sweeps.noise() = noise_;
                 std::tie(en_, psi_) = dmrg(H, dmrg_progress_.DoneStates(), init_state_, sweeps, {"Quiet", true, "Weight=", ortho_weight});
 
-                times_swept_ += init_num_sweeps_per_rep_;
-                dmrg_progress_.Update(times_swept_, bond_dim_, en_, psi_, H);
-                dmrg_progress_.SetSites(sites_);
+                num_sweeps_ += init_num_sweeps_per_rep_;
+                dmrg_progress_.Update(num_sweeps_, bond_dim_, en_, psi_, H);
+//                dmrg_progress_.SetSites(sites_);
                 dmrg_progress_.Write(progress_path_);
-                printf("\n    > Times swept: %d\n      %s of %s\n      L=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g phi=%g K=%g J=%g M=%g U=%g Q=%d\n", dmrg_progress_.times_swepts_.back(), state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, phi_, k_, j_, m_, u_, charge_);
-            }else if (dmrg_progress_.times_swepts_.back() == 0 && hot_start == 0) {
+                PrintJob(true);
+            } else if (dmrg_progress_.num_sweeps_vec_.back() == 0 && hot_start == 0) {
                 state_name_ = StateName();
                 printf("\n> Simulation: %s\n", state_name_);
 
@@ -390,18 +390,21 @@ public:
                 std::tie(en_, psi_) = dmrg(H, dmrg_progress_.DoneStates(), init_state_, sweeps,
                                            {"Quiet", true, "Weight=", ortho_weight});
 
-                times_swept_ += init_num_sweeps_per_rep_;
-                dmrg_progress_.Update(times_swept_, bond_dim_, en_, psi_, H);
-                dmrg_progress_.SetSites(sites_);
+                num_sweeps_ += init_num_sweeps_per_rep_;
+                dmrg_progress_.Update(num_sweeps_, bond_dim_, en_, psi_, H);
+//                dmrg_progress_.SetSites(sites_);
                 dmrg_progress_.Write(progress_path_);
-                printf("\n    > Times swept: %d\n      %s of %s\n      L=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g phi=%g K=%g J=%g M=%g U=%g Q=%d\n", dmrg_progress_.times_swepts_.back(), state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, phi_, k_, j_, m_, u_, charge_);
+                PrintJob(true);
+            } else {
+                state_name_ = StateName();
+                printf("\n> Simulation: %s\n", state_name_);
             }
 
             // Post-warmup DMRG runs
             AdjustDMRGParams();
             for(;;) {
                 // Read progress
-                std::tie(times_swept_, bond_dim_, en_, psi_, H) = dmrg_progress_.All();
+                std::tie(num_sweeps_, bond_dim_, en_, psi_, H) = dmrg_progress_.All();
 
                 // Dump entanglement entropy curve
                 // Only for simulation of ground state
@@ -429,21 +432,18 @@ public:
                     cnt_ = num_reps_til_stable_;
                     min_en_ = en_;
                 }
-                times_swept_ += num_sweeps_per_rep_;
-                dmrg_progress_.Update(times_swept_, bond_dim_, en_, psi_, H);
-                // fixme
-                dmrg_progress_.SetSites(sites_);
+                num_sweeps_ += num_sweeps_per_rep_;
+                dmrg_progress_.Update(num_sweeps_, bond_dim_, en_, psi_, H);
+//                dmrg_progress_.SetSites(sites_);
                 dmrg_progress_.Write(progress_path_);
 
-                printf("\n    > Times swept: %d\n      %s of %s\n      L=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g phi=%g K=%g J=%g M=%g U=%g Q=%d\n", dmrg_progress_.times_swepts_.back(), state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, phi_, k_, j_, m_, u_, charge_);
+                PrintJob(true);
                 if (cnt_ == 0) {
                     break;
                 }
             }
 
             // Completed current state
-
-            // fixme
             DumpEnergy(dmrg_progress_.NumDoneStates(), en_ / num_sites_, en_path_);
             printf("\n> E/L of %s: %g\n\n", state_name_, en_ / num_sites_);
 
@@ -454,7 +454,7 @@ public:
                 init_state_ = psi_;
                 dmrg_progress_ = DMRGProgress<SiteSetType>();
                 hot_start = 0;
-            }else if (hot_start == 0) {
+            } else if (hot_start == 0) {
 //                auto pre_init_state = InitState(sites_, "0");
 //                int center = (num_sites_ + 1) / 2;
 //                pre_init_state.set(center, std::to_string(charge_));
@@ -464,8 +464,7 @@ public:
             }
 
             dmrg_progress_.NextState(); // Even if no next state, this marks completion of current state
-            // fixme
-            dmrg_progress_.SetSites(sites_);
+//            dmrg_progress_.SetSites(sites_);
             dmrg_progress_.Write(progress_path_);
 
             // Check whether to simulate next state
@@ -482,7 +481,7 @@ public:
         }
 
 //        printf("\n%s: num_sites=%d max_bond_dim=%d svd_cutoff=%g theta=%g K=%g J=%g U=%g\n\n", job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, theta_, k_, j_, u_);
-        printf("\n> %s: num_sites=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g phi=%g K=%g J=%g M=%g U=%g Q=%d\n", job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, phi_, k_, j_, m_, u_, charge_);
+        PrintJob(false);
 
         // Default svd_cutoff for applyMPO(density matrix variant) is 1E-12
         // Setting to larger value will speed up the program significantly at the cost of accuracy of measurements

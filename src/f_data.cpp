@@ -31,9 +31,9 @@ std::set<int> FData::Fusion(int a, int b) const {
     std::set<int> ans;
     if (a <= kNu_ && b <= kNu_) {
         ans.insert(1+((a+b-2) % kNu_));
-    }else if (a <= kNu_ && b > kNu_) {
+    } else if (a <= kNu_ && b > kNu_) {
         ans.insert(kRho_ + ((a + b - 2) % kNu_));
-    }else if (a > kNu_ && b <= kNu_) {
+    } else if (a > kNu_ && b <= kNu_) {
         return Fusion(1+((kRho_ - b) % kNu_), a);
     } else {
         ans.insert(1+((kNu_ + a - b) % kNu_));

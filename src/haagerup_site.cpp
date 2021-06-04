@@ -108,39 +108,39 @@ ITensor HaagerupSite::FF(int projector, int left, int right) const {
 //ITensor HaagerupSite::op(const string &opname, const Args &args) const {
 //    if (opname=="n1") {
 //        return proj(1);
-//    }else if (opname=="na") {
+//    } else if (opname=="na") {
 //        return proj(2);
-//    }else if (opname=="nb") {
+//    } else if (opname=="nb") {
 //        return proj(3);
-//    }else if (opname=="nr") {
+//    } else if (opname=="nr") {
 //        return proj(4);
-//    }else if (opname=="nar") {
+//    } else if (opname=="nar") {
 //        return proj(5);
-//    }else if (opname=="nbr") {
+//    } else if (opname=="nbr") {
 //        return proj(6);
-//    }else if (opname=="FF1") {
+//    } else if (opname=="FF1") {
 //        return FF(1);
-//    }else if (opname=="FFa") {
+//    } else if (opname=="FFa") {
 //        return FF(2);
-//    }else if (opname=="FFb") {
+//    } else if (opname=="FFb") {
 //        return FF(3);
-//    }else if (opname=="Frr") {
+//    } else if (opname=="Frr") {
 //        return Frr(1);
-//    }else if (opname=="Farar") {
+//    } else if (opname=="Farar") {
 //        return Frr(2);
-//    }else if (opname=="Fbrbr") {
+//    } else if (opname=="Fbrbr") {
 //        return Frr(3);
-//    }else if (opname=="Frar") {
+//    } else if (opname=="Frar") {
 //        return Frar(1);
-//    }else if (opname=="Farbr") {
+//    } else if (opname=="Farbr") {
 //        return Frar(2);
-//    }else if (opname=="Fbrr") {
+//    } else if (opname=="Fbrr") {
 //        return Frar(3);
-//    }else if (opname=="Frbr") {
+//    } else if (opname=="Frbr") {
 //        return Frbr(1);
-//    }else if (opname=="Farr") {
+//    } else if (opname=="Farr") {
 //        return Frbr(2);
-//    }else if (opname=="Fbrar") {
+//    } else if (opname=="Fbrar") {
 //        return Frbr(3);
 //    }
 //    throw ITError("Operator name "+opname+" not recognized");
@@ -149,63 +149,63 @@ ITensor HaagerupSite::FF(int projector, int left, int right) const {
 ITensor HaagerupSite::op(const string &opname, const Args &args) const {
     if (opname=="n1") {
         return proj(1);
-    }else if (opname=="na") {
+    } else if (opname=="na") {
         return proj(2);
-    }else if (opname=="nb") {
+    } else if (opname=="nb") {
         return proj(3);
-    }else if (opname=="nr") {
+    } else if (opname=="nr") {
         return proj(4);
-    }else if (opname=="nar") {
+    } else if (opname=="nar") {
         return proj(5);
-    }else if (opname=="nbr") {
+    } else if (opname=="nbr") {
         return proj(6);
-    }else if (opname=="FF1") {
+    } else if (opname=="FF1") {
         return FF(4,1,4);
-    }else if (opname=="FFa") {
+    } else if (opname=="FFa") {
         return FF(4,2,5);
-    }else if (opname=="FFb") {
+    } else if (opname=="FFb") {
         return FF(4,3,6);
-    }else if (opname=="Frr") {
+    } else if (opname=="Frr") {
         return FF(4,4,4);
-    }else if (opname=="Farar") {
+    } else if (opname=="Farar") {
         return FF(4,5,5);
-    }else if (opname=="Fbrbr") {
+    } else if (opname=="Fbrbr") {
         return FF(4,6,6);
-    }else if (opname=="Frar") {
+    } else if (opname=="Frar") {
         return FF(4,4,5);
-    }else if (opname=="Farbr") {
+    } else if (opname=="Farbr") {
         return FF(4,5,6);
-    }else if (opname=="Fbrr") {
+    } else if (opname=="Fbrr") {
         return FF(4,6,4);
-    }else if (opname=="Frbr") {
+    } else if (opname=="Frbr") {
         return FF(4,4,6);
-    }else if (opname=="Farr") {
+    } else if (opname=="Farr") {
         return FF(4,5,4);
-    }else if (opname=="Fbrar") {
+    } else if (opname=="Fbrar") {
         return FF(4,6,5);
-    }else if (opname=="FFar_1") {
+    } else if (opname=="FFar_1") {
         return FF(5,1,4);
-    }else if (opname=="FFar_a") {
+    } else if (opname=="FFar_a") {
         return FF(5,2,5);
-    }else if (opname=="FFar_b") {
+    } else if (opname=="FFar_b") {
         return FF(5,3,6);
-    }else if (opname=="Far_rr") {
+    } else if (opname=="Far_rr") {
         return FF(5,4,4);
-    }else if (opname=="Far_arar") {
+    } else if (opname=="Far_arar") {
         return FF(5,5,5);
-    }else if (opname=="Far_brbr") {
+    } else if (opname=="Far_brbr") {
         return FF(5,6,6);
-    }else if (opname=="Far_rar") {
+    } else if (opname=="Far_rar") {
         return FF(5,4,5);
-    }else if (opname=="Far_arbr") {
+    } else if (opname=="Far_arbr") {
         return FF(5,5,6);
-    }else if (opname=="Far_brr") {
+    } else if (opname=="Far_brr") {
         return FF(5,6,4);
-    }else if (opname=="Far_rbr") {
+    } else if (opname=="Far_rbr") {
         return FF(5,4,6);
-    }else if (opname=="Far_arr") {
+    } else if (opname=="Far_arr") {
         return FF(5,5,4);
-    }else if (opname=="Far_brar") {
+    } else if (opname=="Far_brar") {
         return FF(5,6,5);
     }
     throw ITError("Operator name "+opname+" not recognized");
