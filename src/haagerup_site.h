@@ -28,17 +28,13 @@ public:
     explicit HaagerupSite(Index const& I);
     explicit HaagerupSite(Args const& args = Args::global());
 
-    Index
-    index() const;
+    Index index() const;
 
-    IndexVal
-    state(std::string const& state);
+    IndexVal state(std::string const& state);
     
-    ITensor
-    proj(int i) const;
+    ITensor proj(int i) const;
 
-    ITensor
-    FF(int projector, int x, int y) const;
+    ITensor FF(int projector, int x, int y) const;
 
 //    ITensor
 //    FF(int i) const;
@@ -52,11 +48,8 @@ public:
 //    ITensor
 //    Frbr(int i) const;
     
-    ITensor
-    op(std::string const& opname,Args const& args = Args::global()) const;
+    ITensor op(std::string const& opname,Args const& args = Args::global()) const;
 };
-
-
 
 // Hamiltonian appropriate for the boundary condition, number of sites, and couplings
 // Polymorphic function specified by SiteSetType = Haagerup

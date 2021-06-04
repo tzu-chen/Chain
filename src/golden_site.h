@@ -13,20 +13,16 @@ class GoldenSite
 public:
     explicit GoldenSite(Index  I);
     explicit GoldenSite(Args const& args = Args::global());
-    [[nodiscard]] Index
-    index() const;
 
-    IndexVal
-    state(std::string const& state);
+    [[nodiscard]] Index index() const;
+
+    IndexVal state(std::string const& state);
     
-    [[nodiscard]] ITensor
-    proj(int i) const;
+    [[nodiscard]] ITensor proj(int i) const;
     
-    [[nodiscard]] ITensor
-    FF() const;
+    [[nodiscard]] ITensor FF() const;
     
-    [[nodiscard]] ITensor
-    op(std::string const& opname,Args const& args = Args::global()) const;
+    [[nodiscard]] ITensor op(std::string const& opname,Args const& args = Args::global()) const;
 
 private:
     Index s;
@@ -34,6 +30,7 @@ private:
     const double kPhiInv = golden_f_data.kPhiInv_;
     const double kSqrtPhiInv = golden_f_data.kSqrtPhiInv_;
 };
+
 using Golden=BasicSiteSet<GoldenSite>;
 
 // Hamiltonian appropriate for the boundary condition, number of sites, and couplings

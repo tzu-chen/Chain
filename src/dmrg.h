@@ -140,6 +140,7 @@ class DMRG {
     int num_sites_;
     Real theta_; // angle between K (identity) and J (rho)
     Real phi_;
+    // fixme: Combine K, J, M into Couplings
     Real k_, j_, u_, m_; // K (identity), J (rho), M (a * rho), U (penalty)
     int charge_; // Choose total QN of the chain when conserving by specifying the charge of the central site eg. "0"
 
