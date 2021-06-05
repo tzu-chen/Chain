@@ -191,9 +191,9 @@ public:
         es_stable_tol_ = std::get<5>(params);
         coupling_str_ = std::get<6>(params);
         couplings_ = ParseCouplings(coupling_str_);
-        for (int i=0;i<couplings_.size();i++) {
-            println(couplings_.at(i));
-        }
+//        for (int i=0;i<couplings_.size();i++) {
+//            println(couplings_.at(i));
+//        }
 //        PrintData(couplings_);
 //        theta_ = std::get<6>(params);
 //        phi_ = std::get<7>(params);
@@ -321,7 +321,7 @@ public:
         while(s_stream.good()) {
             string substr;
             getline(s_stream, substr, ',');
-            int val = std::stod(substr);
+            double val = std::stod(substr);
             if (abs(val) < 1E-5){
                 val = 0;
             }
