@@ -25,8 +25,8 @@ ITensor Delta3ITensor(const Index& s1, const Index& s2, const Index& s3);
 MPO RhoOp(const SiteSet& sites, const std::string& site_type);
 
 // Recast a dangling MPS/MPO as an open MPS/MPO with two extra sites
-MPS AugmentMPS(MPS const& psi, Index const& sl, Index const& sr);
-MPO AugmentMPO(MPO const& K, Index const& sl, Index const& sr);
+MPS AugmentMPS(MPS const& original_psi, Index const& sl, Index const& sr);
+MPO AugmentMPO(MPO const& original_mpo, Index const& sl, Index const& sr);
 
 // Matrix for transforming Z3 charge_ basis (HaagerupQ) to standard basis Haagerup
 ITensor Z3FourierMatrix(Index const& s, Index const& sP);

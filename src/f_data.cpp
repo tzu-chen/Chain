@@ -58,7 +58,7 @@ double FData::QD(int i) const {
 }
 
 int FData::Add(int i, int j) const {
-    return kRho_ + ((i + j - 1) % kNu_);
+    return kRho_ + ((i+j-1) % kNu_);
 }
 
 double FData::FSymbolPattern(int i, int j, int k, int l, int m, int n) const {
@@ -78,7 +78,7 @@ double FData::FSymbolPattern(int i, int j, int k, int l, int m, int n) const {
         return FSymbol(kRho_, j, Add(k, i - kRho_), l, m, n);
     }
     if (j != kRho_) {
-        return FSymbol(kRho_, kRho_, k, Add(l, j - kRho_), m, n);
+        return FSymbol(kRho_, kRho_, k, Add(l, j-kRho_), m, n);
     }
     if (k != kRho_) {
         return FSymbol(kRho_, kRho_, kRho_, Add(l, kRho_ - k), m, Add(n, kRho_ - k));

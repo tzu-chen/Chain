@@ -230,32 +230,32 @@ MPO Haagerup::Hamiltonian(const std::string& boundary_condition, int num_sites, 
     // set up excluded pairs
     if (U!=0) {
         for (int j = 1; j <= L; ++j) {
-            mpo += U,"n1",j,"n1",mod(j + 1, num_sites);
-            mpo += U,"n1",j,"na",mod(j + 1, num_sites);
-            mpo += U,"n1",j,"nb",mod(j + 1, num_sites);
-            mpo += U,"n1",j,"nar",mod(j + 1, num_sites);
-            mpo += U,"n1",j,"nbr",mod(j + 1, num_sites);
+            mpo += U,"n1",j,"n1",mod(j+1, num_sites);
+            mpo += U,"n1",j,"na",mod(j+1, num_sites);
+            mpo += U,"n1",j,"nb",mod(j+1, num_sites);
+            mpo += U,"n1",j,"nar",mod(j+1, num_sites);
+            mpo += U,"n1",j,"nbr",mod(j+1, num_sites);
 
-            mpo += U,"na",j,"n1",mod(j + 1, num_sites);
-            mpo += U,"na",j,"na",mod(j + 1, num_sites);
-            mpo += U,"na",j,"nb",mod(j + 1, num_sites);
-            mpo += U,"na",j,"nr",mod(j + 1, num_sites);
-            mpo += U,"na",j,"nbr",mod(j + 1, num_sites);
+            mpo += U,"na",j,"n1",mod(j+1, num_sites);
+            mpo += U,"na",j,"na",mod(j+1, num_sites);
+            mpo += U,"na",j,"nb",mod(j+1, num_sites);
+            mpo += U,"na",j,"nr",mod(j+1, num_sites);
+            mpo += U,"na",j,"nbr",mod(j+1, num_sites);
 
-            mpo += U,"nb",j,"n1",mod(j + 1, num_sites);
-            mpo += U,"nb",j,"na",mod(j + 1, num_sites);
-            mpo += U,"nb",j,"nb",mod(j + 1, num_sites);
-            mpo += U,"nb",j,"nr",mod(j + 1, num_sites);
-            mpo += U,"nb",j,"nar",mod(j + 1, num_sites);
+            mpo += U,"nb",j,"n1",mod(j+1, num_sites);
+            mpo += U,"nb",j,"na",mod(j+1, num_sites);
+            mpo += U,"nb",j,"nb",mod(j+1, num_sites);
+            mpo += U,"nb",j,"nr",mod(j+1, num_sites);
+            mpo += U,"nb",j,"nar",mod(j+1, num_sites);
 
-            mpo += U,"nr",j,"na",mod(j + 1, num_sites);
-            mpo += U,"nr",j,"nb",mod(j + 1, num_sites);
+            mpo += U,"nr",j,"na",mod(j+1, num_sites);
+            mpo += U,"nr",j,"nb",mod(j+1, num_sites);
 
-            mpo += U,"nar",j,"n1",mod(j + 1, num_sites);
-            mpo += U,"nar",j,"nb",mod(j + 1, num_sites);
+            mpo += U,"nar",j,"n1",mod(j+1, num_sites);
+            mpo += U,"nar",j,"nb",mod(j+1, num_sites);
 
-            mpo += U,"nbr",j,"n1",mod(j + 1, num_sites);
-            mpo += U,"nbr",j,"na",mod(j + 1, num_sites);
+            mpo += U,"nbr",j,"n1",mod(j+1, num_sites);
+            mpo += U,"nbr",j,"na",mod(j+1, num_sites);
         }
         if (boundary_condition == "d") {
             Real UL = num_sites * U;
@@ -277,56 +277,56 @@ MPO Haagerup::Hamiltonian(const std::string& boundary_condition, int num_sites, 
     // Identity
     if (K!=0) {
         for (int j = 1; j <= L; ++j) {
-            mpo += K,"n1",j,"nr",mod(j + 1, num_sites),"n1",mod(j + 2, num_sites);
-            mpo += K,"na",j,"nar",mod(j + 1, num_sites),"na",mod(j + 2, num_sites);
-            mpo += K,"nb",j,"nbr",mod(j + 1, num_sites),"nb",mod(j + 2, num_sites);
-            mpo += K,"nr",j,"FF1",mod(j + 1, num_sites),"nr",mod(j + 2, num_sites);
-            mpo += K,"nar",j,"FFa",mod(j + 1, num_sites),"nar",mod(j + 2, num_sites);
-            mpo += K,"nbr",j,"FFb",mod(j + 1, num_sites),"nbr",mod(j + 2, num_sites);
+            mpo += K,"n1",j,"nr",mod(j+1, num_sites),"n1",mod(j+2, num_sites);
+            mpo += K,"na",j,"nar",mod(j+1, num_sites),"na",mod(j+2, num_sites);
+            mpo += K,"nb",j,"nbr",mod(j+1, num_sites),"nb",mod(j+2, num_sites);
+            mpo += K,"nr",j,"FF1",mod(j+1, num_sites),"nr",mod(j+2, num_sites);
+            mpo += K,"nar",j,"FFa",mod(j+1, num_sites),"nar",mod(j+2, num_sites);
+            mpo += K,"nbr",j,"FFb",mod(j+1, num_sites),"nbr",mod(j+2, num_sites);
         }
     }
 
     // rho
     if (J!=0) {
         for (int j = 1; j <= L; ++j) {
-            mpo += J,"n1",j,"nr",mod(j + 1, num_sites),"nr",mod(j + 2, num_sites);
-            mpo += J,"nr",j,"nr",mod(j + 1, num_sites),"n1",mod(j + 2, num_sites);
-            mpo += J,"na",j,"nar",mod(j + 1, num_sites),"nar",mod(j + 2, num_sites);
-            mpo += J,"nar",j,"nar",mod(j + 1, num_sites),"na",mod(j + 2, num_sites);
-            mpo += J,"nb",j,"nbr",mod(j + 1, num_sites),"nbr",mod(j + 2, num_sites);
-            mpo += J,"nbr",j,"nbr",mod(j + 1, num_sites),"nb",mod(j + 2, num_sites);
+            mpo += J,"n1",j,"nr",mod(j+1, num_sites),"nr",mod(j+2, num_sites);
+            mpo += J,"nr",j,"nr",mod(j+1, num_sites),"n1",mod(j+2, num_sites);
+            mpo += J,"na",j,"nar",mod(j+1, num_sites),"nar",mod(j+2, num_sites);
+            mpo += J,"nar",j,"nar",mod(j+1, num_sites),"na",mod(j+2, num_sites);
+            mpo += J,"nb",j,"nbr",mod(j+1, num_sites),"nbr",mod(j+2, num_sites);
+            mpo += J,"nbr",j,"nbr",mod(j+1, num_sites),"nb",mod(j+2, num_sites);
 
-            mpo += J,"nr",j,"Frr",mod(j + 1, num_sites),"nr",mod(j + 2, num_sites);
-            mpo += J,"nr",j,"Frar",mod(j + 1, num_sites),"nar",mod(j + 2, num_sites);
-            mpo += J,"nr",j,"Frbr",mod(j + 1, num_sites),"nbr",mod(j + 2, num_sites);
-            mpo += J,"nar",j,"Farr",mod(j + 1, num_sites),"nr",mod(j + 2, num_sites);
-            mpo += J,"nar",j,"Farar",mod(j + 1, num_sites),"nar",mod(j + 2, num_sites);
-            mpo += J,"nar",j,"Farbr",mod(j + 1, num_sites),"nbr",mod(j + 2, num_sites);
-            mpo += J,"nbr",j,"Fbrr",mod(j + 1, num_sites),"nr",mod(j + 2, num_sites);
-            mpo += J,"nbr",j,"Fbrar",mod(j + 1, num_sites),"nar",mod(j + 2, num_sites);
-            mpo += J,"nbr",j,"Fbrbr",mod(j + 1, num_sites),"nbr",mod(j + 2, num_sites);
+            mpo += J,"nr",j,"Frr",mod(j+1, num_sites),"nr",mod(j+2, num_sites);
+            mpo += J,"nr",j,"Frar",mod(j+1, num_sites),"nar",mod(j+2, num_sites);
+            mpo += J,"nr",j,"Frbr",mod(j+1, num_sites),"nbr",mod(j+2, num_sites);
+            mpo += J,"nar",j,"Farr",mod(j+1, num_sites),"nr",mod(j+2, num_sites);
+            mpo += J,"nar",j,"Farar",mod(j+1, num_sites),"nar",mod(j+2, num_sites);
+            mpo += J,"nar",j,"Farbr",mod(j+1, num_sites),"nbr",mod(j+2, num_sites);
+            mpo += J,"nbr",j,"Fbrr",mod(j+1, num_sites),"nr",mod(j+2, num_sites);
+            mpo += J,"nbr",j,"Fbrar",mod(j+1, num_sites),"nar",mod(j+2, num_sites);
+            mpo += J,"nbr",j,"Fbrbr",mod(j+1, num_sites),"nbr",mod(j+2, num_sites);
         }
     }
 
     // a * rho
     if (M!=0) {
         for (int j = 1; j <= L; ++j) {
-            mpo += M,"n1",j,"nr",mod(j + 1, num_sites),"nar",mod(j + 2, num_sites);
-            mpo += M,"nar",j,"nr",mod(j + 1, num_sites),"n1",mod(j + 2, num_sites);
-            mpo += M,"na",j,"nar",mod(j + 1, num_sites),"nbr",mod(j + 2, num_sites);
-            mpo += M,"nbr",j,"nar",mod(j + 1, num_sites),"na",mod(j + 2, num_sites);
-            mpo += M,"nb",j,"nbr",mod(j + 1, num_sites),"nr",mod(j + 2, num_sites);
-            mpo += M,"nr",j,"nbr",mod(j + 1, num_sites),"nb",mod(j + 2, num_sites);
+            mpo += M,"n1",j,"nr",mod(j+1, num_sites),"nar",mod(j+2, num_sites);
+            mpo += M,"nar",j,"nr",mod(j+1, num_sites),"n1",mod(j+2, num_sites);
+            mpo += M,"na",j,"nar",mod(j+1, num_sites),"nbr",mod(j+2, num_sites);
+            mpo += M,"nbr",j,"nar",mod(j+1, num_sites),"na",mod(j+2, num_sites);
+            mpo += M,"nb",j,"nbr",mod(j+1, num_sites),"nr",mod(j+2, num_sites);
+            mpo += M,"nr",j,"nbr",mod(j+1, num_sites),"nb",mod(j+2, num_sites);
 
-            mpo += M,"nr",j,"Far_rr",mod(j + 1, num_sites),"nr",mod(j + 2, num_sites);
-            mpo += M,"nr",j,"Far_rar",mod(j + 1, num_sites),"nar",mod(j + 2, num_sites);
-            mpo += M,"nr",j,"Far_rbr",mod(j + 1, num_sites),"nbr",mod(j + 2, num_sites);
-            mpo += M,"nar",j,"Far_arr",mod(j + 1, num_sites),"nr",mod(j + 2, num_sites);
-            mpo += M,"nar",j,"Far_arar",mod(j + 1, num_sites),"nar",mod(j + 2, num_sites);
-            mpo += M,"nar",j,"Far_arbr",mod(j + 1, num_sites),"nbr",mod(j + 2, num_sites);
-            mpo += M,"nbr",j,"Far_brr",mod(j + 1, num_sites),"nr",mod(j + 2, num_sites);
-            mpo += M,"nbr",j,"Far_brar",mod(j + 1, num_sites),"nar",mod(j + 2, num_sites);
-            mpo += M,"nbr",j,"Far_brbr",mod(j + 1, num_sites),"nbr",mod(j + 2, num_sites);
+            mpo += M,"nr",j,"Far_rr",mod(j+1, num_sites),"nr",mod(j+2, num_sites);
+            mpo += M,"nr",j,"Far_rar",mod(j+1, num_sites),"nar",mod(j+2, num_sites);
+            mpo += M,"nr",j,"Far_rbr",mod(j+1, num_sites),"nbr",mod(j+2, num_sites);
+            mpo += M,"nar",j,"Far_arr",mod(j+1, num_sites),"nr",mod(j+2, num_sites);
+            mpo += M,"nar",j,"Far_arar",mod(j+1, num_sites),"nar",mod(j+2, num_sites);
+            mpo += M,"nar",j,"Far_arbr",mod(j+1, num_sites),"nbr",mod(j+2, num_sites);
+            mpo += M,"nbr",j,"Far_brr",mod(j+1, num_sites),"nr",mod(j+2, num_sites);
+            mpo += M,"nbr",j,"Far_brar",mod(j+1, num_sites),"nar",mod(j+2, num_sites);
+            mpo += M,"nbr",j,"Far_brbr",mod(j+1, num_sites),"nbr",mod(j+2, num_sites);
         }
     }
 

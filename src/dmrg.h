@@ -125,7 +125,7 @@ public:
 // Examples of SiteSetType are Golden, Haagerup, HaagerupQ
 template<typename SiteSetType>
 class DMRG {
-    std::string site_type_; // eg. golden, haagerup, haagerup_q
+    std::string site_type_; // eg. golden, haagerup, haagerupq
     std::string boundary_condition_; // "p" for periodic, "o" for open, "s" for sine-squared deformed
     std::string job_; // site_name_ + boundary_condition_
 
@@ -133,7 +133,6 @@ class DMRG {
     int num_sites_;
     Real theta_; // angle between K (identity) and J (rho)
     Real phi_;
-    // fixme: Combine K, J, M into Couplings
 //    Real k_, j_, u_, m_; // K (identity), J (rho), M (a * rho), U (penalty)
     Real u_;
     std::string coupling_str_;
@@ -192,6 +191,10 @@ public:
         es_stable_tol_ = std::get<5>(params);
         coupling_str_ = std::get<6>(params);
         couplings_ = ParseCouplings(coupling_str_);
+        for (int i=0;i<couplings_.size();i++) {
+            println(couplings_.at(i));
+        }
+//        PrintData(couplings_);
 //        theta_ = std::get<6>(params);
 //        phi_ = std::get<7>(params);
         u_ = std::get<7>(params);
@@ -207,8 +210,11 @@ public:
             job_ = site_type_ + " SSD";
         } else if (boundary_condition_ == "d") {
             job_ = site_type_ + " DBC";
-        }else {
+        } else if (boundary_condition_ == "sp") {
             job_ = site_type_ + " SSD/PBC";
+        } else {
+            printf("Invalid boundary condition");
+            return;
         }
         // fixme: refactor so that we're passing the most basic variable type instead of a type alias
         // fixme: pass site instead of SiteSet
@@ -355,7 +361,6 @@ public:
 
         }
 
-        // fixme: Can change to method of say Golden by declaring that Golden is a class that inherits BasicSiteSet<GoldenSite>
         MPO H = sites_.Hamiltonian(boundary_condition_, num_sites_, u_, couplings_);
         init_state_ = DefaultInitState();
 
@@ -604,12 +609,12 @@ public:
         for (int i=0; i < num_states; i++) {
             en_matrix.set(s(i + 1), sP(i + 1), dmrg_progress_.Energies().at(i) - en_shift);
             for (int j=0; j < num_states; j++) {
-                translation_matrix.set(s(i + 1), sP(j + 1), innerC(states.at(i), states_translated.at(j)));
-                rho_matrix.set(s(i + 1), sP(j + 1), innerC(AugmentMPS(states.at(i), left_dangling_ind, right_dangling_ind), states_acted_by_rho.at(j)));
+                translation_matrix.set(s(i + 1), sP(j+1), innerC(states.at(i), states_translated.at(j)));
+                rho_matrix.set(s(i + 1), sP(j+1), innerC(AugmentMPS(states.at(i), left_dangling_ind, right_dangling_ind), states_acted_by_rho.at(j)));
             }
         }
 
-        DumpMathematica(num_states, en_matrix, translation_matrix, rho_matrix, m_path_);
+        DumpMathematicaAll(num_states, en_matrix, translation_matrix, rho_matrix, m_path_);
 
         // Diagonalize translation
         auto [UT,translation_diag] = eigen(translation_matrix);

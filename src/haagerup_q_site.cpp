@@ -24,7 +24,8 @@ HaagerupQSite::HaagerupQSite(const Args &args) {
     else
     {
         s = Index(6,ts);
-    }    }
+    }
+}
 
 Index HaagerupQSite::index() const { return s; }
 
@@ -370,18 +371,18 @@ MPO HaagerupQ::Hamiltonian(const std::string& boundary_condition, int num_sites,
                 Uj = U;
             }
 
-            mpo += 9 * Uj,"m1",j,"m1",mod(j + 1, num_sites);
-            mpo += 6 * Uj,"m1",j,"m4",mod(j + 1, num_sites);
-            mpo += -3 * Uj,"m2",j,"m6",mod(j + 1, num_sites);
-            mpo += -3 * Uj,"m3",j,"m5",mod(j + 1, num_sites);
-            mpo += 6 * Uj,"m4",j,"m1",mod(j + 1, num_sites);
-            mpo += -3 * Uj,"m5",j,"m3",mod(j + 1, num_sites);
-            mpo += -3 * Uj,"m6",j,"m2",mod(j + 1, num_sites);
+            mpo += 9 * Uj,"m1",j,"m1",mod(j+1, num_sites);
+            mpo += 6 * Uj,"m1",j,"m4",mod(j+1, num_sites);
+            mpo += -3 * Uj,"m2",j,"m6",mod(j+1, num_sites);
+            mpo += -3 * Uj,"m3",j,"m5",mod(j+1, num_sites);
+            mpo += 6 * Uj,"m4",j,"m1",mod(j+1, num_sites);
+            mpo += -3 * Uj,"m5",j,"m3",mod(j+1, num_sites);
+            mpo += -3 * Uj,"m6",j,"m2",mod(j+1, num_sites);
         }
-//        if (boundary_condition == "d") {
-//            mpo += 3*U,"m4",1;
-//            mpo += 3*U,"m4",num_sites;
-//        }
+        if (boundary_condition == "d") {
+            mpo += 3*U,"m1",1;
+            mpo += 3*U,"m1",num_sites;
+        }
     }
 
     // Projectors
@@ -403,25 +404,25 @@ MPO HaagerupQ::Hamiltonian(const std::string& boundary_condition, int num_sites,
                 Kj = K;
             }
 
-            mpo += 3 * Kj,"m1",j,"m4",mod(j + 1, num_sites),"m1",mod(j + 2, num_sites);
-            mpo += 3 * Kj,"m1",j,"m5",mod(j + 1, num_sites),"m3",mod(j + 2, num_sites);
-            mpo += 3 * Kj,"m1",j,"m6",mod(j + 1, num_sites),"m2",mod(j + 2, num_sites);
-            mpo += 3 * Kj,"m2",j,"m4",mod(j + 1, num_sites),"m3",mod(j + 2, num_sites);
-            mpo += 3 * Kj,"m2",j,"m5",mod(j + 1, num_sites),"m2",mod(j + 2, num_sites);
-            mpo += 3 * Kj,"m2",j,"m6",mod(j + 1, num_sites),"m1",mod(j + 2, num_sites);
-            mpo += 3 * Kj,"m3",j,"m4",mod(j + 1, num_sites),"m2",mod(j + 2, num_sites);
-            mpo += 3 * Kj,"m3",j,"m5",mod(j + 1, num_sites),"m1",mod(j + 2, num_sites);
-            mpo += 3 * Kj,"m3",j,"m6",mod(j + 1, num_sites),"m3",mod(j + 2, num_sites);
+            mpo += 3 * Kj,"m1",j,"m4",mod(j+1, num_sites),"m1",mod(j+2, num_sites);
+            mpo += 3 * Kj,"m1",j,"m5",mod(j+1, num_sites),"m3",mod(j+2, num_sites);
+            mpo += 3 * Kj,"m1",j,"m6",mod(j+1, num_sites),"m2",mod(j+2, num_sites);
+            mpo += 3 * Kj,"m2",j,"m4",mod(j+1, num_sites),"m3",mod(j+2, num_sites);
+            mpo += 3 * Kj,"m2",j,"m5",mod(j+1, num_sites),"m2",mod(j+2, num_sites);
+            mpo += 3 * Kj,"m2",j,"m6",mod(j+1, num_sites),"m1",mod(j+2, num_sites);
+            mpo += 3 * Kj,"m3",j,"m4",mod(j+1, num_sites),"m2",mod(j+2, num_sites);
+            mpo += 3 * Kj,"m3",j,"m5",mod(j+1, num_sites),"m1",mod(j+2, num_sites);
+            mpo += 3 * Kj,"m3",j,"m6",mod(j+1, num_sites),"m3",mod(j+2, num_sites);
 
-            mpo += 3 * Kj,"m4",j,"q1",mod(j + 1, num_sites),"m4",mod(j + 2, num_sites);
-            mpo += 3 * Kj,"m4",j,"q2",mod(j + 1, num_sites),"m6",mod(j + 2, num_sites);
-            mpo += 3 * Kj,"m4",j,"q3",mod(j + 1, num_sites),"m5",mod(j + 2, num_sites);
-            mpo += 3 * Kj,"m5",j,"q1",mod(j + 1, num_sites),"m6",mod(j + 2, num_sites);
-            mpo += 3 * Kj,"m5",j,"q2",mod(j + 1, num_sites),"m5",mod(j + 2, num_sites);
-            mpo += 3 * Kj,"m5",j,"q3",mod(j + 1, num_sites),"m4",mod(j + 2, num_sites);
-            mpo += 3 * Kj,"m6",j,"q1",mod(j + 1, num_sites),"m5",mod(j + 2, num_sites);
-            mpo += 3 * Kj,"m6",j,"q2",mod(j + 1, num_sites),"m4",mod(j + 2, num_sites);
-            mpo += 3 * Kj,"m6",j,"q3",mod(j + 1, num_sites),"m6",mod(j + 2, num_sites);
+            mpo += 3 * Kj,"m4",j,"q1",mod(j+1, num_sites),"m4",mod(j+2, num_sites);
+            mpo += 3 * Kj,"m4",j,"q2",mod(j+1, num_sites),"m6",mod(j+2, num_sites);
+            mpo += 3 * Kj,"m4",j,"q3",mod(j+1, num_sites),"m5",mod(j+2, num_sites);
+            mpo += 3 * Kj,"m5",j,"q1",mod(j+1, num_sites),"m6",mod(j+2, num_sites);
+            mpo += 3 * Kj,"m5",j,"q2",mod(j+1, num_sites),"m5",mod(j+2, num_sites);
+            mpo += 3 * Kj,"m5",j,"q3",mod(j+1, num_sites),"m4",mod(j+2, num_sites);
+            mpo += 3 * Kj,"m6",j,"q1",mod(j+1, num_sites),"m5",mod(j+2, num_sites);
+            mpo += 3 * Kj,"m6",j,"q2",mod(j+1, num_sites),"m4",mod(j+2, num_sites);
+            mpo += 3 * Kj,"m6",j,"q3",mod(j+1, num_sites),"m6",mod(j+2, num_sites);
         }
     }
 
@@ -440,35 +441,35 @@ MPO HaagerupQ::Hamiltonian(const std::string& boundary_condition, int num_sites,
                 Jj = J;
             }
 
-            mpo += 3 * Jj,"m1",j,"m4",mod(j + 1, num_sites),"m4",mod(j + 2, num_sites);
-            mpo += 3 * Jj,"m1",j,"m5",mod(j + 1, num_sites),"m6",mod(j + 2, num_sites);
-            mpo += 3 * Jj,"m1",j,"m6",mod(j + 1, num_sites),"m5",mod(j + 2, num_sites);
-            mpo += 3 * Jj,"m2",j,"m4",mod(j + 1, num_sites),"m6",mod(j + 2, num_sites);
-            mpo += 3 * Jj,"m2",j,"m5",mod(j + 1, num_sites),"m5",mod(j + 2, num_sites);
-            mpo += 3 * Jj,"m2",j,"m6",mod(j + 1, num_sites),"m4",mod(j + 2, num_sites);
-            mpo += 3 * Jj,"m3",j,"m4",mod(j + 1, num_sites),"m5",mod(j + 2, num_sites);
-            mpo += 3 * Jj,"m3",j,"m5",mod(j + 1, num_sites),"m4",mod(j + 2, num_sites);
-            mpo += 3 * Jj,"m3",j,"m6",mod(j + 1, num_sites),"m6",mod(j + 2, num_sites);
+            mpo += 3 * Jj,"m1",j,"m4",mod(j+1, num_sites),"m4",mod(j+2, num_sites);
+            mpo += 3 * Jj,"m1",j,"m5",mod(j+1, num_sites),"m6",mod(j+2, num_sites);
+            mpo += 3 * Jj,"m1",j,"m6",mod(j+1, num_sites),"m5",mod(j+2, num_sites);
+            mpo += 3 * Jj,"m2",j,"m4",mod(j+1, num_sites),"m6",mod(j+2, num_sites);
+            mpo += 3 * Jj,"m2",j,"m5",mod(j+1, num_sites),"m5",mod(j+2, num_sites);
+            mpo += 3 * Jj,"m2",j,"m6",mod(j+1, num_sites),"m4",mod(j+2, num_sites);
+            mpo += 3 * Jj,"m3",j,"m4",mod(j+1, num_sites),"m5",mod(j+2, num_sites);
+            mpo += 3 * Jj,"m3",j,"m5",mod(j+1, num_sites),"m4",mod(j+2, num_sites);
+            mpo += 3 * Jj,"m3",j,"m6",mod(j+1, num_sites),"m6",mod(j+2, num_sites);
 
-            mpo += 3 * Jj,"m4",j,"m4",mod(j + 1, num_sites),"m1",mod(j + 2, num_sites);
-            mpo += 3 * Jj,"m4",j,"m5",mod(j + 1, num_sites),"m3",mod(j + 2, num_sites);
-            mpo += 3 * Jj,"m4",j,"m6",mod(j + 1, num_sites),"m2",mod(j + 2, num_sites);
-            mpo += 3 * Jj,"m5",j,"m4",mod(j + 1, num_sites),"m3",mod(j + 2, num_sites);
-            mpo += 3 * Jj,"m5",j,"m5",mod(j + 1, num_sites),"m2",mod(j + 2, num_sites);
-            mpo += 3 * Jj,"m5",j,"m6",mod(j + 1, num_sites),"m1",mod(j + 2, num_sites);
-            mpo += 3 * Jj,"m6",j,"m4",mod(j + 1, num_sites),"m2",mod(j + 2, num_sites);
-            mpo += 3 * Jj,"m6",j,"m5",mod(j + 1, num_sites),"m1",mod(j + 2, num_sites);
-            mpo += 3 * Jj,"m6",j,"m6",mod(j + 1, num_sites),"m3",mod(j + 2, num_sites);
+            mpo += 3 * Jj,"m4",j,"m4",mod(j+1, num_sites),"m1",mod(j+2, num_sites);
+            mpo += 3 * Jj,"m4",j,"m5",mod(j+1, num_sites),"m3",mod(j+2, num_sites);
+            mpo += 3 * Jj,"m4",j,"m6",mod(j+1, num_sites),"m2",mod(j+2, num_sites);
+            mpo += 3 * Jj,"m5",j,"m4",mod(j+1, num_sites),"m3",mod(j+2, num_sites);
+            mpo += 3 * Jj,"m5",j,"m5",mod(j+1, num_sites),"m2",mod(j+2, num_sites);
+            mpo += 3 * Jj,"m5",j,"m6",mod(j+1, num_sites),"m1",mod(j+2, num_sites);
+            mpo += 3 * Jj,"m6",j,"m4",mod(j+1, num_sites),"m2",mod(j+2, num_sites);
+            mpo += 3 * Jj,"m6",j,"m5",mod(j+1, num_sites),"m1",mod(j+2, num_sites);
+            mpo += 3 * Jj,"m6",j,"m6",mod(j+1, num_sites),"m3",mod(j+2, num_sites);
 
-            mpo += 9 * Jj,"m4",j,"qr11",mod(j + 1, num_sites),"m4",mod(j + 2, num_sites);
-            mpo += 9 * Jj,"m4",j,"qr12",mod(j + 1, num_sites),"m6",mod(j + 2, num_sites);
-            mpo += 9 * Jj,"m4",j,"qr13",mod(j + 1, num_sites),"m5",mod(j + 2, num_sites);
-            mpo += 9 * Jj,"m5",j,"qr31",mod(j + 1, num_sites),"m4",mod(j + 2, num_sites);
-            mpo += 9 * Jj,"m5",j,"qr32",mod(j + 1, num_sites),"m6",mod(j + 2, num_sites);
-            mpo += 9 * Jj,"m5",j,"qr33",mod(j + 1, num_sites),"m5",mod(j + 2, num_sites);
-            mpo += 9 * Jj,"m6",j,"qr21",mod(j + 1, num_sites),"m4",mod(j + 2, num_sites);
-            mpo += 9 * Jj,"m6",j,"qr22",mod(j + 1, num_sites),"m6",mod(j + 2, num_sites);
-            mpo += 9 * Jj,"m6",j,"qr23",mod(j + 1, num_sites),"m5",mod(j + 2, num_sites);
+            mpo += 9 * Jj,"m4",j,"qr11",mod(j+1, num_sites),"m4",mod(j+2, num_sites);
+            mpo += 9 * Jj,"m4",j,"qr12",mod(j+1, num_sites),"m6",mod(j+2, num_sites);
+            mpo += 9 * Jj,"m4",j,"qr13",mod(j+1, num_sites),"m5",mod(j+2, num_sites);
+            mpo += 9 * Jj,"m5",j,"qr31",mod(j+1, num_sites),"m4",mod(j+2, num_sites);
+            mpo += 9 * Jj,"m5",j,"qr32",mod(j+1, num_sites),"m6",mod(j+2, num_sites);
+            mpo += 9 * Jj,"m5",j,"qr33",mod(j+1, num_sites),"m5",mod(j+2, num_sites);
+            mpo += 9 * Jj,"m6",j,"qr21",mod(j+1, num_sites),"m4",mod(j+2, num_sites);
+            mpo += 9 * Jj,"m6",j,"qr22",mod(j+1, num_sites),"m6",mod(j+2, num_sites);
+            mpo += 9 * Jj,"m6",j,"qr23",mod(j+1, num_sites),"m5",mod(j+2, num_sites);
         }
     }
 
@@ -485,35 +486,35 @@ MPO HaagerupQ::Hamiltonian(const std::string& boundary_condition, int num_sites,
             Cplx omega = -0.5+sqrt(3)/2 * 1_i;
             Cplx omega_bar = -0.5-sqrt(3)/2 * 1_i;
 
-            mpo += 3 * Mj,"m1",j,"m4",mod(j + 1, num_sites),"m4",mod(j + 2, num_sites);
-            mpo += 3 * omega_bar * Mj,"m1",j,"m5",mod(j + 1, num_sites),"m6",mod(j + 2, num_sites);
-            mpo += 3 * omega * Mj,"m1",j,"m6",mod(j + 1, num_sites),"m5",mod(j + 2, num_sites);
-            mpo += 3 * omega_bar * Mj,"m2",j,"m4",mod(j + 1, num_sites),"m6",mod(j + 2, num_sites);
-            mpo += 3 * omega * Mj,"m2",j,"m5",mod(j + 1, num_sites),"m5",mod(j + 2, num_sites);
-            mpo += 3 * Mj,"m2",j,"m6",mod(j + 1, num_sites),"m4",mod(j + 2, num_sites);
-            mpo += 3 * omega * Mj,"m3",j,"m4",mod(j + 1, num_sites),"m5",mod(j + 2, num_sites);
-            mpo += 3 * Mj,"m3",j,"m5",mod(j + 1, num_sites),"m4",mod(j + 2, num_sites);
-            mpo += 3 * omega_bar * Mj,"m3",j,"m6",mod(j + 1, num_sites),"m6",mod(j + 2, num_sites);
+            mpo += 3 * Mj,"m1",j,"m4",mod(j+1, num_sites),"m4",mod(j+2, num_sites);
+            mpo += 3 * omega_bar * Mj,"m1",j,"m5",mod(j+1, num_sites),"m6",mod(j+2, num_sites);
+            mpo += 3 * omega * Mj,"m1",j,"m6",mod(j+1, num_sites),"m5",mod(j+2, num_sites);
+            mpo += 3 * omega_bar * Mj,"m2",j,"m4",mod(j+1, num_sites),"m6",mod(j+2, num_sites);
+            mpo += 3 * omega * Mj,"m2",j,"m5",mod(j+1, num_sites),"m5",mod(j+2, num_sites);
+            mpo += 3 * Mj,"m2",j,"m6",mod(j+1, num_sites),"m4",mod(j+2, num_sites);
+            mpo += 3 * omega * Mj,"m3",j,"m4",mod(j+1, num_sites),"m5",mod(j+2, num_sites);
+            mpo += 3 * Mj,"m3",j,"m5",mod(j+1, num_sites),"m4",mod(j+2, num_sites);
+            mpo += 3 * omega_bar * Mj,"m3",j,"m6",mod(j+1, num_sites),"m6",mod(j+2, num_sites);
 
-            mpo += 3 * Mj,"m4",j,"m4",mod(j + 1, num_sites),"m1",mod(j + 2, num_sites);
-            mpo += 3 * Mj,"m4",j,"m5",mod(j + 1, num_sites),"m3",mod(j + 2, num_sites);
-            mpo += 3 * Mj,"m4",j,"m6",mod(j + 1, num_sites),"m2",mod(j + 2, num_sites);
-            mpo += 3 * omega * Mj,"m5",j,"m4",mod(j + 1, num_sites),"m3",mod(j + 2, num_sites);
-            mpo += 3 * omega * Mj,"m5",j,"m5",mod(j + 1, num_sites),"m2",mod(j + 2, num_sites);
-            mpo += 3 * omega * Mj,"m5",j,"m6",mod(j + 1, num_sites),"m1",mod(j + 2, num_sites);
-            mpo += 3 * omega_bar * Mj,"m6",j,"m4",mod(j + 1, num_sites),"m2",mod(j + 2, num_sites);
-            mpo += 3 * omega_bar * Mj,"m6",j,"m5",mod(j + 1, num_sites),"m1",mod(j + 2, num_sites);
-            mpo += 3 * omega_bar * Mj,"m6",j,"m6",mod(j + 1, num_sites),"m3",mod(j + 2, num_sites);
+            mpo += 3 * Mj,"m4",j,"m4",mod(j+1, num_sites),"m1",mod(j+2, num_sites);
+            mpo += 3 * Mj,"m4",j,"m5",mod(j+1, num_sites),"m3",mod(j+2, num_sites);
+            mpo += 3 * Mj,"m4",j,"m6",mod(j+1, num_sites),"m2",mod(j+2, num_sites);
+            mpo += 3 * omega * Mj,"m5",j,"m4",mod(j+1, num_sites),"m3",mod(j+2, num_sites);
+            mpo += 3 * omega * Mj,"m5",j,"m5",mod(j+1, num_sites),"m2",mod(j+2, num_sites);
+            mpo += 3 * omega * Mj,"m5",j,"m6",mod(j+1, num_sites),"m1",mod(j+2, num_sites);
+            mpo += 3 * omega_bar * Mj,"m6",j,"m4",mod(j+1, num_sites),"m2",mod(j+2, num_sites);
+            mpo += 3 * omega_bar * Mj,"m6",j,"m5",mod(j+1, num_sites),"m1",mod(j+2, num_sites);
+            mpo += 3 * omega_bar * Mj,"m6",j,"m6",mod(j+1, num_sites),"m3",mod(j+2, num_sites);
 
-            mpo += 9 * Mj,"m4",j,"qar11",mod(j + 1, num_sites),"m4",mod(j + 2, num_sites);
-            mpo += 9 * Mj,"m4",j,"qar12",mod(j + 1, num_sites),"m6",mod(j + 2, num_sites);
-            mpo += 9 * Mj,"m4",j,"qar13",mod(j + 1, num_sites),"m5",mod(j + 2, num_sites);
-            mpo += 9 * Mj,"m5",j,"qar31",mod(j + 1, num_sites),"m4",mod(j + 2, num_sites);
-            mpo += 9 * Mj,"m5",j,"qar32",mod(j + 1, num_sites),"m6",mod(j + 2, num_sites);
-            mpo += 9 * Mj,"m5",j,"qar33",mod(j + 1, num_sites),"m5",mod(j + 2, num_sites);
-            mpo += 9 * Mj,"m6",j,"qar21",mod(j + 1, num_sites),"m4",mod(j + 2, num_sites);
-            mpo += 9 * Mj,"m6",j,"qar22",mod(j + 1, num_sites),"m6",mod(j + 2, num_sites);
-            mpo += 9 * Mj,"m6",j,"qar23",mod(j + 1, num_sites),"m5",mod(j + 2, num_sites);
+            mpo += 9 * Mj,"m4",j,"qar11",mod(j+1, num_sites),"m4",mod(j+2, num_sites);
+            mpo += 9 * Mj,"m4",j,"qar12",mod(j+1, num_sites),"m6",mod(j+2, num_sites);
+            mpo += 9 * Mj,"m4",j,"qar13",mod(j+1, num_sites),"m5",mod(j+2, num_sites);
+            mpo += 9 * Mj,"m5",j,"qar31",mod(j+1, num_sites),"m4",mod(j+2, num_sites);
+            mpo += 9 * Mj,"m5",j,"qar32",mod(j+1, num_sites),"m6",mod(j+2, num_sites);
+            mpo += 9 * Mj,"m5",j,"qar33",mod(j+1, num_sites),"m5",mod(j+2, num_sites);
+            mpo += 9 * Mj,"m6",j,"qar21",mod(j+1, num_sites),"m4",mod(j+2, num_sites);
+            mpo += 9 * Mj,"m6",j,"qar22",mod(j+1, num_sites),"m6",mod(j+2, num_sites);
+            mpo += 9 * Mj,"m6",j,"qar23",mod(j+1, num_sites),"m5",mod(j+2, num_sites);
         }
     }
 

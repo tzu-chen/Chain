@@ -10,18 +10,18 @@ MPO TranslationOp(const SiteSet& sites, bool inv) {
     auto G = std::vector<ITensor>(N);
     for (auto j : range1(N-1))
     {
-        G[j] = BondGate(sites, j, j + 1);
+        G[j] = BondGate(sites, j, j+1);
     }
     auto A = std::vector<ITensor>(N);
     auto B = std::vector<ITensor>(N);
     if (not inv) {
-        for (auto j : range1(N - 1)) {
+        for (auto j : range1(N-1)) {
             auto[Aj, Bj] = factor(G[j], {sites(j), prime(sites(j))});
             A[j] = Aj;
             B[j] = Bj;
         }
     } else {
-        for (auto j : range1(N - 1)) {
+        for (auto j : range1(N-1)) {
             auto[Aj, Bj] = factor(G[N-j], {sites(N-j), prime(sites(N-j))});
             A[N-j] = Aj;
             B[N-j] = Bj;
@@ -41,9 +41,9 @@ MPO TranslationOp(const SiteSet& sites, bool inv) {
     m.set(1, A[1]);
     for (auto j : range1(2,N-1))
     {
-        m.set(j, B[j - 1] * A[j]);
+        m.set(j, B[j-1] * A[j]);
     }
-    m.set(N, B[N - 1]);
+    m.set(N, B[N-1]);
     return m;
 }
 
@@ -92,13 +92,13 @@ MPO RhoOp(const SiteSet& sites, const std::string& site_type) {
     auto G = std::vector<ITensor>(N+1);
     if (site_type == "golden") {
         auto f = GoldenFData();
-        for (auto j : range1(N - 1)) {
-            G[j] = f.RhoDefectCell(sites(j), sites(j + 1));
+        for (auto j : range1(N-1)) {
+            G[j] = f.RhoDefectCell(sites(j), sites(j+1));
         }
         G[N] = GoldenFData().RhoDefectCell(sites(N), sites(1));
-    } else if (site_type == "haagerup" || site_type == "haagerup_q") {
+    } else if (site_type == "haagerup" || site_type == "haagerupq") {
         auto f = HaagerupFData();
-        for (auto j : range1(N - 1)) {
+        for (auto j : range1(N-1)) {
             G[j] = f.RhoDefectCell(sites(j), sites(j+1));
         }
         G[N] = f.RhoDefectCell(sites(N), sites(1));
@@ -134,20 +134,20 @@ MPO RhoOp(const SiteSet& sites, const std::string& site_type) {
     return m;
 }
 
-MPS AugmentMPS(MPS const& psi, Index const& sl, Index const& sr) {
-    auto res = MPS(length(psi)+2);
+MPS AugmentMPS(MPS const& original_psi, Index const& sl, Index const& sr) {
+    auto augmented_psi = MPS(length(original_psi) + 2);
     auto extra_site_index_left = Index(1, "l=0,Link");
     auto extra_l = ITensor(sl, extra_site_index_left);
     for (auto i:range1(dim(sl))) {
         extra_l.set(i, 1, 1. / dim(sl));
     }
-    res.set(1, extra_l);
+    augmented_psi.set(1, extra_l);
     auto vl = ITensor(extra_site_index_left);
     vl.set(1, 1);
-    res.set(2, vl*psi(1));
+    augmented_psi.set(2, vl * original_psi(1));
 
-    for (auto i:range1(length(psi)-2)) {
-        res.set(i+2, psi(i+1));
+    for (auto i:range1(length(original_psi) - 2)) {
+        augmented_psi.set(i + 2, original_psi(i + 1));
     }
 
     auto extra_site_index_right = Index(1, "l=inf,Link");
@@ -155,34 +155,34 @@ MPS AugmentMPS(MPS const& psi, Index const& sl, Index const& sr) {
     for (auto i:range1(dim(sr))) {
         extra_r.set(i, 1, 1. / dim(sr));
     }
-    res.set(length(psi)+2, extra_r);
+    augmented_psi.set(length(original_psi) + 2, extra_r);
     auto vr = ITensor(extra_site_index_right);
     vr.set(1, 1);
-    res.set(length(psi)+1, vr*psi(length(psi)));
+    augmented_psi.set(length(original_psi) + 1, vr * original_psi(length(original_psi)));
 
-    return res;
+    return augmented_psi;
 }
 
-MPO AugmentMPO(MPO const& K, Index const& sl, Index const& sr) {
-    auto res = MPO(length(K)+2);
+MPO AugmentMPO(MPO const& original_mpo, Index const& sl, Index const& sr) {
+    auto augmented_mpo = MPO(length(original_mpo) + 2);
 
     auto vl = ITensor(sl);
     vl.fill(1);
-    auto index_left = uniqueIndex(K(1), K(2), "Link");
+    auto index_left = uniqueIndex(original_mpo(1), original_mpo(2), "Link");
     auto Tl = delta(prime(sl,1), index_left);
-    res.set(1, vl * Tl);
+    augmented_mpo.set(1, vl * Tl);
 
-    for (auto i:range1(length(K)+1)) {
-        res.set(i+1, K(i));
+    for (auto i:range1(length(original_mpo) + 1)) {
+        augmented_mpo.set(i + 1, original_mpo(i));
     }
 
     auto vr = ITensor(sr);
     vr.fill(1);
-    auto index_right = uniqueIndex(K(length(K)), K(length(K) - 1), "Link");
+    auto index_right = uniqueIndex(original_mpo(length(original_mpo)), original_mpo(length(original_mpo) - 1), "Link");
     auto Tr = delta(prime(sr,1), index_right);
-    res.set(length(K)+2, vr * Tr);
+    augmented_mpo.set(length(original_mpo) + 2, vr * Tr);
 
-    return res;
+    return augmented_mpo;
 }
 
 ITensor Z3FourierMatrix(Index const& s, Index const& sP) {
