@@ -4,6 +4,7 @@
 #include <cxxopts.hpp>
 // Uncomment this and the std::chrono lines to enable timing
 //#include <chrono>
+
 int main(int argc, char** argv) {
     cxxopts::Options options("Chain", "Simulates DMRG on anyon chains.");
     options.add_options()

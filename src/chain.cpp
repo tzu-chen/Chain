@@ -8,7 +8,7 @@ using namespace itensor;
 MPO TranslationOp(const SiteSet& sites, bool inv) {
     int N = sites.length();
     auto G = std::vector<ITensor>(N);
-    for(auto j : range1(N-1))
+    for (auto j : range1(N-1))
     {
         G[j] = BondGate(sites, j, j + 1);
     }
@@ -28,18 +28,18 @@ MPO TranslationOp(const SiteSet& sites, bool inv) {
         }
     }
     auto t = std::vector<Index>(N+1);
-    for(auto j : range1(N))
+    for (auto j : range1(N))
     {
         t[j] = sim(sites(j));
     }
-    for(auto j : range1(2,N-1))
+    for (auto j : range1(2,N-1))
     {
         A[j] *= delta(sites(j),t[j]);
         B[j-1] *= delta(prime(sites(j)),t[j]);
     }
     auto m = MPO(N);
     m.set(1, A[1]);
-    for(auto j : range1(2,N-1))
+    for (auto j : range1(2,N-1))
     {
         m.set(j, B[j - 1] * A[j]);
     }
@@ -67,7 +67,7 @@ MPO IdentityOp(const SiteSet& sites, MPO const& op) {
     auto identity_mpo = MPO(N);
     identity_mpo.set(1, identity_tensor * delta(l, prime(long_link)) * delta(r, rightLinkIndex(op, 1)) * delta(s, sites(1)) * delta(prime(s), prime(sites(1))) );
     identity_mpo.set(N, identity_tensor * delta(l, leftLinkIndex(op, N)) * delta(r, long_link) * delta(s, sites(N)) * delta(prime(s), prime(sites(N))) );
-    for(auto j : range1(2,N-1))
+    for (auto j : range1(2,N-1))
     {
         identity_mpo.set(j, identity_tensor * delta(l, leftLinkIndex(op, j)) * delta(r, rightLinkIndex(op, j)) * delta(s, sites(j)) * delta(prime(s), prime(sites(j))) );
     }
@@ -79,7 +79,7 @@ MPO IdentityOp(const SiteSet& sites, MPO const& op) {
 
 ITensor Delta3ITensor(const Index& s1, const Index& s2, const Index& s3) {
     auto a = ITensor(s1,s2,s3);
-    for(auto j : range1(s1))
+    for (auto j : range1(s1))
     {
         a.set(s1(j),s2(j),s3(j),1.);
     }
@@ -105,7 +105,7 @@ MPO RhoOp(const SiteSet& sites, const std::string& site_type) {
     }
     auto A = std::vector<ITensor>(N+1);
     auto B = std::vector<ITensor>(N+1);
-    for(auto j : range1(N))
+    for (auto j : range1(N))
     {
         auto [Aj,Bj] = factor(G[j],{sites(j),prime(sites(j))}); // fixme: Can refactor
         Aj.prime("Site").prime("Site");
@@ -118,7 +118,7 @@ MPO RhoOp(const SiteSet& sites, const std::string& site_type) {
     BNP.prime("Link");
     auto D12 = std::vector<ITensor>(N+1);
     auto D21 = std::vector<ITensor>(N+1);
-    for(auto j : range1(N))
+    for (auto j : range1(N))
     {
         D12[j] = Delta3ITensor(dag(sites(j)), prime(sites(j),2), prime(sites(j),4) );
         D21[j] = Delta3ITensor(prime(sites(j)), dag(prime(sites(j), 3)), dag(prime(sites(j),5)) );
@@ -126,7 +126,7 @@ MPO RhoOp(const SiteSet& sites, const std::string& site_type) {
 
     auto m = MPO(N);
     m.set(1, BNP * A[1] * D12[1] * D21[1]);
-    for(auto j : range1(2,N))
+    for (auto j : range1(2,N))
     {
         m.set(j, B[j-1] * A[j] * D12[j] * D21[j]);
     }
@@ -214,7 +214,7 @@ ITensor Z3FourierMatrix(Index const& s, Index const& sP) {
 MPS Z3FourierTransform(MPS const& psi, SiteSet const& sites_new) {
     int N = length(psi);
     auto new_psi = MPS(sites_new);
-    for(auto j : range1(N))
+    for (auto j : range1(N))
     {
         new_psi.set(j, psi(j) * Z3FourierMatrix(siteIndex(psi, j), sites_new(j)));
     }
@@ -250,7 +250,7 @@ MPS Z3FourierTransform(MPS const& psi, SiteSet const& sites_new) {
 //
 //    auto N = length(psi);
 //
-//    for( auto n : range1(N) )
+//    for ( auto n : range1(N) )
 //    {
 //        if ( commonIndex(psi(n),K(n)) != siteIndex(psi,n) )
 //            Error("MPS and MPO have different site indices in applyMPO method 'DensityMatrix'");
@@ -268,7 +268,7 @@ MPS Z3FourierTransform(MPS const& psi, SiteSet const& sites_new) {
 //
 //    // Make sure the original and conjugates match
 //
-//    for(auto j : range1(N-1)) {
+//    for (auto j : range1(N-1)) {
 //        Kc.ref(j).prime(-rand_plev, uniqueSiteIndex(Kc, psic, j));
 //    }
 //
@@ -276,7 +276,7 @@ MPS Z3FourierTransform(MPS const& psi, SiteSet const& sites_new) {
 //    if (verbose) print("Building environment tensors...");
 //    auto E = std::vector<ITensor>(N+1);
 //    E[1] = psi(1)*K(1)*Kc(1)*psic(1);
-//    for(int j = 2; j < N; ++j)
+//    for (int j = 2; j < N; ++j)
 //    {
 //        E[j] = E[j-1]*psi(j)*K(j)*Kc(j)*psic(j);
 //    }
@@ -296,7 +296,7 @@ MPS Z3FourierTransform(MPS const& psi, SiteSet const& sites_new) {
 //
 //    O = O*U*psi(N-1)*K(N-1);
 //
-//    for(int j = N-1; j > 1; --j)
+//    for (int j = N-1; j > 1; --j)
 //    {
 //        if (not maxdim_set)
 //        {

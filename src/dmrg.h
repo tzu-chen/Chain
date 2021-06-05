@@ -205,7 +205,9 @@ public:
             job_ = site_type_ + " OBC";
         } else if (boundary_condition_ == "s") {
             job_ = site_type_ + " SSD";
-        } else {
+        } else if (boundary_condition_ == "d") {
+            job_ = site_type_ + " DBC";
+        }else {
             job_ = site_type_ + " SSD/PBC";
         }
         // fixme: refactor so that we're passing the most basic variable type instead of a type alias
@@ -256,14 +258,14 @@ public:
         if (with_sweeps) {
             int num_sweeps = dmrg_progress_.num_sweeps_vec_.back();
             if (num_sweeps == 0) {
-                printf("\n  > Sweeps #1-#%d\n    %s of %s\n    L=%d  bond_dim=%d  svd_cutoff=%g  stable_tol=%g  couplings=%s  U=%g  charge=%d\n", init_num_sweeps_per_rep_, state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, coupling_str_, u_, charge_);
+                printf("\n  > Sweeps #1-#%d\n    %s of %s\n    L=%d  bond_dim=%d  svd_cutoff=%g  stable_tol=%g  penalty=%g  couplings=%s  charge=%d\n", init_num_sweeps_per_rep_, state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, u_, coupling_str_, charge_);
             } else {
 //                printf("\n    > Times swept: %d\n      %s of %s\n      L=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g phi=%g K=%g J=%g M=%g U=%g Q=%d\n", dmrg_progress_.num_sweeps_vec_.back(), state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, phi_, k_, j_, m_, u_, charge_);
 //                printf("\n  > Times swept: %d\n    %s of %s\n    L=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g phi=%g K=%g J=%g M=%g U=%g Q=%d\n", dmrg_progress_.num_sweeps_vec_.back(), state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, phi_, k_, j_, m_, u_, charge_);
-                printf("\n  > Sweep #%d\n    %s of %s\n    L=%d  bond_dim=%d  svd_cutoff=%g  stable_tol=%g  couplings=%s  U=%g  charge=%d\n", num_sweeps+1, state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, coupling_str_, u_, charge_);
+                printf("\n  > Sweep #%d\n    %s of %s\n    L=%d  bond_dim=%d  svd_cutoff=%g  stable_tol=%g  penalty=%g  couplings=%s  charge=%d\n", num_sweeps+1, state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, u_, coupling_str_, charge_);
             }
         } else {
-            printf("\n> %s:  L=%d  bond_dim=%d  svd_cutoff=%g  stable_tol=%g  couplings=%s  U=%g  charge=%d\n", job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, coupling_str_, u_, charge_);
+            printf("\n> %s:  L=%d  bond_dim=%d  svd_cutoff=%g  stable_tol=%g  penalty=%g  couplings=%s  charge=%d\n", job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, u_, coupling_str_, charge_);
         }
     }
 
@@ -367,7 +369,7 @@ public:
 
         // Loop over states
         // Each iteration includes warmup and post-warmup DMRG runs until energy is stable
-        for(;;) {
+        for (;;) {
             if (dmrg_progress_.num_sweeps_vec_.back() == 0 && hot_start != 0) {
                 // Not yet run
                 // Begin DMRG with warmup
@@ -417,7 +419,7 @@ public:
 
             // Post-warmup DMRG runs
             AdjustDMRGParams();
-            for(;;) {
+            for (;;) {
                 // Read progress
                 std::tie(num_sweeps_, bond_dim_, en_, psi_, H) = dmrg_progress_.All();
 
@@ -517,7 +519,7 @@ public:
             for (int i = 0; i < num_states; i++) {
                 auto new_psi = MPS(sites);
                 auto psi = states.at(i);
-                for(auto j : range1(num_sites_)) {
+                for (auto j : range1(num_sites_)) {
                     new_psi.set(j, psi(j) * delta(siteIndex(psi, j), sites(j)) );
                 }
                 states.at(i) = new_psi;
@@ -599,9 +601,9 @@ public:
         // Uncomment if shift by ground state energy
         // en_shift = dmrg_progress.Energies().at(0);
 
-        for(int i=0; i < num_states; i++) {
+        for (int i=0; i < num_states; i++) {
             en_matrix.set(s(i + 1), sP(i + 1), dmrg_progress_.Energies().at(i) - en_shift);
-            for(int j=0; j < num_states; j++) {
+            for (int j=0; j < num_states; j++) {
                 translation_matrix.set(s(i + 1), sP(j + 1), innerC(states.at(i), states_translated.at(j)));
                 rho_matrix.set(s(i + 1), sP(j + 1), innerC(AugmentMPS(states.at(i), left_dangling_ind, right_dangling_ind), states_acted_by_rho.at(j)));
             }
@@ -625,7 +627,7 @@ public:
         // En = prime(UT) * En * dag(UT);
         // std::vector<Real> diag_En;
         // diag_En.reserve(len);
-        // for(int i=0;i<len;i++) {
+        // for (int i=0;i<len;i++) {
         //     diag_En.push_back(eltC(En, i+1, i+1).real());
         // }
         // En = diagITensor(diag_En, dag(s), prime(s));

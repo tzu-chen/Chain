@@ -3,7 +3,7 @@
 
 std::vector<double> CalcEE(MPS psi, int N) {
     std::vector<double> SvNs;
-    for(auto b=1;b<N;b++) {
+    for (auto b=1;b<N;b++) {
         psi.position(b);
 
         //SVD this wavefunction to All the spectrum
@@ -16,7 +16,7 @@ std::vector<double> CalcEE(MPS psi, int N) {
         //Apply von Neumann formula
         //to the squares of the singular values
         Real SvN = 0.;
-        for(auto n : range1(dim(u)))
+        for (auto n : range1(dim(u)))
         {
             auto Sn = elt(S,n,n);
             auto p = sqr(Sn);
@@ -33,7 +33,7 @@ void DumpEE(int N, std::vector<double> SvNs, const std::filesystem::path &p) {
     FILE * eefile;
     eefile = fopen(filename.c_str(), "a");
     fprintf(eefile, "{\n");
-    for(auto b=1;b<N;b++) {
+    for (auto b=1;b<N;b++) {
         fprintf(eefile, "{%d,  %.10f},\n",b,SvNs[b-1]);
     }
     fprintf(eefile, "},\n");
@@ -57,9 +57,9 @@ void DumpMeasurement(const string &name, int len, const ITensor &i_tensor, const
     FILE * file;
     file = fopen(filename.c_str(),"a");
     fprintf(file, "%s = {\n", name.c_str());
-    for(int i=1;i<=len;i++) {
+    for (int i=1;i<=len;i++) {
         fprintf(file, "{");
-        for(int j=1;j<=len;j++) {
+        for (int j=1;j<=len;j++) {
             fprintf(file, "%.10f",eltC(i_tensor, i, j).real());
             fprintf(file, " + I * ");
             fprintf(file, "%.10f",eltC(i_tensor, i, j).imag());

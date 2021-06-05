@@ -14,7 +14,9 @@ GoldenSite::GoldenSite(const Args &args) {
 }
 
 ITensor GoldenSite::op(const string &opname, const Args &args) const {
-    if (opname=="n1") {
+    if (opname=="id") {
+        return toDense(delta(s, prime(s)));
+    } else if (opname=="n1") {
         return proj(1);
     } else if (opname=="nt") {
         return proj(2);
@@ -44,11 +46,7 @@ ITensor GoldenSite::proj(int i) const {
 IndexVal GoldenSite::state(const string &state) {
     if (state=="1") {
         return s(1);
-    }
-//    else if (state=="r") {
-//        return s(2);
-//    }
-    else {
+    } else {
         return s(2);
     }
     throw ITError("State "+state+" not recognized");
@@ -71,7 +69,7 @@ MPO Golden::Hamiltonian(const std::string& boundary_condition, int num_sites, Re
     // set up excluded pairs
     Real U_j;
     if (U != 0) {
-        for(int j = 1; j <= L; ++j) {
+        for (int j = 1; j <= L; ++j) {
             if (boundary_condition == "s" || boundary_condition == "sp") {
                 // Uj = u_ * std::pow(sin(Pi*(j-0.5)/(num_sites_-1)),2);
                 // Uj = u_ * std::pow(sin(Pi*(j+(j%2)-0.5)/(L+1)),2);
@@ -79,8 +77,14 @@ MPO Golden::Hamiltonian(const std::string& boundary_condition, int num_sites, Re
             } else {
                 U_j = U;
             }
-
             mpo += U_j,"n1",j,"n1",mod(j + 1, num_sites);
+        }
+        if (boundary_condition == "d") {
+            Real UL = num_sites * U;
+            mpo += UL,"id",1;
+            mpo += UL,"id",num_sites;
+            mpo += -UL,"nt",1;
+            mpo += -UL,"nt",num_sites;
         }
     }
 
@@ -94,7 +98,7 @@ MPO Golden::Hamiltonian(const std::string& boundary_condition, int num_sites, Re
     // projectors
     Real K_j;
     if (K != 0) {
-        for(int j = 1; j <= L; ++j) {
+        for (int j = 1; j <= L; ++j) {
             if (boundary_condition == "s" || boundary_condition == "sp") {
                 // Kj = k_ * std::pow(sin(Pi*(j)/(num_sites_-1)),2);
                 // Kj = k_ * std::pow(sin(Pi*(j+0.25)/(num_sites_-0.5)),2);
