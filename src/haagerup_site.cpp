@@ -162,11 +162,11 @@ ITensor HaagerupSite::op(const string &opname, const Args &args) const {
     } else if (opname=="nbr") {
         return proj(6);
     } else if (opname=="FF1") {
-        return FF(4,1,4);
+        return FF(1,4,4);
     } else if (opname=="FFa") {
-        return FF(4,2,5);
+        return FF(1,5,5);
     } else if (opname=="FFb") {
-        return FF(4,3,6);
+        return FF(1,6,6);
     } else if (opname=="Frr") {
         return FF(4,4,4);
     } else if (opname=="Farar") {
