@@ -486,6 +486,115 @@ public:
         }
     }
 
+    // Print the real parts of std::vector<Cplx> object into a Mathematica-compatible array.
+    void PrintVector(std::vector<Cplx> vector) {
+        print("{");
+        print(vector.at(0).real());
+        for (int i=1; i<vector.size(); i++) {
+            print(",");
+            print(vector.at(i).real());
+        }
+        print("}");
+    }
+
+    // Print std::vector<Real> object into a Mathematica-compatible array.
+    void PrintVector(std::vector<Real> vector) {
+        print("{");
+        print(vector.at(0));
+        for (int i=1; i<vector.size(); i++) {
+            print(",");
+            print(vector.at(i));
+        }
+        print("}");
+    }
+
+    // Check if the translation eigenvalue is a num_sites_ root of unity to within numerical precision
+    // If close to the nth power of the generating root of unity, make it n and return filtered vector
+    std::vector<Cplx> FilterTranslation(std::vector<Cplx> translation_eigenvalues) {
+        std::vector<Cplx> result;
+        for (int i=0; i<translation_eigenvalues.size(); i++) {
+//            Cplx tmp = pow(translation_eigenvalues.at(i), num_sites_);
+//            if (abs(tmp.imag()) < 1E-3 && abs(tmp.real()-1) < 1E-3) {
+//                result.push_back(tmp);
+//            }
+            Cplx tmp = log(translation_eigenvalues.at(i)) / (2 * Pi * 1_i) * num_sites_;
+            if (abs(tmp.imag()) < 1E-1 && abs(tmp.real()-round(tmp.real())) < 1E-1) {
+                result.push_back(round(tmp.real()));
+            }
+        }
+        return result;
+    }
+
+    // Check if the rho eigenvalue is one of the possibilities to within numerical precision
+    // If close to a possibility p, make it p and return filtered vector
+    std::vector<Cplx> FilterRho(std::vector<Cplx> rho_eigenvalues, std::vector<Cplx> possibilities) {
+        std::vector<Cplx> result;
+        for (int i=0; i<rho_eigenvalues.size(); i++) {
+            Cplx tmp = rho_eigenvalues.at(i);
+//            if (abs(tmp.imag()) < 1E-3) {
+                for (int j=0; j<possibilities.size(); j++) {
+                    if (abs(tmp - possibilities.at(j)) < 1E-3) {
+                        result.push_back(possibilities.at(j));
+                    }
+                }
+//            }
+        }
+        return result;
+    }
+
+    std::vector<Cplx> OrderedAppend(std::vector<Cplx> old_vector, std::vector<Cplx> new_vector) {
+        std::vector<Cplx> old_vector_copy = old_vector;
+        std::vector<Cplx> new_ones;
+        for (int i=0; i<new_vector.size(); i++) {
+            bool is_contained = false;
+            for (int j=0; j<old_vector_copy.size(); j++) {
+                if (new_vector.at(i) == old_vector_copy.at(j)) {
+                    old_vector_copy.erase(old_vector_copy.begin() + j);
+                    is_contained = true;
+                    break;
+                }
+            }
+            if (!is_contained) {
+                new_ones.push_back(new_vector.at(i));
+            }
+        }
+        for (int i=0; i<new_ones.size(); i++) {
+            old_vector.push_back(new_ones.at(i));
+        }
+        return old_vector;
+    }
+
+    void NormalizeEnergies() {
+        if (std::filesystem::exists(progress_directory_ / (filename_ + ".pgs"))) {
+            dmrg_progress_.Read(progress_path_);
+        } else {
+            printf("\n> No progress file available\n");
+            return;
+        }
+        int num_states = std::min(dmrg_progress_.NumDoneStates(), num_states_);
+        std::vector<Real> energies;
+        for (int i=0; i<num_states; i++) {
+            energies.push_back(dmrg_progress_.Energies().at(i));
+        }
+        if (energies.size() > 2) {
+            std::sort(energies.begin(), energies.end());
+            std::vector<Real> result;
+            result.push_back(0);
+            result.push_back(1);
+            auto gs_en = energies.at(0);
+            auto gap = energies.at(1) - gs_en;
+            for (int i=2; i<energies.size(); i++) {
+                result.push_back((energies.at(i)-gs_en)/gap);
+            }
+            printf("{{%s},%g,", coupling_str_, gap);
+//            printf("\n> Normalized energies:\n");
+            PrintVector(result);
+            print("},\n");
+        } else {
+            println("Fewer than 3 states available");
+        }
+    }
+
     // Measure matrix elements of translation operator and rho defect operator
     void Analyze() {
         if (not std::filesystem::exists(m_directory_)) {
@@ -613,7 +722,6 @@ public:
                 rho_matrix.set(s(i + 1), sP(j+1), innerC(AugmentMPS(states.at(i), left_dangling_ind, right_dangling_ind), states_acted_by_rho.at(j)));
             }
         }
-
         DumpMathematicaAll(num_states, en_matrix, translation_matrix, rho_matrix, m_path_);
 
         // Diagonalize translation
@@ -621,12 +729,72 @@ public:
         // Diagonalize rho
         auto [UR,rho_diag] = eigen(rho_matrix);
 
-        printf("\n> Unordered set of energies:\n");
+        printf("\n> Ordered set of energies:\n");
         PrintData(en_matrix);
         printf("\n> Unordered set of translation eigenvalues:\n");
         PrintData(translation_diag);
         printf("\n> Unordered set of rho eigenvalues:\n");
         PrintData(rho_diag);
+
+        // Analysis of translation and rho eigenvalues assuming that the states are simulated well enough
+        // Otherwise, better work with the Mathematica .m file created above
+        // fixme: make method of sites?
+        std::vector<Cplx> rho_possibilities;
+        if (site_type_ == "golden") {
+            rho_possibilities = { (1+sqrt(5))/2, (1-sqrt(5))/2 };
+        } else {
+            rho_possibilities = { (3+sqrt(13))/2, (3-sqrt(13))/2, 1, -1 };
+        }
+        std::vector<Cplx> translation_eigenvalues;
+        std::vector<Cplx> rho_eigenvalues;
+        for (int i=0; i<num_states; i++) {
+            auto translation_submatrix = ITensor(dag(s), sP);
+            auto rho_submatrix = ITensor(dag(s), sP);
+            for (int j=1; j<=i+1; j++) {
+                for (int k=1; k<=i+1; k++) {
+                    translation_submatrix.set(s(j), sP(k), eltC(translation_matrix, j, k));
+                    rho_submatrix.set(s(j), sP(k), eltC(rho_matrix, j, k));
+                }
+//                translation_eigenvalues_tmp.push_back(eltC(translation_diag, j, j));
+//                rho_eigenvalues_tmp.push_back(eltC(rho_diag, j, j));
+            }
+            auto [UT,translation_sub_eigenvalues] = eigen(translation_submatrix);
+            auto [UR,rho_sub_eigenvalues] = eigen(rho_submatrix);
+            std::vector<Cplx> translation_eigenvalues_tmp;
+            std::vector<Cplx> rho_eigenvalues_tmp;
+            for (int j=1; j<=i+1; j++) {
+                translation_eigenvalues_tmp.push_back(eltC(translation_sub_eigenvalues, j, j));
+                rho_eigenvalues_tmp.push_back(eltC(rho_sub_eigenvalues, j, j));
+            }
+            translation_eigenvalues_tmp = FilterTranslation(translation_eigenvalues_tmp);
+            rho_eigenvalues_tmp = FilterRho(rho_eigenvalues_tmp, rho_possibilities);
+            translation_eigenvalues = OrderedAppend(translation_eigenvalues, translation_eigenvalues_tmp);
+            rho_eigenvalues = OrderedAppend(rho_eigenvalues, rho_eigenvalues_tmp);
+//            println(i);
+//            PrintVector(translation_eigenvalues);
+        }
+        printf("\n> Energies:\n");
+        std::vector<Real> energies = dmrg_progress_.Energies();
+        energies.pop_back();
+        PrintVector(energies);
+        printf("\n\n> Translation eigenvalues:\n");
+        PrintVector(translation_eigenvalues);
+        printf("\n\n> rho eigenvalues:\n");
+        PrintVector(rho_eigenvalues);
+        printf("\n\n");
+
+//        auto translation_matrix_new = ITensor(dag(s), sP);
+//        auto rho_matrix_new = ITensor(dag(s), sP);
+//        for (int i=0; i < translation_eigenvalues.size(); i++) {
+//            translation_matrix_new.set(s(i+1), sP(i+1), translation_eigenvalues.at(i));
+//        }
+//        for (int i=0; i < rho_eigenvalues.size(); i++) {
+//            rho_matrix_new.set(s(i+1), sP(i+1), rho_eigenvalues.at(i));
+//        }
+//        printf("\n> Ordered set of translation eigenvalues:\n");
+//        PrintData(translation_matrix_new);
+//        printf("\n> Ordered set of rho eigenvalues:\n");
+//        PrintData(rho_matrix_new);
 
         // // Rotate basis for energies accordingly and create diagonal ITensor
         // En = prime(UT) * En * dag(UT);

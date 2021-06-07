@@ -48,27 +48,33 @@ int main(int argc, char** argv) {
         auto dmrg = DMRG<Golden>(params);
         if (std::get<10>(params) == 1) {
             dmrg.Analyze();
+        } else if (std::get<10>(params) == 2) {
+            dmrg.NormalizeEnergies();
         } else {
             dmrg.Run();
         }
         return 0;
     } else if (std::get<0>(params) == "haagerup") {
-        auto dmrg_ = DMRG<Haagerup>(params);
+        auto dmrg = DMRG<Haagerup>(params);
         if (std::get<10>(params) == 1) {
-            dmrg_.Analyze();
+            dmrg.Analyze();
+        } else if (std::get<10>(params) == 2) {
+            dmrg.NormalizeEnergies();
         } else {
-            dmrg_.Run();
+            dmrg.Run();
         }
         return 0;
     } else if (std::get<0>(params) == "haagerupq") {
-        auto dmrg_ = DMRG<HaagerupQ>(params);
+        auto dmrg = DMRG<HaagerupQ>(params);
         if (std::get<10>(params) == 1) {
             auto start = std::chrono::high_resolution_clock::now();
-            dmrg_.Analyze();
+            dmrg.Analyze();
             auto stop = std::chrono::high_resolution_clock::now();
             std::cout << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() / 1000000 << std::endl;
+        } else if (std::get<10>(params) == 2) {
+            dmrg.NormalizeEnergies();
         } else {
-            dmrg_.Run();
+            dmrg.Run();
         }
         return 0;
     } else {
