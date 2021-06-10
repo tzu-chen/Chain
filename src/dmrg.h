@@ -491,10 +491,12 @@ public:
     // Print the real parts of std::vector<Cplx> object into a Mathematica-compatible array.
     void PrintVector(std::vector<Cplx> vector) {
         print("{");
-        print(vector.at(0).real());
-        for (int i=1; i<vector.size(); i++) {
-            print(",");
-            print(vector.at(i).real());
+        if (vector.size() > 0) {
+            print(vector.at(0).real());
+            for (int i=1; i<vector.size(); i++) {
+                print(",");
+                print(vector.at(i).real());
+            }
         }
         print("}");
     }
@@ -502,10 +504,12 @@ public:
     // Print std::vector<Real> object into a Mathematica-compatible array.
     void PrintVector(std::vector<Real> vector) {
         print("{");
-        print(vector.at(0));
-        for (int i=1; i<vector.size(); i++) {
-            print(",");
-            print(vector.at(i));
+        if (vector.size() > 0) {
+            print(vector.at(0));
+            for (int i = 1; i < vector.size(); i++) {
+                print(",");
+                print(vector.at(i));
+            }
         }
         print("}");
     }
