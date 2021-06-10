@@ -6,6 +6,7 @@
 #include "itensor/all.h"
 #include "chain.h"
 #include <sstream>
+#include "path.h"
 
 using namespace itensor;
 
@@ -158,7 +159,8 @@ class DMRG {
 
     // File I/O
     // Modify prefix_ if storing in custom location
-    std::filesystem::path prefix_ = std::filesystem::current_path().parent_path();
+    std::filesystem::path prefix_ = kPath;
+//    std::filesystem::current_path().parent_path();
     std::filesystem::path progress_directory_ = prefix_ / "pgs";
     std::filesystem::path ee_directory_ = prefix_ / "ee";
     std::filesystem::path en_directory_ = prefix_ / "en";

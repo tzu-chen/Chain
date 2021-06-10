@@ -18,10 +18,9 @@ lib -> extern/itensor/lib
 Also included is a file CMakeLists_Mac.txt that works on Ying's Mac. To use it, rename it to CMakeLists.txt. Further modification may be necessary to correctly link libraries.
 
 6. For cmake versions earlier than 2.8, you can manually modify cmake_minimum_required, but you may need to explicitly include extra libraries. If GNU version is older version, you may need to add -lstdc++fs to ITENSOR_LINK_FLAGS.
-
 7. Make a folder called build. Change directory into it.
 8. Run "cmake ..". This should generate a makefile.
-9. The program by default stores data directories under the parent directory of build. To change, modify the variable prefix_ in src/dmrg.h.
+9. The program by default stores data directories under the parent directory of build. To change, modify the variable kPath in src/path.h.
 10. Run make.
 
 # Usage
