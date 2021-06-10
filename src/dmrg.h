@@ -603,7 +603,7 @@ public:
             std::filesystem::create_directory(m_directory_);
         }
 
-        PrintJob(false);
+//        PrintJob(false);
 
         // Default svd_cutoff for applyMPO(density matrix variant) is 1E-12
         // Setting to larger value will speed up the program significantly at the cost of accuracy of measurements
@@ -731,12 +731,12 @@ public:
         // Diagonalize rho
         auto [UR,rho_diag] = eigen(rho_matrix);
 
-        printf("\n> Ordered set of energies:\n");
-        PrintData(en_matrix);
-        printf("\n> Unordered set of translation eigenvalues:\n");
-        PrintData(translation_diag);
-        printf("\n> Unordered set of rho eigenvalues:\n");
-        PrintData(rho_diag);
+//        printf("\n> Ordered set of energies:\n");
+//        PrintData(en_matrix);
+//        printf("\n> Unordered set of translation eigenvalues:\n");
+//        PrintData(translation_diag);
+//        printf("\n> Unordered set of rho eigenvalues:\n");
+//        PrintData(rho_diag);
 
         // Analysis of translation and rho eigenvalues assuming that the states are simulated well enough
         // Otherwise, better work with the Mathematica .m file created above
@@ -757,8 +757,6 @@ public:
                     translation_submatrix.set(s(j), sP(k), eltC(translation_matrix, j, k));
                     rho_submatrix.set(s(j), sP(k), eltC(rho_matrix, j, k));
                 }
-//                translation_eigenvalues_tmp.push_back(eltC(translation_diag, j, j));
-//                rho_eigenvalues_tmp.push_back(eltC(rho_diag, j, j));
             }
             auto [UT,translation_sub_eigenvalues] = eigen(translation_submatrix);
             auto [UR,rho_sub_eigenvalues] = eigen(rho_submatrix);
@@ -772,43 +770,20 @@ public:
             rho_eigenvalues_tmp = FilterRho(rho_eigenvalues_tmp, rho_possibilities);
             translation_eigenvalues = OrderedAppend(translation_eigenvalues, translation_eigenvalues_tmp);
             rho_eigenvalues = OrderedAppend(rho_eigenvalues, rho_eigenvalues_tmp);
-//            println(i);
-//            PrintVector(translation_eigenvalues);
         }
-        printf("\n> Energies:\n");
-        std::vector<Real> energies = dmrg_progress_.Energies();
-        energies.pop_back();
-        PrintVector(energies);
-        printf("\n\n> Translation eigenvalues:\n");
-        PrintVector(translation_eigenvalues);
-        printf("\n\n> rho eigenvalues:\n");
+
+        printf("{{%s},", coupling_str_);
         PrintVector(rho_eigenvalues);
-        printf("\n\n");
-
-//        auto translation_matrix_new = ITensor(dag(s), sP);
-//        auto rho_matrix_new = ITensor(dag(s), sP);
-//        for (int i=0; i < translation_eigenvalues.size(); i++) {
-//            translation_matrix_new.set(s(i+1), sP(i+1), translation_eigenvalues.at(i));
-//        }
-//        for (int i=0; i < rho_eigenvalues.size(); i++) {
-//            rho_matrix_new.set(s(i+1), sP(i+1), rho_eigenvalues.at(i));
-//        }
-//        printf("\n> Ordered set of translation eigenvalues:\n");
-//        PrintData(translation_matrix_new);
-//        printf("\n> Ordered set of rho eigenvalues:\n");
-//        PrintData(rho_matrix_new);
-
-        // // Rotate basis for energies accordingly and create diagonal ITensor
-        // En = prime(UT) * En * dag(UT);
-        // std::vector<Real> diag_En;
-        // diag_En.reserve(len);
-        // for (int i=0;i<len;i++) {
-        //     diag_En.push_back(eltC(En, i+1, i+1).real());
-        // }
-        // En = diagITensor(diag_En, dag(s), prime(s));
-        // auto spins = DT.apply([this](Cplx a) {return Spin(a, num_sites_);});
-        // PrintData(En);
-        // PrintData(spins);
+        print("},\n");
+//        printf("\n> Energies:\n");
+//        std::vector<Real> energies = dmrg_progress_.Energies();
+//        energies.pop_back();
+//        PrintVector(energies);
+//        printf("\n\n> Translation eigenvalues:\n");
+//        PrintVector(translation_eigenvalues);
+//        printf("\n\n> rho eigenvalues:\n");
+//        PrintVector(rho_eigenvalues);
+//        printf("\n\n");
     }
 };
 
