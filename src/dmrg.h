@@ -799,7 +799,7 @@ public:
     void Measure(std::string observable) {
         // Default svd_cutoff for applyMPO(density matrix variant) is 1E-12
         // Setting to larger value will speed up the program significantly at the cost of accuracy of measurements
-        float svd_cutoff = 1E-3;
+        float svd_cutoff = 1E-8;
 
         // Variable declaration
         MPS psi_acted;
@@ -911,10 +911,10 @@ public:
             DumpMathematicaSingle(observable, num_states, matrix, m_path_);
             println("Computed inner product");
 
-            // Diagonalize translation
-//        auto [U,diag] = eigen(matrix);
-//        printf("\n> Unordered set of %s eigenvalues:\n", observable);
-//        PrintData(diag);
+            // Diagonalize
+            auto [U,diag] = eigen(matrix);
+            printf("\n> %s eigenvalues (unordered):\n", observable);
+            PrintData(diag);
 
             // Analysis of translation and rho eigenvalues assuming that the states are simulated well enough
             // Otherwise, better work with the Mathematica .m file created above
