@@ -793,7 +793,7 @@ public:
     void Measure(std::string observable) {
         // Default svd_cutoff for applyMPO(density matrix variant) is 1E-12
         // Setting to larger value will speed up the program significantly at the cost of accuracy of measurements
-        float svd_cutoff = 1E-8;
+        float svd_cutoff = 1E-3;
 
         // Variable declaration
         MPS psi_acted;
@@ -849,7 +849,7 @@ public:
                 auto translate_op = TranslationOp(sites); // periodic MPS
                 for (int i = 0; i < num_states; i++) {
                     psi_acted = MPS(states.at(i));
-                    psi_acted = applyMPO(translate_op, psi_acted);
+                    psi_acted = applyMPO(translate_op, psi_acted, {"Cutoff", svd_cutoff});
                     states_acted.at(i) = psi_acted;
                 }
             }
