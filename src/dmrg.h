@@ -876,6 +876,8 @@ public:
                 }
             }
 
+            println("Acted operator");
+
             // Create ITensor
             auto s = Index(num_states);
             auto sP = prime(s);
@@ -891,16 +893,17 @@ public:
                 }
                 for (int j = 0; j < num_states; j++) {
                     if (observable == "translation") {
-                        matrix.set(s(i + 1), sP(j + 1), innerC(states.at(i), states_acted.at(j)));
+                        matrix.set(s(i + 1), sP(j + 1), innerC(states.at(i), states_acted.at(j), {"Cutoff", svd_cutoff}));
                     }
                     if (observable == "rho") {
                         matrix.set(s(i + 1), sP(j + 1),
                                    innerC(AugmentMPS(states.at(i), left_dangling_ind, right_dangling_ind),
-                                          states_acted.at(j)));
+                                          states_acted.at(j), {"Cutoff", svd_cutoff}));
                     }
                 }
             }
             DumpMathematicaSingle(observable, num_states, matrix, m_path_);
+            println("Computed inner product");
 
             // Diagonalize translation
 //        auto [U,diag] = eigen(matrix);
