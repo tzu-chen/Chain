@@ -73,15 +73,24 @@ void DumpMathematicaSingle(const string& name, int len, const ITensor& tensor, c
     fclose(file);
 }
 
-void DumpMathematicaAll(int len, const ITensor& En, const ITensor& OpT, const ITensor& OpR, const std::filesystem::path& p) {
+void CleanMathematica(const std::filesystem::path& p) {
     std::string filename = std::string(p);
+    // Delete original content
     FILE * file;
     file = fopen(filename.c_str(),"w");
     fclose(file);
-    DumpMathematicaSingle("En", len, En, filename);
-    DumpMathematicaSingle("OpT", len, OpT, filename);
-    DumpMathematicaSingle("OpR", len, OpR, filename);
 }
+
+//void DumpMathematicaAll(int len, const ITensor& En, const ITensor& OpT, const ITensor& OpR, const std::filesystem::path& p) {
+//    std::string filename = std::string(p);
+//    // Delete original content
+//    FILE * file;
+//    file = fopen(filename.c_str(),"w");
+//    fclose(file);
+//    DumpMathematicaSingle("En", len, En, filename);
+//    DumpMathematicaSingle("OpT", len, OpT, filename);
+//    DumpMathematicaSingle("OpR", len, OpR, filename);
+//}
 
 //// UNUSED
 //Real Spin(Cplx num, int NN) {

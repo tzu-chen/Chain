@@ -19,7 +19,8 @@ void DumpMathematicaSingle(const std::string& name, int len, const ITensor& tens
 
 // Save measurements of energies, translation matrix elements, and rho defect matrix elements
 // stored as ITensor objects in Mathematica format to file
-void DumpMathematicaAll(int len, const ITensor& En, const ITensor& OpT, const ITensor& OpR, const std::filesystem::path& p);
+//void DumpMathematicaAll(int len, const ITensor& En, const ITensor& OpT, const ITensor& OpR, const std::filesystem::path& p);
+void CleanMathematica(const std::filesystem::path& p);
 
 // UNUSED
 //Real Spin(Cplx num, int NN);

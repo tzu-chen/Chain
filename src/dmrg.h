@@ -149,9 +149,9 @@ class DMRG {
     double ortho_weight;
 
     // DMRG design
-    float stable_tol;
-    float gs_stable_tol_;
-    float es_stable_tol_; // Finish DMRG of current state if energy changes by less than stable_tol_ for num_reps_til_stable_ reps
+    float precision_; // Finish DMRG of current state if energy changes by less than precision_/num_sites_ for num_reps_til_stable_ reps
+    float gs_precision_;
+    float es_precision_;
     int num_reps_til_stable_;
     int init_num_sweeps_per_rep_;
     int num_sweeps_per_rep_;
@@ -190,7 +190,7 @@ public:
         num_sites_ = std::get<2>(params);
         es_max_bond_dim_ = std::get<3>(params);
         svd_cutoff_ = std::get<4>(params);
-        es_stable_tol_ = std::get<5>(params);
+        es_precision_ = std::get<5>(params);
         coupling_str_ = std::get<6>(params);
         couplings_ = ParseCouplings(coupling_str_);
 //        for (int i=0;i<couplings_.size();i++) {
@@ -230,7 +230,7 @@ public:
         init_num_sweeps_per_rep_ = 5;
         num_sweeps_per_rep_ = 1;
         num_reps_til_stable_ = 3;
-        gs_stable_tol_ = std::pow(es_stable_tol_, 1);
+        gs_precision_ = std::pow(es_precision_, 1);
 
         // Chain parameters
 //        k_ = cos(theta_ * Pi);
@@ -247,7 +247,7 @@ public:
 //        }
 
         // File I/O
-        filename_ = format("%s_%s_%d_%d_%g_%g_%g_%s_%d", site_type_, boundary_condition_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, coupling_str_, u_, charge_);
+        filename_ = format("%s_%s_%d_%d_%g_%g_%g_%s_%d", site_type_, boundary_condition_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_precision_, coupling_str_, u_, charge_);
         progress_path_ = progress_directory_ / filename_;
         ee_path_ = ee_directory_ / (filename_ + ".ee");
         en_path_ = en_directory_ / (filename_ + ".en");
@@ -266,14 +266,12 @@ public:
         if (with_sweeps) {
             int num_sweeps = dmrg_progress_.num_sweeps_vec_.back();
             if (num_sweeps == 0) {
-                printf("\n  > Sweeps #1-#%d\n    %s of %s\n    L=%d  bond_dim=%d  svd_cutoff=%g  stable_tol=%g  penalty=%g  couplings=%s  charge=%d\n", init_num_sweeps_per_rep_, state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, u_, coupling_str_, charge_);
+                printf("\n  > Sweeps #1-#%d\n    %s of %s\n    L=%d  bond_dim=%d  svd_cutoff=%g  precision=%g  penalty=%g  couplings=%s  charge=%d\n", init_num_sweeps_per_rep_, state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_precision_, u_, coupling_str_, charge_);
             } else {
-//                printf("\n    > Times swept: %d\n      %s of %s\n      L=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g phi=%g K=%g J=%g M=%g U=%g Q=%d\n", dmrg_progress_.num_sweeps_vec_.back(), state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, phi_, k_, j_, m_, u_, charge_);
-//                printf("\n  > Times swept: %d\n    %s of %s\n    L=%d max_bond_dim=%d svd_cutoff=%g stable_tol=%g theta=%g phi=%g K=%g J=%g M=%g U=%g Q=%d\n", dmrg_progress_.num_sweeps_vec_.back(), state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, theta_, phi_, k_, j_, m_, u_, charge_);
-                printf("\n  > Sweep #%d\n    %s of %s\n    L=%d  bond_dim=%d  svd_cutoff=%g  stable_tol=%g  penalty=%g  couplings=%s  charge=%d\n", num_sweeps+1, state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, u_, coupling_str_, charge_);
+                printf("\n  > Sweep #%d\n    %s of %s\n    L=%d  bond_dim=%d  svd_cutoff=%g  precision=%g  penalty=%g  couplings=%s  charge=%d\n", num_sweeps+1, state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_precision_, u_, coupling_str_, charge_);
             }
         } else {
-            printf("\n> %s:  L=%d  bond_dim=%d  svd_cutoff=%g  stable_tol=%g  penalty=%g  couplings=%s  charge=%d\n", job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_stable_tol_, u_, coupling_str_, charge_);
+            printf("\n> %s:  L=%d  bond_dim=%d  svd_cutoff=%g  precision=%g  penalty=%g  couplings=%s  charge=%d\n", job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_precision_, u_, coupling_str_, charge_);
         }
     }
 
@@ -281,10 +279,10 @@ public:
     void AdjustDMRGParams() {
         if (IsSimulatingGroundState()) {
             max_bond_dim = gs_max_bond_dim_;
-            stable_tol = gs_stable_tol_;
+            precision_ = gs_precision_;
         } else {
             max_bond_dim = es_max_bond_dim_;
-            stable_tol = es_stable_tol_;
+            precision_ = es_precision_;
         }
     }
 
@@ -333,7 +331,7 @@ public:
     }
 
     // Simulate states by DMRG
-    void Run() {
+    void Simulate() {
         if (not std::filesystem::exists(progress_directory_)) {
             std::filesystem::create_directory(progress_directory_);
         }
@@ -448,7 +446,7 @@ public:
                 sw.noise() = noise_;
                 std::tie(en_, psi_) = dmrg(H, dmrg_progress_.DoneStates(), psi_, sw, {"Quiet=", true, "Weight=", ortho_weight});
                 // Decide whether energy has stabilized
-                if (abs(min_en_ - en_) * num_sites_ < stable_tol) {
+                if (abs(min_en_ - en_) * num_sites_ < precision_) {
                     cnt_ -= 1;
                 } else {
                     cnt_ = num_reps_til_stable_;
@@ -601,184 +599,185 @@ public:
         }
     }
 
-    // Measure matrix elements of translation operator and rho defect operator
-    void Analyze() {
-        if (not std::filesystem::exists(m_directory_)) {
-            std::filesystem::create_directory(m_directory_);
-        }
-
+//    // Measure matrix elements of translation operator and rho defect operator
+//    void Analyze() {
+//        if (not std::filesystem::exists(m_directory_)) {
+//            std::filesystem::create_directory(m_directory_);
+//        }
+//
 //        PrintJob(false);
-
-        // Default svd_cutoff for applyMPO(density matrix variant) is 1E-12
-        // Setting to larger value will speed up the program significantly at the cost of accuracy of measurements
-        float svd_cutoff = 1E-8;
-
-        // Variable declaration
-        MPS psi_translated;
-        MPS psi_acted_by_rho;
-        std::vector<MPS> states_translated;
-        std::vector<MPS> states_acted_by_rho;
-
-        if (std::filesystem::exists(progress_directory_ / (filename_ + ".pgs"))) {
-            dmrg_progress_.Read(progress_path_);
-        } else {
-            printf("\n> No progress file available\n");
-            return;
-        }
-
-        auto states = dmrg_progress_.DoneStates();
-        int num_states = std::min(dmrg_progress_.NumDoneStates(), num_states_);
-
-        // fixme: refactor Haagerup/HaagerupQ branching
-        // Perform change of basis if appropriate in order to use F symbols
-        // Rotate HaagerupQ to Haagerup
-        // Golden -> Golden, Haagerup, HaagerupQ -> Haagerup
-        SiteSet sites;
-        if (site_type_ == "golden" or site_type_ == "haagerup") {
-            sites = sites_;
-            for (int i = 0; i < num_states; i++) {
-                auto new_psi = MPS(sites);
-                auto psi = states.at(i);
-                for (auto j : range1(num_sites_)) {
-                    new_psi.set(j, psi(j) * delta(siteIndex(psi, j), sites(j)) );
-                }
-                states.at(i) = new_psi;
-            }
-        } else {
-            sites = Haagerup(num_sites_);
-            for (int i = 0; i < num_states; i++) {
-                auto states_no_qn = removeQNs(states.at(i));
-                states.at(i) = Z3FourierTransform(states_no_qn, sites);
-            }
-        }
-
-        auto translate_op = TranslationOp(sites); // periodic MPS
-        auto rho_op = RhoOp(sites, site_type_); // dangling periodic MPS
-        auto id_op = IdentityOp(sites, rho_op); // dangling periodic MPS with matching indices with rho_op
-
-        // Dangling bond indices at the edges of MPO
-        // fixme: 36?
-        auto left_dangling_ind = Index(36, "Site");
-        auto right_dangling_ind = Index(36, "Site");
-
-        // fixme: Can we use OpenMP for this?
-        for (int i=0;i<num_states;i++) {
-            states_translated.push_back(MPS());
-            states_acted_by_rho.push_back(MPS());
-        }
-
-        {
-//            auto np = omp_get_num_threads();
-//            println(np);
-//            #pragma omp parallel for default(shared) private(i, psi_translated, psi_acted_by_rho)
-            for (int i = 0; i < num_states; i++) {
-                // Initialize
-                psi_translated = MPS(states.at(i));
-                psi_acted_by_rho = MPS(states.at(i));
-
-                // Act by translation
-                psi_translated = applyMPO(translate_op, psi_translated);
-//            states_translated.push_back(psi_translated);
-                states_translated.at(i) = psi_translated;
-
-                // Act by rho defect in two steps
-                // First act by dangling rho operator
-                // Then act by dangling identity operator
-                psi_acted_by_rho = applyMPO(AugmentMPO(rho_op, left_dangling_ind, right_dangling_ind),
-                                            AugmentMPS(psi_acted_by_rho, left_dangling_ind, right_dangling_ind),
-                                            {"Cutoff", svd_cutoff}
-                );
-                psi_acted_by_rho = applyMPO(AugmentMPO(id_op, left_dangling_ind, right_dangling_ind),
-                                            psi_acted_by_rho, {"Cutoff", svd_cutoff});
-//            states_acted_by_rho.push_back(psi_acted_by_rho);
-                states_acted_by_rho.at(i) = psi_acted_by_rho;
-
-                // println(innerC(AugmentMPS(psiR, left_extra, right_extra),step2));
-
-//            psiR = applyMPO(TranslationOp(sites, true), psiR);
-//            if (site_name_ == "golden") {
-//                GoldenFData f_data = GoldenFData();
-//                ActLocal(psiR, f_data.RhoDefectCell(sites(1), sites(2)),1);
-//            } else if (site_name_ == "haagerup") {
-//                HaagerupFData f_data = HaagerupFData();
-//                ActLocal(psiR, f_data.RhoDefectCell(sites(1), sites(2)),1);
+//
+//        // Default svd_cutoff for applyMPO(density matrix variant) is 1E-12
+//        // Setting to larger value will speed up the program significantly at the cost of accuracy of measurements
+//        float svd_cutoff = 1E-8;
+//
+//        // Variable declaration
+//        MPS psi_translated;
+//        MPS psi_acted_by_rho;
+//        std::vector<MPS> states_translated;
+//        std::vector<MPS> states_acted_by_rho;
+//
+//        if (std::filesystem::exists(progress_directory_ / (filename_ + ".pgs"))) {
+//            dmrg_progress_.Read(progress_path_);
+//        } else {
+//            printf("\n> No progress file available\n");
+//            return;
+//        }
+//
+//        auto states = dmrg_progress_.DoneStates();
+//        int num_states = std::min(dmrg_progress_.NumDoneStates(), num_states_);
+//
+//        // fixme: refactor Haagerup/HaagerupQ branching
+//        // Perform change of basis if appropriate in order to use F symbols
+//        // Rotate HaagerupQ to Haagerup
+//        // Golden -> Golden, Haagerup, HaagerupQ -> Haagerup
+//        SiteSet sites;
+//        if (site_type_ == "golden" or site_type_ == "haagerup") {
+//            sites = sites_;
+//            for (int i = 0; i < num_states; i++) {
+//                auto new_psi = MPS(sites);
+//                auto psi = states.at(i);
+//                for (auto j : range1(num_sites_)) {
+//                    new_psi.set(j, psi(j) * delta(siteIndex(psi, j), sites(j)) );
+//                }
+//                states.at(i) = new_psi;
 //            }
-//            psiR = applyMPO(TranslationOp(sites, false), psiR);
-            }
-        }
-
-        // Create ITensors for
-        // En: Energies
-        // OpT: Matrix elements between psi and psi_translated
-        // OpR: Matrix elements between psi and psi_acted_by_rho
-        auto s = Index(num_states);
-        auto sP = prime(s);
-        auto en_matrix = ITensor(dag(s), sP);
-        auto translation_matrix = ITensor(dag(s), sP);
-        auto rho_matrix = ITensor(dag(s), sP);
-
-        Real en_shift = 0;
-        // Uncomment if shift by ground state energy
-        // en_shift = dmrg_progress.Energies().at(0);
-
-        for (int i=0; i < num_states; i++) {
-            en_matrix.set(s(i + 1), sP(i + 1), dmrg_progress_.Energies().at(i) - en_shift);
-            for (int j=0; j < num_states; j++) {
-                translation_matrix.set(s(i + 1), sP(j+1), innerC(states.at(i), states_translated.at(j)));
-                rho_matrix.set(s(i + 1), sP(j+1), innerC(AugmentMPS(states.at(i), left_dangling_ind, right_dangling_ind), states_acted_by_rho.at(j)));
-            }
-        }
-        DumpMathematicaAll(num_states, en_matrix, translation_matrix, rho_matrix, m_path_);
-
-        // Diagonalize translation
-        auto [UT,translation_diag] = eigen(translation_matrix);
-        // Diagonalize rho
-        auto [UR,rho_diag] = eigen(rho_matrix);
-
-//        printf("\n> Ordered set of energies:\n");
-//        PrintData(en_matrix);
-//        printf("\n> Unordered set of translation eigenvalues:\n");
-//        PrintData(translation_diag);
-//        printf("\n> Unordered set of rho eigenvalues:\n");
-//        PrintData(rho_diag);
-
-        // Analysis of translation and rho eigenvalues assuming that the states are simulated well enough
-        // Otherwise, better work with the Mathematica .m file created above
-        // fixme: make method of sites?
-        std::vector<Cplx> rho_possibilities;
-        if (site_type_ == "golden") {
-            rho_possibilities = { (1+sqrt(5))/2, (1-sqrt(5))/2 };
-        } else {
-            rho_possibilities = { (3+sqrt(13))/2, (3-sqrt(13))/2, 1, -1 };
-        }
-        std::vector<Cplx> translation_eigenvalues;
-        std::vector<Cplx> rho_eigenvalues;
-        for (int i=0; i<num_states; i++) {
-            auto translation_submatrix = ITensor(dag(s), sP);
-            auto rho_submatrix = ITensor(dag(s), sP);
-            for (int j=1; j<=i+1; j++) {
-                for (int k=1; k<=i+1; k++) {
-                    translation_submatrix.set(s(j), sP(k), eltC(translation_matrix, j, k));
-                    rho_submatrix.set(s(j), sP(k), eltC(rho_matrix, j, k));
-                }
-            }
-            auto [UT,translation_sub_eigenvalues] = eigen(translation_submatrix);
-            auto [UR,rho_sub_eigenvalues] = eigen(rho_submatrix);
-            std::vector<Cplx> translation_eigenvalues_tmp;
-            std::vector<Cplx> rho_eigenvalues_tmp;
-            for (int j=1; j<=i+1; j++) {
-                translation_eigenvalues_tmp.push_back(eltC(translation_sub_eigenvalues, j, j));
-                rho_eigenvalues_tmp.push_back(eltC(rho_sub_eigenvalues, j, j));
-            }
-            translation_eigenvalues_tmp = FilterTranslation(translation_eigenvalues_tmp);
-            rho_eigenvalues_tmp = FilterRho(rho_eigenvalues_tmp, rho_possibilities);
-            translation_eigenvalues = OrderedAppend(translation_eigenvalues, translation_eigenvalues_tmp);
-            rho_eigenvalues = OrderedAppend(rho_eigenvalues, rho_eigenvalues_tmp);
-        }
-
-        printf("{{%s},", coupling_str_);
-        PrintVector(rho_eigenvalues);
-        print("},\n");
+//        } else {
+//            sites = Haagerup(num_sites_);
+//            for (int i = 0; i < num_states; i++) {
+//                auto states_no_qn = removeQNs(states.at(i));
+//                states.at(i) = Z3FourierTransform(states_no_qn, sites);
+//            }
+//        }
+//
+//        auto translate_op = TranslationOp(sites); // periodic MPS
+//        auto rho_op = RhoOp(sites, site_type_); // dangling periodic MPS
+//        auto id_op = IdentityOp(sites, rho_op); // dangling periodic MPS with matching indices with rho_op
+//
+//        // Dangling bond indices at the edges of MPO
+//        // fixme: 36?
+//        auto left_dangling_ind = Index(36, "Site");
+//        auto right_dangling_ind = Index(36, "Site");
+//
+//        // fixme: Can we use OpenMP for this?
+//        for (int i=0;i<num_states;i++) {
+//            states_translated.push_back(MPS());
+//            states_acted_by_rho.push_back(MPS());
+//        }
+//
+//        {
+////            auto np = omp_get_num_threads();
+////            println(np);
+////            #pragma omp parallel for default(shared) private(i, psi_translated, psi_acted_by_rho)
+//            for (int i = 0; i < num_states; i++) {
+//                // Initialize
+//                psi_translated = MPS(states.at(i));
+//                psi_acted_by_rho = MPS(states.at(i));
+//
+//                // Act by translation
+//                psi_translated = applyMPO(translate_op, psi_translated);
+////            states_translated.push_back(psi_translated);
+//                states_translated.at(i) = psi_translated;
+//
+//                // Act by rho defect in two steps
+//                // First act by dangling rho operator
+//                // Then act by dangling identity operator
+//                psi_acted_by_rho = applyMPO(AugmentMPO(rho_op, left_dangling_ind, right_dangling_ind),
+//                                            AugmentMPS(psi_acted_by_rho, left_dangling_ind, right_dangling_ind),
+//                                            {"Cutoff", svd_cutoff}
+//                );
+//                psi_acted_by_rho = applyMPO(AugmentMPO(id_op, left_dangling_ind, right_dangling_ind),
+//                                            psi_acted_by_rho, {"Cutoff", svd_cutoff});
+////            states_acted_by_rho.push_back(psi_acted_by_rho);
+//                states_acted_by_rho.at(i) = psi_acted_by_rho;
+//
+//                // println(innerC(AugmentMPS(psiR, left_extra, right_extra),step2));
+//
+////            psiR = applyMPO(TranslationOp(sites, true), psiR);
+////            if (site_name_ == "golden") {
+////                GoldenFData f_data = GoldenFData();
+////                ActLocal(psiR, f_data.RhoDefectCell(sites(1), sites(2)),1);
+////            } else if (site_name_ == "haagerup") {
+////                HaagerupFData f_data = HaagerupFData();
+////                ActLocal(psiR, f_data.RhoDefectCell(sites(1), sites(2)),1);
+////            }
+////            psiR = applyMPO(TranslationOp(sites, false), psiR);
+//            }
+//        }
+//
+//        // Create ITensors for
+//        // En: Energies
+//        // OpT: Matrix elements between psi and psi_translated
+//        // OpR: Matrix elements between psi and psi_acted_by_rho
+//        auto s = Index(num_states);
+//        auto sP = prime(s);
+//        auto en_matrix = ITensor(dag(s), sP);
+//        auto translation_matrix = ITensor(dag(s), sP);
+//        auto rho_matrix = ITensor(dag(s), sP);
+//
+//        Real en_shift = 0;
+//        // Uncomment if shift by ground state energy
+//        // en_shift = dmrg_progress.Energies().at(0);
+//
+//        for (int i=0; i < num_states; i++) {
+//            en_matrix.set(s(i + 1), sP(i + 1), dmrg_progress_.Energies().at(i) - en_shift);
+//            for (int j=0; j < num_states; j++) {
+//                translation_matrix.set(s(i + 1), sP(j+1), innerC(states.at(i), states_translated.at(j)));
+//                rho_matrix.set(s(i + 1), sP(j+1), innerC(AugmentMPS(states.at(i), left_dangling_ind, right_dangling_ind), states_acted_by_rho.at(j)));
+//            }
+//        }
+//        DumpMathematicaAll(num_states, en_matrix, translation_matrix, rho_matrix, m_path_);
+//
+//        // Diagonalize translation
+//        auto [UT,translation_diag] = eigen(translation_matrix);
+//        // Diagonalize rho
+//        auto [UR,rho_diag] = eigen(rho_matrix);
+//
+////        printf("\n> Ordered set of energies:\n");
+////        PrintData(en_matrix);
+////        printf("\n> Unordered set of translation eigenvalues:\n");
+////        PrintData(translation_diag);
+////        printf("\n> Unordered set of rho eigenvalues:\n");
+////        PrintData(rho_diag);
+//
+//        // Analysis of translation and rho eigenvalues assuming that the states are simulated well enough
+//        // Otherwise, better work with the Mathematica .m file created above
+//        // fixme: make method of sites?
+//        std::vector<Cplx> rho_possibilities;
+//        if (site_type_ == "golden") {
+//            rho_possibilities = { (1+sqrt(5))/2, (1-sqrt(5))/2 };
+//        } else {
+//            rho_possibilities = { (3+sqrt(13))/2, (3-sqrt(13))/2, 1, -1 };
+//        }
+//        std::vector<Cplx> translation_eigenvalues;
+//        std::vector<Cplx> rho_eigenvalues;
+//        for (int i=0; i<num_states; i++) {
+//            auto translation_submatrix = ITensor(dag(s), sP);
+//            auto rho_submatrix = ITensor(dag(s), sP);
+//            for (int j=1; j<=i+1; j++) {
+//                for (int k=1; k<=i+1; k++) {
+//                    translation_submatrix.set(s(j), sP(k), eltC(translation_matrix, j, k));
+//                    rho_submatrix.set(s(j), sP(k), eltC(rho_matrix, j, k));
+//                }
+//            }
+//            auto [UT,translation_sub_eigenvalues] = eigen(translation_submatrix);
+//            auto [UR,rho_sub_eigenvalues] = eigen(rho_submatrix);
+//            std::vector<Cplx> translation_eigenvalues_tmp;
+//            std::vector<Cplx> rho_eigenvalues_tmp;
+//            for (int j=1; j<=i+1; j++) {
+//                translation_eigenvalues_tmp.push_back(eltC(translation_sub_eigenvalues, j, j));
+//                rho_eigenvalues_tmp.push_back(eltC(rho_sub_eigenvalues, j, j));
+//            }
+//            translation_eigenvalues_tmp = FilterTranslation(translation_eigenvalues_tmp);
+//            rho_eigenvalues_tmp = FilterRho(rho_eigenvalues_tmp, rho_possibilities);
+//            translation_eigenvalues = OrderedAppend(translation_eigenvalues, translation_eigenvalues_tmp);
+//            rho_eigenvalues = OrderedAppend(rho_eigenvalues, rho_eigenvalues_tmp);
+//        }
+//
+////        printf("{{%s},", coupling_str_);
+////        PrintVector(rho_eigenvalues);
+////        print("},\n");
+//
 //        printf("\n> Energies:\n");
 //        std::vector<Real> energies = dmrg_progress_.Energies();
 //        energies.pop_back();
@@ -788,6 +787,187 @@ public:
 //        printf("\n\n> rho eigenvalues:\n");
 //        PrintVector(rho_eigenvalues);
 //        printf("\n\n");
+//    }
+
+    // Measure matrix elements of translation operator and rho defect operator
+    void Measure(std::string observable) {
+        // Default svd_cutoff for applyMPO(density matrix variant) is 1E-12
+        // Setting to larger value will speed up the program significantly at the cost of accuracy of measurements
+        float svd_cutoff = 1E-8;
+
+        // Variable declaration
+        MPS psi_acted;
+        std::vector<MPS> states_acted;
+
+        if (std::filesystem::exists(progress_directory_ / (filename_ + ".pgs"))) {
+            dmrg_progress_.Read(progress_path_);
+        } else {
+            printf("\n> No progress file available\n");
+            return;
+        }
+
+        if (observable == "energy") {
+            std::vector<Real> eigenvalues;
+            for (int i=0;i<num_states_;i++) {
+                eigenvalues.push_back(dmrg_progress_.Energies().at(i));
+            }
+            printf("\n> %s eigenvalues:\n", observable);
+            PrintVector(eigenvalues);
+            printf("\n\n");
+        } else {
+            auto states = dmrg_progress_.DoneStates();
+            int num_states = std::min(dmrg_progress_.NumDoneStates(), num_states_);
+
+            // fixme: refactor Haagerup/HaagerupQ branching
+            // Perform change of basis if appropriate in order to use F symbols
+            // Rotate HaagerupQ to Haagerup
+            // Golden -> Golden, Haagerup, HaagerupQ -> Haagerup
+            SiteSet sites;
+            if (site_type_ == "golden" or site_type_ == "haagerup") {
+                sites = sites_;
+                for (int i = 0; i < num_states; i++) {
+                    auto new_psi = MPS(sites);
+                    auto psi = states.at(i);
+                    for (auto j : range1(num_sites_)) {
+                        new_psi.set(j, psi(j) * delta(siteIndex(psi, j), sites(j)));
+                    }
+                    states.at(i) = new_psi;
+                }
+            } else {
+                sites = Haagerup(num_sites_);
+                for (int i = 0; i < num_states; i++) {
+                    auto states_no_qn = removeQNs(states.at(i));
+                    states.at(i) = Z3FourierTransform(states_no_qn, sites);
+                }
+            }
+
+            for (int i = 0; i < num_states; i++) {
+                states_acted.push_back(MPS());
+            }
+
+            if (observable == "translation") {
+                auto translate_op = TranslationOp(sites); // periodic MPS
+                for (int i = 0; i < num_states; i++) {
+                    psi_acted = MPS(states.at(i));
+                    psi_acted = applyMPO(translate_op, psi_acted);
+                    states_acted.at(i) = psi_acted;
+                }
+            }
+
+            auto left_dangling_ind = Index(36, "Site");
+            auto right_dangling_ind = Index(36, "Site");
+
+            if (observable == "rho") {
+                auto rho_op = RhoOp(sites, site_type_); // dangling periodic MPS
+                auto id_op = IdentityOp(sites, rho_op); // dangling periodic MPS with matching indices with rho_op
+                for (int i = 0; i < num_states; i++) {
+                    // Initialize
+                    psi_acted = MPS(states.at(i));
+                    // Act by rho defect in two steps
+                    // First act by dangling rho operator
+                    // Then act by dangling identity operator
+                    psi_acted = applyMPO(AugmentMPO(rho_op, left_dangling_ind, right_dangling_ind),
+                                         AugmentMPS(psi_acted, left_dangling_ind, right_dangling_ind),
+                                         {"Cutoff", svd_cutoff}
+                    );
+                    psi_acted = applyMPO(AugmentMPO(id_op, left_dangling_ind, right_dangling_ind),
+                                         psi_acted, {"Cutoff", svd_cutoff});
+                    states_acted.at(i) = psi_acted;
+                }
+            }
+
+            // Create ITensor
+            auto s = Index(num_states);
+            auto sP = prime(s);
+            auto matrix = ITensor(dag(s), sP);
+
+            Real en_shift = 0;
+            // Uncomment if shift by ground state energy
+            // en_shift = dmrg_progress.Energies().at(0);
+
+            for (int i = 0; i < num_states; i++) {
+                if (observable == "energy") {
+                    matrix.set(s(i + 1), sP(i + 1), dmrg_progress_.Energies().at(i) - en_shift);
+                }
+                for (int j = 0; j < num_states; j++) {
+                    if (observable == "translation") {
+                        matrix.set(s(i + 1), sP(j + 1), innerC(states.at(i), states_acted.at(j)));
+                    }
+                    if (observable == "rho") {
+                        matrix.set(s(i + 1), sP(j + 1),
+                                   innerC(AugmentMPS(states.at(i), left_dangling_ind, right_dangling_ind),
+                                          states_acted.at(j)));
+                    }
+                }
+            }
+            DumpMathematicaSingle(observable, num_states, matrix, m_path_);
+
+            // Diagonalize translation
+//        auto [U,diag] = eigen(matrix);
+//        printf("\n> Unordered set of %s eigenvalues:\n", observable);
+//        PrintData(diag);
+
+            // Analysis of translation and rho eigenvalues assuming that the states are simulated well enough
+            // Otherwise, better work with the Mathematica .m file created above
+
+            std::vector<Cplx> eigenvalues;
+            for (int i = 0; i < num_states; i++) {
+                auto submatrix = ITensor(dag(s), sP);
+                for (int j = 1; j <= i + 1; j++) {
+                    for (int k = 1; k <= i + 1; k++) {
+                        submatrix.set(s(j), sP(k), eltC(matrix, j, k));
+                        submatrix.set(s(j), sP(k), eltC(matrix, j, k));
+                    }
+                }
+                auto[U, sub_eigenvalues] = eigen(submatrix);
+                std::vector<Cplx> eigenvalues_tmp;
+                for (int j = 1; j <= i + 1; j++) {
+                    eigenvalues_tmp.push_back(eltC(sub_eigenvalues, j, j));
+                }
+                if (observable == "translation") {
+                    eigenvalues_tmp = FilterTranslation(eigenvalues_tmp);
+                }
+                if (observable == "rho") {
+                    std::vector<Cplx> rho_possibilities;
+                    if (site_type_ == "golden") {
+                        rho_possibilities = {(1 + sqrt(5)) / 2, (1 - sqrt(5)) / 2};
+                    } else {
+                        rho_possibilities = {(3 + sqrt(13)) / 2, (3 - sqrt(13)) / 2, 1, -1};
+                    }
+                    eigenvalues_tmp = FilterRho(eigenvalues_tmp, rho_possibilities);
+                }
+                eigenvalues = OrderedAppend(eigenvalues, eigenvalues_tmp);
+            }
+            printf("> %s eigenvalues:\n", observable);
+            PrintVector(eigenvalues);
+            printf("\n\n");
+        }
+
+//        printf("{{%s},", coupling_str_);
+//        PrintVector(rho_eigenvalues);
+//        print("},\n");
+
+    }
+
+    void AnalyzeNoRho() {
+        if (not std::filesystem::exists(m_directory_)) {
+            std::filesystem::create_directory(m_directory_);
+        }
+        PrintJob(false);
+        CleanMathematica(m_path_);
+        Measure("energy");
+        Measure("translation");
+    }
+
+    void Analyze() {
+        if (not std::filesystem::exists(m_directory_)) {
+            std::filesystem::create_directory(m_directory_);
+        }
+        PrintJob(false);
+        CleanMathematica(m_path_);
+        Measure("energy");
+        Measure("translation");
+        Measure("rho");
     }
 };
 

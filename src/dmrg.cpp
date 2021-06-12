@@ -10,17 +10,17 @@ int main(int argc, char** argv) {
     options.add_options()
         ("s,site", "Site types(golden/haagerup/haagerupq)", cxxopts::value<std::string>())
         ("b,bc", "Boundary condition types(p/o/s/sp)", cxxopts::value<std::string>())
-        ("n", "# of sites", cxxopts::value<int>())
-        ("d", "Max dimension", cxxopts::value<int>())
-        ("c,svd_cutoff_", "Cutoff", cxxopts::value<float>())
-        ("t,tol", "Tolerance", cxxopts::value<float>())
+        ("l,length", "# of sites", cxxopts::value<int>())
+        ("d", "Max bond dimension", cxxopts::value<int>())
+        ("c,cutoff", "SVD cutoff", cxxopts::value<float>())
+        ("p,precision", "Energy precision", cxxopts::value<float>())
 //        ("theta", "theta", cxxopts::value<float>())
 //        ("phi", "phi", cxxopts::value<float>())
-        ("couplings", "couplings", cxxopts::value<std::string>())
+        ("j,couplings", "Couplings", cxxopts::value<std::string>())
         ("u,penalty", "Penalty size", cxxopts::value<float>())
         ("q,charge_", "Charge", cxxopts::value<int>())
-        ("nstates", "# of states to solve for", cxxopts::value<int>())
-        ("analysis", "dmrg mode(0)/analysis mode(1)", cxxopts::value<int>())
+        ("n,nstates", "# of states to solve for", cxxopts::value<int>())
+        ("m,mode", "DMRG simulation(0)/measurements and analysis(1,2,3)", cxxopts::value<int>())
         ("h,help", "Print usage")
         ;
     auto result = options.parse(argc, argv);
@@ -32,26 +32,28 @@ int main(int argc, char** argv) {
     auto params = std::make_tuple(
             result["s"].as<std::string>(),
             result["b"].as<std::string>(),
-            result["n"].as<int>(),
+            result["l"].as<int>(),
             result["d"].as<int>(),
             result["c"].as<float>(),
-            result["t"].as<float>(),
-            result["couplings"].as<std::string>(),
+            result["p"].as<float>(),
+            result["j"].as<std::string>(),
 //            result["theta"].as<float>(),
 //            result["phi"].as<float>(),
             result["u"].as<float>(),
             result["q"].as<int>(),
-            result["nstates"].as<int>(),
-            result["analysis"].as<int>());
+            result["n"].as<int>(),
+            result["m"].as<int>());
     // Currently cannot disentangle case from task because the type of dmrg is specific to each case
     if (std::get<0>(params) == "golden") {
         auto dmrg = DMRG<Golden>(params);
         if (std::get<10>(params) == 1) {
             dmrg.Analyze();
         } else if (std::get<10>(params) == 2) {
+            dmrg.AnalyzeNoRho();
+        } else if (std::get<10>(params) == 3) {
             dmrg.NormalizeEnergies();
         } else {
-            dmrg.Run();
+            dmrg.Simulate();
         }
         return 0;
     } else if (std::get<0>(params) == "haagerup") {
@@ -59,9 +61,11 @@ int main(int argc, char** argv) {
         if (std::get<10>(params) == 1) {
             dmrg.Analyze();
         } else if (std::get<10>(params) == 2) {
+            dmrg.AnalyzeNoRho();
+        } else if (std::get<10>(params) == 3) {
             dmrg.NormalizeEnergies();
         } else {
-            dmrg.Run();
+            dmrg.Simulate();
         }
         return 0;
     } else if (std::get<0>(params) == "haagerupq") {
@@ -72,9 +76,11 @@ int main(int argc, char** argv) {
 //            auto stop = std::chrono::high_resolution_clock::now();
 //            std::cout << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() / 1000000 << std::endl;
         } else if (std::get<10>(params) == 2) {
+            dmrg.AnalyzeNoRho();
+        } else if (std::get<10>(params) == 3) {
             dmrg.NormalizeEnergies();
         } else {
-            dmrg.Run();
+            dmrg.Simulate();
         }
         return 0;
     } else {
