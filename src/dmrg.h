@@ -580,6 +580,12 @@ public:
         for (int i=0; i<num_states; i++) {
             energies.push_back(dmrg_progress_.Energies().at(i));
         }
+
+        printf("{{%s},", coupling_str_);
+        PrintVector(energies);
+        print("},\n");
+        return;
+
         if (energies.size() > 2) {
             std::sort(energies.begin(), energies.end());
             std::vector<Real> result;
