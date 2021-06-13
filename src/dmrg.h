@@ -537,7 +537,7 @@ public:
             Cplx tmp = rho_eigenvalues.at(i);
 //            if (abs(tmp.imag()) < 1E-3) {
                 for (int j=0; j<possibilities.size(); j++) {
-                    if (abs(tmp - possibilities.at(j)) < 1E-2) {
+                    if (abs(tmp - possibilities.at(j)) < 1E-3) {
                         result.push_back(possibilities.at(j));
                     }
                 }
