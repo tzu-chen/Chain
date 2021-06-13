@@ -51,6 +51,8 @@ int main(int argc, char** argv) {
         } else if (std::get<10>(params) == 2) {
             dmrg.AnalyzeNoRho();
         } else if (std::get<10>(params) == 3) {
+            dmrg.Energies();
+        } else if (std::get<10>(params) == 4) {
             dmrg.NormalizeEnergies();
         } else {
             dmrg.Simulate();
@@ -63,6 +65,8 @@ int main(int argc, char** argv) {
         } else if (std::get<10>(params) == 2) {
             dmrg.AnalyzeNoRho();
         } else if (std::get<10>(params) == 3) {
+            dmrg.Energies();
+        } else if (std::get<10>(params) == 4) {
             dmrg.NormalizeEnergies();
         } else {
             dmrg.Simulate();
@@ -78,6 +82,8 @@ int main(int argc, char** argv) {
         } else if (std::get<10>(params) == 2) {
             dmrg.AnalyzeNoRho();
         } else if (std::get<10>(params) == 3) {
+            dmrg.Energies();
+        } else if (std::get<10>(params) == 4) {
             dmrg.NormalizeEnergies();
         } else {
             dmrg.Simulate();

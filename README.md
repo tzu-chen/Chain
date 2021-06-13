@@ -45,4 +45,6 @@ The built binary accepts the following arguments:
   
   2: measure energy and translation eigenvalues, 
   
-  3: compute energy ratios.
+  3: measure energies.
+
+  4: measure energy ratios.

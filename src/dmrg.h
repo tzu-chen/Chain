@@ -568,6 +568,23 @@ public:
         return old_vector;
     }
 
+    void Energies() {
+        if (std::filesystem::exists(progress_directory_ / (filename_ + ".pgs"))) {
+            dmrg_progress_.Read(progress_path_);
+        } else {
+            printf("\n> No progress file available\n");
+            return;
+        }
+        int num_states = std::min(dmrg_progress_.NumDoneStates(), num_states_);
+        std::vector<Real> energies;
+        for (int i=0; i<num_states; i++) {
+            energies.push_back(dmrg_progress_.Energies().at(i));
+        }
+        printf("{{%s},", coupling_str_);
+        PrintVector(energies);
+        print("},\n");
+    }
+
     void NormalizeEnergies() {
         if (std::filesystem::exists(progress_directory_ / (filename_ + ".pgs"))) {
             dmrg_progress_.Read(progress_path_);
@@ -580,12 +597,6 @@ public:
         for (int i=0; i<num_states; i++) {
             energies.push_back(dmrg_progress_.Energies().at(i));
         }
-
-        printf("{{%s},", coupling_str_);
-        PrintVector(energies);
-        print("},\n");
-        return;
-
         if (energies.size() > 2) {
             std::sort(energies.begin(), energies.end());
             std::vector<Real> result;
