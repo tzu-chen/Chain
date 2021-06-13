@@ -16,7 +16,7 @@ MPO TranslationOp(const SiteSet& sites, bool inv) {
     auto B = std::vector<ITensor>(N);
     if (not inv) {
         for (auto j : range1(N-1)) {
-            auto[Aj, Bj] = factor(G[j], {sites(j), prime(sites(j))});
+            auto[Aj, Bj] = factor(G[j], {sites(j), prime(sites(j))}, {"Cutoff", 1e-3});
             A[j] = Aj;
             B[j] = Bj;
         }
@@ -46,7 +46,6 @@ MPO TranslationOp(const SiteSet& sites, bool inv) {
     m.set(N, B[N-1]);
     return m;
 }
-
 
 MPO IdentityOp(const SiteSet& sites, MPO const& op) {
     int N = sites.length();

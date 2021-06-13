@@ -523,7 +523,13 @@ public:
 //            }
             Cplx tmp = log(translation_eigenvalues.at(i)) / (2 * Pi * 1_i) * num_sites_;
             if (abs(tmp.imag()) < 1E-1 && abs(tmp.real()-round(tmp.real())) < 1E-1) {
-                result.push_back(round(tmp.real()));
+                if (round(tmp.real()) == -0) {
+                    result.push_back( 0 );
+                } else if (round(tmp.real()) == - num_sites_/2) {
+                    result.push_back( num_sites_/2 );
+                } else {
+                    result.push_back( round(tmp.real()) );
+                }
             }
         }
         return result;
@@ -810,7 +816,7 @@ public:
     void Measure(std::string observable) {
         // Default svd_cutoff for applyMPO(density matrix variant) is 1E-12
         // Setting to larger value will speed up the program significantly at the cost of accuracy of measurements
-        float svd_cutoff = 1E-8;
+        float svd_cutoff = 1E-3;
 
         // Variable declaration
         MPS psi_acted;
@@ -831,6 +837,7 @@ public:
             printf("\n> %s eigenvalues:\n", observable);
             PrintVector(eigenvalues);
             printf("\n\n");
+            println("Checkpoint 1");
         } else {
             auto states = dmrg_progress_.DoneStates();
             int num_states = std::min(dmrg_progress_.NumDoneStates(), num_states_);
@@ -862,11 +869,16 @@ public:
                 states_acted.push_back(MPS());
             }
 
+            println("Checkpoint 2");
+
             if (observable == "translation") {
                 auto translate_op = TranslationOp(sites); // periodic MPS
+                println("Checkpoint 3");
                 for (int i = 0; i < num_states; i++) {
                     psi_acted = MPS(states.at(i));
+                    println("Checkpoint 4");
                     psi_acted = applyMPO(translate_op, psi_acted, {"Cutoff", svd_cutoff});
+                    println("Checkpoint 5");
                     states_acted.at(i) = psi_acted;
                 }
             }
@@ -922,10 +934,10 @@ public:
             DumpMathematicaSingle(observable, num_states, matrix, m_path_);
             println("Computed inner product");
 
-            // Diagonalize
-            auto [U,diag] = eigen(matrix);
-            printf("\n> %s eigenvalues (unordered):\n", observable);
-            PrintData(diag);
+//            // Diagonalize
+//            auto [U,diag] = eigen(matrix);
+//            printf("\n> %s eigenvalues (unordered):\n", observable);
+//            PrintData(diag);
 
             // Analysis of translation and rho eigenvalues assuming that the states are simulated well enough
             // Otherwise, better work with the Mathematica .m file created above
