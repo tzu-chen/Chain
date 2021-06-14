@@ -743,10 +743,10 @@ public:
 //        // en_shift = dmrg_progress.Energies().at(0);
 //
 //        for (int i=0; i < num_states; i++) {
-//            en_matrix.set(s(i + 1), sP(i + 1), dmrg_progress_.Energies().at(i) - en_shift);
+//            en_matrix.set(s(i+1), sP(i+1), dmrg_progress_.Energies().at(i) - en_shift);
 //            for (int j=0; j < num_states; j++) {
-//                translation_matrix.set(s(i + 1), sP(j+1), innerC(states.at(i), states_translated.at(j)));
-//                rho_matrix.set(s(i + 1), sP(j+1), innerC(AugmentMPS(states.at(i), left_dangling_ind, right_dangling_ind), states_acted_by_rho.at(j)));
+//                translation_matrix.set(s(i+1), sP(j+1), innerC(states.at(i), states_translated.at(j)));
+//                rho_matrix.set(s(i+1), sP(j+1), innerC(AugmentMPS(states.at(i), left_dangling_ind, right_dangling_ind), states_acted_by_rho.at(j)));
 //            }
 //        }
 //        DumpMathematicaAll(num_states, en_matrix, translation_matrix, rho_matrix, m_path_);
@@ -816,7 +816,7 @@ public:
     void Measure(std::string observable) {
         // Default svd_cutoff for applyMPO(density matrix variant) is 1E-12
         // Setting to larger value will speed up the program significantly at the cost of accuracy of measurements
-        float svd_cutoff = 1E-3;
+        float svd_cutoff = 1E-8;
 
         // Variable declaration
         MPS psi_acted;
@@ -837,7 +837,6 @@ public:
             printf("\n> %s eigenvalues:\n", observable);
             PrintVector(eigenvalues);
             printf("\n\n");
-            println("Checkpoint 1");
         } else {
             auto states = dmrg_progress_.DoneStates();
             int num_states = std::min(dmrg_progress_.NumDoneStates(), num_states_);
@@ -869,16 +868,16 @@ public:
                 states_acted.push_back(MPS());
             }
 
-            println("Checkpoint 2");
-
             if (observable == "translation") {
-                auto translate_op = TranslationOp(sites); // periodic MPS
-                println("Checkpoint 3");
+                auto translation_op = TranslationOp(sites); // periodic MPS
                 for (int i = 0; i < num_states; i++) {
                     psi_acted = MPS(states.at(i));
-                    println("Checkpoint 4");
-                    psi_acted = applyMPO(translate_op, psi_acted, {"Cutoff", svd_cutoff});
-                    println("Checkpoint 5");
+//                    println("Checkpoint 1");
+                    psi_acted = applyMPO(translation_op, psi_acted, {"Cutoff", svd_cutoff});
+//                    for (int j=1; j<num_sites_; j++) {
+//                        Swap(psi_acted, sites, j);
+//                    }
+//                    println("Checkpoint 2");
                     states_acted.at(i) = psi_acted;
                 }
             }
@@ -918,14 +917,14 @@ public:
 
             for (int i = 0; i < num_states; i++) {
                 if (observable == "energy") {
-                    matrix.set(s(i + 1), sP(i + 1), dmrg_progress_.Energies().at(i) - en_shift);
+                    matrix.set(s(i+1), sP(i+1), dmrg_progress_.Energies().at(i) - en_shift);
                 }
                 for (int j = 0; j < num_states; j++) {
                     if (observable == "translation") {
-                        matrix.set(s(i + 1), sP(j + 1), innerC(states.at(i), states_acted.at(j)));
+                        matrix.set(s(i+1), sP(j+1), innerC(states.at(i), states_acted.at(j)));
                     }
                     if (observable == "rho") {
-                        matrix.set(s(i + 1), sP(j + 1),
+                        matrix.set(s(i+1), sP(j+1),
                                    innerC(AugmentMPS(states.at(i), left_dangling_ind, right_dangling_ind),
                                           states_acted.at(j)));
                     }
@@ -945,15 +944,15 @@ public:
             std::vector<Cplx> eigenvalues;
             for (int i = 0; i < num_states; i++) {
                 auto submatrix = ITensor(dag(s), sP);
-                for (int j = 1; j <= i + 1; j++) {
-                    for (int k = 1; k <= i + 1; k++) {
+                for (int j = 1; j <= i+1; j++) {
+                    for (int k = 1; k <= i+1; k++) {
                         submatrix.set(s(j), sP(k), eltC(matrix, j, k));
                         submatrix.set(s(j), sP(k), eltC(matrix, j, k));
                     }
                 }
                 auto[U, sub_eigenvalues] = eigen(submatrix);
                 std::vector<Cplx> eigenvalues_tmp;
-                for (int j = 1; j <= i + 1; j++) {
+                for (int j = 1; j <= i+1; j++) {
                     eigenvalues_tmp.push_back(eltC(sub_eigenvalues, j, j));
                 }
                 if (observable == "translation") {

@@ -16,13 +16,13 @@ MPO TranslationOp(const SiteSet& sites, bool inv) {
     auto B = std::vector<ITensor>(N);
     if (not inv) {
         for (auto j : range1(N-1)) {
-            auto[Aj, Bj] = factor(G[j], {sites(j), prime(sites(j))}, {"Cutoff", 1e-3});
+            auto[Aj, Bj] = factor(G[j], {sites(j), prime(sites(j))});
             A[j] = Aj;
             B[j] = Bj;
         }
     } else {
         for (auto j : range1(N-1)) {
-            auto[Aj, Bj] = factor(G[N-j], {sites(N-j), prime(sites(N-j))});
+            auto[Aj, Bj] = factor(G[N-j], {sites(N-j), prime(sites(N-j))}, {"Cutoff", 1e-3});
             A[N-j] = Aj;
             B[N-j] = Bj;
         }
@@ -146,7 +146,7 @@ MPS AugmentMPS(MPS const& original_psi, Index const& sl, Index const& sr) {
     augmented_psi.set(2, vl * original_psi(1));
 
     for (auto i:range1(length(original_psi) - 2)) {
-        augmented_psi.set(i + 2, original_psi(i + 1));
+        augmented_psi.set(i+2, original_psi(i+1));
     }
 
     auto extra_site_index_right = Index(1, "l=inf,Link");
@@ -172,7 +172,7 @@ MPO AugmentMPO(MPO const& original_mpo, Index const& sl, Index const& sr) {
     augmented_mpo.set(1, vl * Tl);
 
     for (auto i:range1(length(original_mpo) + 1)) {
-        augmented_mpo.set(i + 1, original_mpo(i));
+        augmented_mpo.set(i+1, original_mpo(i));
     }
 
     auto vr = ITensor(sr);
@@ -193,8 +193,8 @@ ITensor Z3FourierMatrix(Index const& s, Index const& sP) {
     for (int i=1;i<=3;i++) {
         op.set(s(i), sP(1), norm);
         op.set(s(1), sP(i), norm);
-        op.set(s(i + 3), sP(4), norm);
-        op.set(s(4), sP(i + 3), norm);
+        op.set(s(i+3), sP(4), norm);
+        op.set(s(4), sP(i+3), norm);
     }
 
     op.set(s(2), sP(2), norm * omega);
@@ -324,24 +324,24 @@ MPS Z3FourierTransform(MPS const& psi, SiteSet const& sites_new) {
 //    return res;
 //}
 //
-//void Swap(MPS &psi, const SiteSet &sites, int b) {
-//    // Store original tags
-//    psi.position(b);
-//    auto tag = tags(rightLinkIndex(psi,1));
-//
-//    auto G = BondGate(sites, b, b+1);
-//    auto wf = psi(b) * psi(b+1);
-//    wf *= G;
-//    wf.noPrime();
-//
-//    auto [U,S,V] = svd(wf,inds(psi(b)));
-//    // auto [u_,S,V] = svd(wf,inds(psi(b)),{"Cutoff=",1E-8});
-//    U.replaceTags(TagSet("u_,Link,0"), tag);
-//    S.replaceTags(TagSet("u_,Link,0"), tag);
-//
-//    psi.set(b,U);
-//    psi.set(b+1,S*V);
-//}
+void Swap(MPS &psi, const SiteSet &sites, int b) {
+    // Store original tags
+    psi.position(b);
+    auto tag = tags(rightLinkIndex(psi,1));
+
+    auto G = BondGate(sites, b, b+1);
+    auto wf = psi(b) * psi(b+1);
+    wf *= G;
+    wf.noPrime();
+
+    auto [U,S,V] = svd(wf,inds(psi(b)));
+    // auto [u_,S,V] = svd(wf,inds(psi(b)),{"Cutoff=",1E-8});
+    U.replaceTags(TagSet("u_,Link,0"), tag);
+    S.replaceTags(TagSet("u_,Link,0"), tag);
+
+    psi.set(b,U);
+    psi.set(b+1,S*V);
+}
 //
 //void ActLocal(MPS &psi, const ITensor &G, int b) {
 //    // Store original tags
@@ -376,4 +376,3 @@ MPS Z3FourierTransform(MPS const& psi, SiteSet const& sites_new) {
 //        }
 //    }
 //}
-
