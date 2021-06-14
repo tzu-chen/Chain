@@ -335,7 +335,7 @@ void Swap(MPS &psi, const SiteSet &sites, int b) {
     wf.noPrime();
 
     auto [U,S,V] = svd(wf,inds(psi(b)));
-    // auto [u_,S,V] = svd(wf,inds(psi(b)),{"Cutoff=",1E-8});
+//    auto [U,S,V] = svd(wf,inds(psi(b)),{"Cutoff=",1E-3});
     U.replaceTags(TagSet("u_,Link,0"), tag);
     S.replaceTags(TagSet("u_,Link,0"), tag);
 

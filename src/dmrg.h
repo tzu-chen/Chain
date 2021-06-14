@@ -872,12 +872,12 @@ public:
                 auto translation_op = TranslationOp(sites); // periodic MPS
                 for (int i = 0; i < num_states; i++) {
                     psi_acted = MPS(states.at(i));
-//                    println("Checkpoint 1");
-                    psi_acted = applyMPO(translation_op, psi_acted, {"Cutoff", svd_cutoff});
-//                    for (int j=1; j<num_sites_; j++) {
-//                        Swap(psi_acted, sites, j);
-//                    }
-//                    println("Checkpoint 2");
+                    println("Checkpoint 1");
+//                    psi_acted = applyMPO(translation_op, psi_acted, {"Cutoff", svd_cutoff});
+                    for (int j=1; j<num_sites_; j++) {
+                        Swap(psi_acted, sites, j);
+                    }
+                    println("Checkpoint 2");
                     states_acted.at(i) = psi_acted;
                 }
             }
