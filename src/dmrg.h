@@ -872,12 +872,12 @@ public:
                 auto translation_op = TranslationOp(sites); // periodic MPS
                 for (int i = 0; i < num_states; i++) {
                     psi_acted = MPS(states.at(i));
-                    println("Checkpoint 1");
+//                    println("Checkpoint 1");
 //                    psi_acted = applyMPO(translation_op, psi_acted, {"Cutoff", svd_cutoff});
                     for (int j=1; j<num_sites_; j++) {
                         Swap(psi_acted, sites, j);
                     }
-                    println("Checkpoint 2");
+//                    println("Checkpoint 2");
                     states_acted.at(i) = psi_acted;
                 }
             }
@@ -891,6 +891,12 @@ public:
                 for (int i = 0; i < num_states; i++) {
                     // Initialize
                     psi_acted = MPS(states.at(i));
+                    // fixme
+                    auto left_dangling_ind = Index(6, "Site");
+                    auto left_left_dangling_ind = Index(6, "Site");
+                    auto augmented_psi = AugmentMPSZipper(psi_acted, left_dangling_ind, left_left_dangling_ind);
+                    PrintData(innerC(augmented_psi, augmented_psi));
+                    return;
                     // Act by rho defect in two steps
                     // First act by dangling rho operator
                     // Then act by dangling identity operator
@@ -904,7 +910,7 @@ public:
                 }
             }
 
-            println("Acted operator");
+//            println("Acted operator");
 
             // Create ITensor
             auto s = Index(num_states);
@@ -931,7 +937,7 @@ public:
                 }
             }
             DumpMathematicaSingle(observable, num_states, matrix, m_path_);
-            println("Computed inner product");
+//            println("Computed inner product");
 
 //            // Diagonalize
 //            auto [U,diag] = eigen(matrix);

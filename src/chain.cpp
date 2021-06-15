@@ -220,6 +220,102 @@ MPS Z3FourierTransform(MPS const& psi, SiteSet const& sites_new) {
     return new_psi;
 }
 
+// fixme
+MPS AugmentMPSZipper(MPS const& original_psi, Index const& sl, Index const& sll) {
+    auto augmented_psi = MPS(length(original_psi) + 2);
+    auto extra_bond_index_left = Index(1, "l=0,Link");
+    auto extra_l = ITensor(sl, extra_bond_index_left);
+    auto extra_bond_index_left_left = Index(1, "l=-1,Link");
+    auto extra_ll = ITensor(sll, extra_bond_index_left_left);
+    for (auto i:range1(dim(sl))) {
+        extra_l.set(i, 1, 1);
+    }
+    for (auto i:range1(dim(sll))) {
+        extra_ll.set(i, 1, 1. / dim(sll));
+    }
+
+    augmented_psi.set(1, extra_ll);
+    auto vll = ITensor(extra_bond_index_left_left);
+    vll.set(1, 1);
+
+    augmented_psi.set(2, vll * extra_l);
+    auto vl = ITensor(extra_bond_index_left);
+    vl.set(1, 1);
+
+    augmented_psi.set(3, vl * original_psi(1));
+
+    for (auto i:range1(length(original_psi) - 1)) {
+        augmented_psi.set(i+3, original_psi(i+1));
+    }
+
+    return augmented_psi;
+}
+
+// fixme
+//ITensor TetrahedralGate(const SiteSet& sites, const std::string& site_type, int b, int i, int j, int k, int l, int m, int n) {
+//    auto G = ITensor(sites(b), sites(b+1), sites(b+2), prime(sites(b)), prime(sites(b+1)), prime(sites(b+2)));
+//    if (site_type == "golden") {
+//        auto f = GoldenFData();
+//        for (auto j : range1(N-1)) {
+//            G[j] = f.RhoDefectCell(sites(j), sites(j+1));
+//        }
+//        G[N] = GoldenFData().RhoDefectCell(sites(N), sites(1));
+//    } else if (site_type == "haagerup" || site_type == "haagerupq") {
+//        auto f = HaagerupFData();
+//        for (auto j : range1(N-1)) {
+//            G[j] = f.RhoDefectCell(sites(j), sites(j+1));
+//        }
+//        G[N] = f.RhoDefectCell(sites(N), sites(1));
+//    }
+//    auto A = std::vector<ITensor>(N+1);
+//    auto B = std::vector<ITensor>(N+1);
+//    for (auto j : range1(N))
+//    {
+//        auto [Aj,Bj] = factor(G[j],{sites(j),prime(sites(j))}); // fixme: Can refactor
+//        Aj.prime("Site").prime("Site");
+//        Bj.prime("Site").prime("Site").prime("Site").prime("Site");
+//        A[j] = Aj;
+//        B[j] = Bj;
+//    }
+//    auto long_link = commonIndex(A[N], B[N]);
+//    auto BNP = ITensor(B[N]);
+//    BNP.prime("Link");
+//    auto D12 = std::vector<ITensor>(N+1);
+//    auto D21 = std::vector<ITensor>(N+1);
+//    for (auto j : range1(N))
+//    {
+//        D12[j] = Delta3ITensor(dag(sites(j)), prime(sites(j),2), prime(sites(j),4) );
+//        D21[j] = Delta3ITensor(prime(sites(j)), dag(prime(sites(j), 3)), dag(prime(sites(j),5)) );
+//    }
+//
+//    auto m = MPO(N);
+//    m.set(1, BNP * A[1] * D12[1] * D21[1]);
+//    for (auto j : range1(2,N))
+//    {
+//        m.set(j, B[j-1] * A[j] * D12[j] * D21[j]);
+//    }
+//
+//    return m;
+//}
+
+//void InitialZip(MPS &psi, const SiteSet &sites) {
+//    // Store original tags
+//    psi.position(1);
+//    auto tag = tags(rightLinkIndex(psi,1));
+//
+//    auto G = BondGate(sites, b, b+1);
+//    auto wf = psi(b) * psi(b+1);
+//    wf *= G;
+//    wf.noPrime();
+//
+////    auto [U,S,V] = svd(wf,inds(psi(b)));
+//    auto [U,S,V] = svd(wf,inds(psi(b)),{"Cutoff=",1E-5});
+//    U.replaceTags(TagSet("u_,Link,0"), tag);
+//    S.replaceTags(TagSet("u_,Link,0"), tag);
+//
+//    psi.set(b,U);
+//    psi.set(b+1,S*V);
+//}
 
 // UNUSED
 
@@ -334,10 +430,11 @@ void Swap(MPS &psi, const SiteSet &sites, int b) {
     wf *= G;
     wf.noPrime();
 
-    auto [U,S,V] = svd(wf,inds(psi(b)));
-//    auto [U,S,V] = svd(wf,inds(psi(b)),{"Cutoff=",1E-3});
-    U.replaceTags(TagSet("u_,Link,0"), tag);
-    S.replaceTags(TagSet("u_,Link,0"), tag);
+//    auto [U,S,V] = svd(wf,inds(psi(b)));
+    auto [U,S,V] = svd(wf,inds(psi(b)),{"Cutoff=",1E-5});
+    // fixme: U vs u_
+    U.replaceTags(TagSet("U,Link,0"), tag);
+    S.replaceTags(TagSet("U,Link,0"), tag);
 
     psi.set(b,U);
     psi.set(b+1,S*V);

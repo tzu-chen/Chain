@@ -34,6 +34,8 @@ MPS Z3FourierTransform(MPS const& psi, SiteSet const& sites_new);
 // Swap sites b and b+1
 void Swap(MPS& psi, const SiteSet& sites, int b);
 
+MPS AugmentMPSZipper(MPS const& original_psi, Index const& sl, Index const& sll);
+
 // UNUSED
 //typedef ITensor (FData::*TwoSiteGate) (const Index& s1, const Index& s2);
 //void ActLocal(MPS& psi, const ITensor& G, int b);
