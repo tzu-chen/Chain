@@ -75,10 +75,10 @@ int main(int argc, char** argv) {
     } else if (std::get<0>(params) == "haagerupq") {
         auto dmrg = DMRG<HaagerupQ>(params);
         if (std::get<10>(params) == 1) {
-//            auto start = std::chrono::high_resolution_clock::now();
+            auto start = std::chrono::high_resolution_clock::now();
             dmrg.Analyze();
-//            auto stop = std::chrono::high_resolution_clock::now();
-//            std::cout << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() / 1000000 << std::endl;
+            auto stop = std::chrono::high_resolution_clock::now();
+            std::cout << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() / 1000000 << std::endl;
         } else if (std::get<10>(params) == 2) {
             dmrg.AnalyzeNoRho();
         } else if (std::get<10>(params) == 3) {
