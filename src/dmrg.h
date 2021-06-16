@@ -541,9 +541,10 @@ public:
         std::vector<Cplx> result;
         for (int i=0; i<rho_eigenvalues.size(); i++) {
             Cplx tmp = rho_eigenvalues.at(i);
+            println(tmp);
 //            if (abs(tmp.imag()) < 1E-3) {
                 for (int j=0; j<possibilities.size(); j++) {
-                    if (abs(tmp - possibilities.at(j)) < 1E-3) {
+                    if (abs(tmp - possibilities.at(j)) < 1E-1) {
                         result.push_back(possibilities.at(j));
                     }
                 }
@@ -816,7 +817,7 @@ public:
     void Measure(std::string observable) {
         // Default svd_cutoff for applyMPO(density matrix variant) is 1E-12
         // Setting to larger value will speed up the program significantly at the cost of accuracy of measurements
-        float svd_cutoff = 1E-8;
+        float svd_cutoff = 1E-5;
 
         // Variable declaration
         MPS psi_acted;
@@ -872,12 +873,12 @@ public:
                 auto translation_op = TranslationOp(sites); // periodic MPS
                 for (int i = 0; i < num_states; i++) {
                     psi_acted = MPS(states.at(i));
-//                    println("Checkpoint 1");
-//                    psi_acted = applyMPO(translation_op, psi_acted, {"Cutoff", svd_cutoff});
-                    for (int j=1; j<num_sites_; j++) {
-                        Swap(psi_acted, sites, j);
-                    }
-//                    println("Checkpoint 2");
+                    println("Checkpoint 1");
+                    psi_acted = applyMPO(translation_op, psi_acted, {"Method", "Fit", "Cutoff", svd_cutoff});
+//                    for (int j=1; j<num_sites_; j++) {
+//                        Swap(psi_acted, sites, j);
+//                    }
+                    println("Checkpoint 2");
                     states_acted.at(i) = psi_acted;
                 }
             }
@@ -892,20 +893,23 @@ public:
                     // Initialize
                     psi_acted = MPS(states.at(i));
                     // fixme
-                    auto left_dangling_ind = Index(6, "Site");
-                    auto left_left_dangling_ind = Index(6, "Site");
-                    auto augmented_psi = AugmentMPSZipper(psi_acted, left_dangling_ind, left_left_dangling_ind);
-                    PrintData(innerC(augmented_psi, augmented_psi));
-                    return;
+//                    auto left_dangling_ind = Index(6, "Site");
+//                    auto left_left_dangling_ind = Index(6, "Site");
+//                    auto augmented_psi = AugmentMPSZipper(psi_acted, left_dangling_ind, left_left_dangling_ind);
+//                    PrintData(innerC(augmented_psi, augmented_psi));
+//                    return;
                     // Act by rho defect in two steps
                     // First act by dangling rho operator
                     // Then act by dangling identity operator
+                    println("Checkpoint 1");
                     psi_acted = applyMPO(AugmentMPO(rho_op, left_dangling_ind, right_dangling_ind),
                                          AugmentMPS(psi_acted, left_dangling_ind, right_dangling_ind),
-                                         {"Cutoff", svd_cutoff}
+                                         {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 2, "Verbose", true}
                     );
+                    println("Checkpoint 2");
                     psi_acted = applyMPO(AugmentMPO(id_op, left_dangling_ind, right_dangling_ind),
-                                         psi_acted, {"Cutoff", svd_cutoff});
+                                         psi_acted, {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 1, "Verbose", true});
+                    println("Checkpoint 3");
                     states_acted.at(i) = psi_acted;
                 }
             }

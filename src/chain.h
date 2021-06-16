@@ -36,6 +36,10 @@ void Swap(MPS& psi, const SiteSet& sites, int b);
 
 MPS AugmentMPSZipper(MPS const& original_psi, Index const& sl, Index const& sll);
 
+// Copy of the applyMPO function of ITensor using the density matrix method
+// For customization and examining bottleneck
+MPS mydensityMatrixApplyMPOImpl(MPO const& K, MPS const& psi, Args args);
+
 // UNUSED
 //typedef ITensor (FData::*TwoSiteGate) (const Index& s1, const Index& s2);
 //void ActLocal(MPS& psi, const ITensor& G, int b);
@@ -44,6 +48,5 @@ MPS AugmentMPSZipper(MPS const& original_psi, Index const& sl, Index const& sll)
 //MPO NewRhoOp(const SiteSet &sites);
 //void SetRho(const SiteSet &sites, MPO& m, int min, int max, bool boundary);
 //MPO RhoOp_old(const SiteSet &sites);
-//MPS mydensityMatrixApplyMPOImpl(MPO const& K, MPS const& psi, Args args);
 
 #endif //CHAINDMRG_CHAIN_H

@@ -16,13 +16,13 @@ MPO TranslationOp(const SiteSet& sites, bool inv) {
     auto B = std::vector<ITensor>(N);
     if (not inv) {
         for (auto j : range1(N-1)) {
-            auto[Aj, Bj] = factor(G[j], {sites(j), prime(sites(j))});
+            auto[Aj, Bj] = factor(G[j], {sites(j), prime(sites(j))}, {"MaxDim", 100});
             A[j] = Aj;
             B[j] = Bj;
         }
     } else {
         for (auto j : range1(N-1)) {
-            auto[Aj, Bj] = factor(G[N-j], {sites(N-j), prime(sites(N-j))}, {"Cutoff", 1e-3});
+            auto[Aj, Bj] = factor(G[N-j], {sites(N-j), prime(sites(N-j))}, {"MaxDim", 100});
             A[N-j] = Aj;
             B[N-j] = Bj;
         }
@@ -319,106 +319,110 @@ MPS AugmentMPSZipper(MPS const& original_psi, Index const& sl, Index const& sll)
 
 // UNUSED
 
-//MPS
-//mydensityMatrixApplyMPOImpl(MPO const& K, MPS const& psi, Args args)
-//{
-//    if ( args.defined("Maxm") )
-//    {
-//        if ( args.defined("MaxDim") )
-//        {
-//            Global::warnDeprecated("Args Maxm and MaxDim are both defined. Maxm is deprecated in favor of MaxDim, MaxDim will be used.");
-//        }
-//        else
-//        {
-//            Global::warnDeprecated("Arg Maxm is deprecated in favor of MaxDim.");
-//            args.add("MaxDim",args.getInt("Maxm"));
-//        }
-//    }
-//
-//    auto cutoff = args.getReal("Cutoff",1E-13);
-//    auto dargs = Args{"Cutoff",cutoff};
-//    auto maxdim_set = args.defined("MaxDim");
-//    if (maxdim_set) dargs.add("MaxDim",args.getInt("MaxDim"));
-//    dargs.add("RespectDegenerate",args.getBool("RespectDegenerate",true));
-//    auto verbose = args.getBool("Verbose",false);
-//    auto normalize = args.getBool("Normalize",false);
-//
-//    auto N = length(psi);
-//
-//    for ( auto n : range1(N) )
-//    {
-//        if ( commonIndex(psi(n),K(n)) != siteIndex(psi,n) )
-//            Error("MPS and MPO have different site indices in applyMPO method 'DensityMatrix'");
-//    }
-//
-//    auto rand_plev = 14741;
-//
-//    auto res = psi;
-//
-//    //Set up conjugate psi and k_
-//    auto psic = psi;
-//    auto Kc = K;
-//    psic.dag().prime(rand_plev);
-//    Kc.dag().prime(rand_plev);
-//
-//    // Make sure the original and conjugates match
-//
-//    for (auto j : range1(N-1)) {
-//        Kc.ref(j).prime(-rand_plev, uniqueSiteIndex(Kc, psic, j));
-//    }
-//
-//    //Build environment tensors from the left
-//    if (verbose) print("Building environment tensors...");
-//    auto E = std::vector<ITensor>(N+1);
-//    E[1] = psi(1)*K(1)*Kc(1)*psic(1);
-//    for (int j = 2; j < N; ++j)
-//    {
-//        E[j] = E[j-1]*psi(j)*K(j)*Kc(j)*psic(j);
-//    }
-//    if (verbose) println("done");
-//
-//    //O is the representation of the product of k_*psi in the new MPS basis
-//    auto O = psi(N)*K(N);
-//
-//    auto rho = E[N-1] * O * dag(prime(O,rand_plev));
-//
-//    ITensor U,D;
-//    auto ts = tags(linkIndex(psi,N-1));
-//    auto spec = diagPosSemiDef(rho,U,D,{dargs,"Tags=",ts});
-//    if (verbose) printfln("  j=%02d truncerr=%.2E dim=%d",N-1,spec.truncerr(),dim(commonIndex(U,D)));
-//
-//    res.ref(N) = dag(U);
-//
-//    O = O*U*psi(N-1)*K(N-1);
-//
-//    for (int j = N-1; j > 1; --j)
-//    {
-//        if (not maxdim_set)
-//        {
-//            //Infer maxdim from bond dim of original MPS
-//            //times bond dim of MPO
-//            //i.e. upper bound on order of rho
-//            auto cip = commonIndex(psi(j),E[j-1]);
-//            auto ciw = commonIndex(K(j),E[j-1]);
-//            auto maxdim = (cip) ? dim(cip) : 1l;
-//            maxdim *= (ciw) ? dim(ciw) : 1l;
-//            dargs.add("MaxDim",maxdim);
-//        }
-//        rho = E[j-1] * O * dag(prime(O,rand_plev));
-//        ts = tags(linkIndex(psi,j-1));
-//        auto spec = diagPosSemiDef(rho,U,D,{dargs,"Tags=",ts});
-//        O = O*U*psi(j-1)*K(j-1);
-//        res.ref(j) = dag(U);
-//        if (verbose) printfln("  j=%02d truncerr=%.2E dim=%d",j,spec.truncerr(),dim(commonIndex(U,D)));
-//    }
-//
-//    if (normalize) O /= norm(O);
-//    res.ref(1) = O;
-//    res.leftLim(0);
-//    res.rightLim(2);
-//
-//    return res;
-//}
+MPS
+mydensityMatrixApplyMPOImpl(MPO const& K, MPS const& psi, Args args)
+{
+    if ( args.defined("Maxm") )
+    {
+        if ( args.defined("MaxDim") )
+        {
+            Global::warnDeprecated("Args Maxm and MaxDim are both defined. Maxm is deprecated in favor of MaxDim, MaxDim will be used.");
+        }
+        else
+        {
+            Global::warnDeprecated("Arg Maxm is deprecated in favor of MaxDim.");
+            args.add("MaxDim",args.getInt("Maxm"));
+        }
+    }
+
+    auto cutoff = args.getReal("Cutoff",1E-13);
+    auto dargs = Args{"Cutoff",cutoff};
+    auto maxdim_set = args.defined("MaxDim");
+    if (maxdim_set) dargs.add("MaxDim",args.getInt("MaxDim"));
+    dargs.add("RespectDegenerate",args.getBool("RespectDegenerate",true));
+    auto verbose = args.getBool("Verbose",false);
+    auto normalize = args.getBool("Normalize",false);
+
+    auto N = length(psi);
+
+    for ( auto n : range1(N) )
+    {
+        if ( commonIndex(psi(n),K(n)) != siteIndex(psi,n) )
+            Error("MPS and MPO have different site indices in applyMPO method 'DensityMatrix'");
+    }
+
+    auto rand_plev = 14741;
+
+    auto res = psi;
+
+    //Set up conjugate psi and k_
+    auto psic = psi;
+    auto Kc = K;
+    psic.dag().prime(rand_plev);
+    Kc.dag().prime(rand_plev);
+
+    // Make sure the original and conjugates match
+
+    for (auto j : range1(N-1)) {
+        Kc.ref(j).prime(-rand_plev, uniqueSiteIndex(Kc, psic, j));
+    }
+
+    //Build environment tensors from the left
+    if (verbose) print("Building environment tensors...");
+    auto E = std::vector<ITensor>(N+1);
+    for (int i=1;i<=psi.length();i++) {
+        PrintData(linkInds(psi, i));
+    }
+    E[1] = psi(1)*K(1)*Kc(1)*psic(1);
+    for (int j = 2; j < N; ++j)
+    {
+        // fixme: size of E[j] goes like MPSBondDim^2 * MPOBondDim^2 and MPSBondDim is typically large when j is in the middle of the chain
+        E[j] = E[j-1]*psi(j)*K(j)*Kc(j)*psic(j);
+    }
+    if (verbose) println("done");
+
+    //O is the representation of the product of k_*psi in the new MPS basis
+    auto O = psi(N)*K(N);
+
+    auto rho = E[N-1] * O * dag(prime(O,rand_plev));
+
+    ITensor U,D;
+    auto ts = tags(linkIndex(psi,N-1));
+    auto spec = diagPosSemiDef(rho,U,D,{dargs,"Tags=",ts});
+    if (verbose) printfln("  j=%02d truncerr=%.2E dim=%d",N-1,spec.truncerr(),dim(commonIndex(U,D)));
+
+    res.ref(N) = dag(U);
+
+    O = O*U*psi(N-1)*K(N-1);
+
+    for (int j = N-1; j > 1; --j)
+    {
+        if (not maxdim_set)
+        {
+            //Infer maxdim from bond dim of original MPS
+            //times bond dim of MPO
+            //i.e. upper bound on order of rho
+            auto cip = commonIndex(psi(j),E[j-1]);
+            auto ciw = commonIndex(K(j),E[j-1]);
+            auto maxdim = (cip) ? dim(cip) : 1l;
+            maxdim *= (ciw) ? dim(ciw) : 1l;
+            dargs.add("MaxDim",maxdim);
+        }
+        rho = E[j-1] * O * dag(prime(O,rand_plev));
+        ts = tags(linkIndex(psi,j-1));
+        auto spec = diagPosSemiDef(rho,U,D,{dargs,"Tags=",ts});
+        O = O*U*psi(j-1)*K(j-1);
+        res.ref(j) = dag(U);
+        if (verbose) printfln("  j=%02d truncerr=%.2E dim=%d",j,spec.truncerr(),dim(commonIndex(U,D)));
+    }
+
+    if (normalize) O /= norm(O);
+    res.ref(1) = O;
+    res.leftLim(0);
+    res.rightLim(2);
+
+    return res;
+}
 //
 void Swap(MPS &psi, const SiteSet &sites, int b) {
     // Store original tags
