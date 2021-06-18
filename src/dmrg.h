@@ -26,6 +26,7 @@ public:
     std::vector<Real> ens_;
     std::vector<MPS> psis_;
     std::vector<MPO> Hs_;
+    std::vector<MPS> psis_acted_by_rho_;
 
     void SetSites(SiteSetType sites) {
         sites_ = sites;
@@ -64,6 +65,10 @@ public:
             past_psis.push_back(psis_.at(i));
         }
         return past_psis;
+    }
+
+    std::vector<MPS> StatesActedByRho() {
+        return psis_acted_by_rho_;
     }
 
     std::vector<Real> Energies() const {
@@ -118,6 +123,24 @@ public:
                 Hs_.clear();
             NextState();
 //            }
+        }
+
+    }
+
+    void WriteRho(const std::filesystem::path& p) const
+    {
+        std::string path = std::string(p);
+        writeToFile(path + ".rho", psis_acted_by_rho_);
+    }
+
+    void ReadRho(const std::filesystem::path& p)
+    {
+        std::string path = std::string(p);
+        try{
+            readFromFile(path + ".rho", psis_acted_by_rho_);
+        } catch (std::exception const& e) {
+            println(e.what());
+            psis_acted_by_rho_.pop_back();
         }
 
     }
@@ -865,9 +888,9 @@ public:
                 }
             }
 
-            for (int i = 0; i < num_states; i++) {
-                states_acted.push_back(MPS());
-            }
+//            for (int i = 0; i < num_states; i++) {
+//                states_acted.push_back(MPS());
+//            }
 
             if (observable == "translation") {
                 auto translation_op = TranslationOp(sites); // periodic MPS
@@ -879,7 +902,8 @@ public:
                         Swap(psi_acted, sites, j);
                     }
                     println("Checkpoint 2");
-                    states_acted.at(i) = psi_acted;
+//                    states_acted.at(i) = psi_acted;
+                    states_acted.push_back(psi_acted);
                 }
             }
 
@@ -887,9 +911,15 @@ public:
             auto right_dangling_ind = Index(36, "Site");
 
             if (observable == "rho") {
+                if (std::filesystem::exists(progress_directory_ / (filename_ + ".rho"))) {
+                    dmrg_progress_.ReadRho(progress_path_);
+                    for (int i=0; i<std::min(num_states_, (int) dmrg_progress_.StatesActedByRho().size()); i++) {
+                        states_acted.push_back(dmrg_progress_.StatesActedByRho().at(i));
+                    }
+                }
                 auto rho_op = RhoOp(sites, site_type_); // dangling periodic MPS
                 auto id_op = IdentityOp(sites, rho_op); // dangling periodic MPS with matching indices with rho_op
-                for (int i = 0; i < num_states; i++) {
+                for (int i = states_acted.size(); i < num_states; i++) {
                     // Initialize
                     psi_acted = MPS(states.at(i));
                     // fixme
@@ -904,13 +934,19 @@ public:
                     println("Checkpoint 1");
                     psi_acted = applyMPO(AugmentMPO(rho_op, left_dangling_ind, right_dangling_ind),
                                          AugmentMPS(psi_acted, left_dangling_ind, right_dangling_ind),
-                                         {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 2, "Verbose", true}
+                                         {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 3, "Verbose", true}
                     );
                     println("Checkpoint 2");
                     psi_acted = applyMPO(AugmentMPO(id_op, left_dangling_ind, right_dangling_ind),
                                          psi_acted, {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 1, "Verbose", true});
                     println("Checkpoint 3");
-                    states_acted.at(i) = psi_acted;
+//                    states_acted.at(i) = psi_acted;
+                    println(states_acted.size());
+                    states_acted.push_back(psi_acted);
+                    println(states_acted.size());
+
+                    dmrg_progress_.psis_acted_by_rho_.push_back(psi_acted);
+                    dmrg_progress_.WriteRho(progress_path_);
                 }
             }
 
