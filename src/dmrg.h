@@ -853,9 +853,11 @@ public:
             return;
         }
 
+        int num_states = std::min(dmrg_progress_.NumDoneStates(), num_states_);
+
         if (observable == "energy") {
             std::vector<Real> eigenvalues;
-            for (int i=0;i<num_states_;i++) {
+            for (int i=0;i<num_states;i++) {
                 eigenvalues.push_back(dmrg_progress_.Energies().at(i));
             }
             printf("\n> %s eigenvalues:\n", observable);
@@ -863,7 +865,6 @@ public:
             printf("\n\n");
         } else {
             auto states = dmrg_progress_.DoneStates();
-            int num_states = std::min(dmrg_progress_.NumDoneStates(), num_states_);
 
             // fixme: refactor Haagerup/HaagerupQ branching
             // Perform change of basis if appropriate in order to use F symbols
@@ -913,7 +914,7 @@ public:
             if (observable == "rho") {
                 if (std::filesystem::exists(progress_directory_ / (filename_ + ".rho"))) {
                     dmrg_progress_.ReadRho(progress_path_);
-                    for (int i=0; i<std::min(num_states_, (int) dmrg_progress_.StatesActedByRho().size()); i++) {
+                    for (int i=0; i<std::min(num_states, (int) dmrg_progress_.StatesActedByRho().size()); i++) {
                         states_acted.push_back(dmrg_progress_.StatesActedByRho().at(i));
                     }
                 }
@@ -934,7 +935,7 @@ public:
                     println("Checkpoint 1");
                     psi_acted = applyMPO(AugmentMPO(rho_op, left_dangling_ind, right_dangling_ind),
                                          AugmentMPS(psi_acted, left_dangling_ind, right_dangling_ind),
-                                         {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 3, "Verbose", true}
+                                         {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 2, "Verbose", true}
                     );
                     println("Checkpoint 2");
                     psi_acted = applyMPO(AugmentMPO(id_op, left_dangling_ind, right_dangling_ind),
