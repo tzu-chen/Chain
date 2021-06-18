@@ -899,13 +899,20 @@ public:
                     psi_acted = MPS(states.at(i));
                     println("Checkpoint 1");
 //                    psi_acted = applyMPO(translation_op, psi_acted, {"Method", "Fit", "Cutoff", svd_cutoff, "Verbose", true});
-                    for (int j=1; j<num_sites_; j++) {
-                        Swap(psi_acted, sites, j);
+//                    for (int j=1; j<num_sites_; j++) {
+//                        Swap(psi_acted, sites, j);
+//                    }
+//                    PrintData(psi_acted);
+                    // three-site swap gate. now only working for 3n+2 and not using augment zipper yet.
+                    for (int j=1; j<num_sites_-1; j+=2){
+                        SwapThree(psi_acted, sites, j);
                     }
+//                    PrintData(psi_acted);
                     println("Checkpoint 2");
 //                    states_acted.at(i) = psi_acted;
                     states_acted.push_back(psi_acted);
                 }
+                println("Finished translation.");
             }
 
             auto left_dangling_ind = Index(36, "Site");
@@ -935,11 +942,11 @@ public:
                     println("Checkpoint 1");
                     psi_acted = applyMPO(AugmentMPO(rho_op, left_dangling_ind, right_dangling_ind),
                                          AugmentMPS(psi_acted, left_dangling_ind, right_dangling_ind),
-                                         {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 2, "Verbose", true}
+                                         {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 2}
                     );
                     println("Checkpoint 2");
                     psi_acted = applyMPO(AugmentMPO(id_op, left_dangling_ind, right_dangling_ind),
-                                         psi_acted, {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 1, "Verbose", true});
+                                         psi_acted, {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 1});
                     println("Checkpoint 3");
 //                    states_acted.at(i) = psi_acted;
                     println(states_acted.size());

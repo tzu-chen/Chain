@@ -1,8 +1,11 @@
 #include "chain.h"
 #include "itensor/all.h"
 #include <functional>
+#include <vector>
+#include <algorithm>
 
 using namespace itensor;
+
 
 
 MPO TranslationOp(const SiteSet& sites, bool inv) {
@@ -251,6 +254,8 @@ MPS AugmentMPSZipper(MPS const& original_psi, Index const& sl, Index const& sll)
     return augmented_psi;
 }
 
+
+
 // fixme
 //ITensor TetrahedralGate(const SiteSet& sites, const std::string& site_type, int b, int i, int j, int k, int l, int m, int n) {
 //    auto G = ITensor(sites(b), sites(b+1), sites(b+2), prime(sites(b)), prime(sites(b+1)), prime(sites(b+2)));
@@ -443,6 +448,26 @@ void Swap(MPS &psi, const SiteSet &sites, int b) {
     psi.set(b,U);
     psi.set(b+1,S*V);
 }
+
+void SwapThree(MPS &psi, SiteSet const& sites, int b){
+    psi.position(b);
+    auto tag1 = tags(rightLinkIndex(psi, 1));
+    auto tag2 = tags(rightLinkIndex(psi, 2));
+    auto G = ThreeSiteGate(sites, b, b+1,b+2);
+    auto wf = psi(b) * psi(b+1) * psi(b+2);
+    wf = wf * G;
+    wf.noPrime();
+
+    auto [U1,S1,V1] = svd(wf, inds(psi(b)));
+    U1.replaceTags(TagSet("U,Link,0"), tag1);
+    S1.replaceTags(TagSet("U,Link,0"), tag1);
+    auto [U2,S2,V2] = svd(S1*V1, IndexSet(siteIndex(psi,b+1), commonIndex(U1, S1)));
+    U2.replaceTags(TagSet("U,Link,0"), tag2);
+    S2.replaceTags(TagSet("U,Link,0"), tag2);
+    psi.set(b, U1);
+    psi.set(b+1, U2);
+    psi.set(b+2, S2*V2);
+}
 //
 //void ActLocal(MPS &psi, const ITensor &G, int b) {
 //    // Store original tags
@@ -477,3 +502,27 @@ void Swap(MPS &psi, const SiteSet &sites, int b) {
 //        }
 //    }
 //}
+ThreeSiteGate::ThreeSiteGate(const SiteSet &sites, int i1, int i2, int i3) {
+    std::vector<int> inds = {i1, i2, i3};
+    std::sort (inds.begin(), inds.end());
+    i1_ = inds[0];
+    i2_ = inds[1];
+    i3_ = inds[2];
+    makeSwapGate(sites);
+}
+
+void ThreeSiteGate::makeSwapGate(const SiteSet &sites) {
+    auto s1 = sites(i1_);
+    auto s2 = sites(i2_);
+    auto s3 = sites(i3_);
+    auto a = ITensor(dag(s1),prime(s3));
+    auto b = ITensor(dag(s2),prime(s1));
+    auto c = ITensor(dag(s3),prime(s2));
+    for(auto j : range1(s1))
+    {
+        a.set(dag(s1)(j),prime(s3)(j),1.);
+        b.set(dag(s2)(j),prime(s1)(j),1.);
+        c.set(dag(s3)(j),prime(s2)(j),1.);
+    }
+    gate_ = a*b*c;
+}
