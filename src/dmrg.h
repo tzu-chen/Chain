@@ -902,19 +902,17 @@ public:
                 auto translation_op = TranslationOp(sites); // periodic MPS
                 for (int i = 0; i < num_states; i++) {
                     psi_acted = MPS(states.at(i));
-                    println("Checkpoint 1");
+                    printf("Acting translation on %g/%g...", i+1, num_states);
 //                    psi_acted = applyMPO(translation_op, psi_acted, {"Method", "Fit", "Cutoff", svd_cutoff, "Verbose", true});
-//                    for (int j=1; j<num_sites_; j++) {
-//                        Swap(psi_acted, sites, j);
-//                    }
+                    for (int j=1; j<num_sites_; j++) {
+                        Swap(psi_acted, sites, j);
+                    }
+                    printf("finished.\n");
 //                    PrintData(psi_acted);
                     // three-site swap gate. now only working for 3n+2 and not using augment zipper yet.
-                    for (int j=1; j<num_sites_-1; j+=2){
-                        SwapThree(psi_acted, sites, j);
-                    }
-//                    PrintData(psi_acted);
-                    println("Checkpoint 2");
-//                    states_acted.at(i) = psi_acted;
+//                    for (int j=1; j<num_sites_-1; j+=2){
+//                        SwapThree(psi_acted, sites, j);
+//                    }
                     states_acted.push_back(psi_acted);
                 }
                 println("Finished translation.");
@@ -944,20 +942,14 @@ public:
                     // Act by rho defect in two steps
                     // First act by dangling rho operator
                     // Then act by dangling identity operator
-                    println("Checkpoint 1");
+                    printf("Acting rho on %g/%g...", i+1, num_states);
                     psi_acted = applyMPO(AugmentMPO(rho_op, left_dangling_ind, right_dangling_ind),
                                          AugmentMPS(psi_acted, left_dangling_ind, right_dangling_ind),
                                          {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 2}
                     );
-//                    psi_acted = applyMPO(AugmentMPO(id_op, left_dangling_ind, right_dangling_ind),
-//                                         AugmentMPS(psi_acted, left_dangling_ind, right_dangling_ind),
-//                                         {"Cutoff", svd_cutoff, "Verbose", true}
-//                    );
-                    println("Checkpoint 2");
                     psi_acted = applyMPO(AugmentMPO(id_op, left_dangling_ind, right_dangling_ind),
                                          psi_acted, {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 1});
-                    println("Checkpoint 3");
-//                    states_acted.at(i) = psi_acted;
+                    printf("finished.\n");
                     states_acted.push_back(psi_acted);
 
                     dmrg_progress_.psis_acted_by_rho_.push_back(psi_acted);
