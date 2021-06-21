@@ -857,12 +857,17 @@ public:
 
         if (observable == "energy") {
             std::vector<Real> eigenvalues;
+            auto s = Index(num_states);
+            auto sP = prime(s);
+            auto matrix = ITensor(dag(s), sP);
             for (int i=0;i<num_states;i++) {
                 eigenvalues.push_back(dmrg_progress_.Energies().at(i));
+                matrix.set(i+1,i+1,dmrg_progress_.Energies().at(i));
             }
             printf("\n> %s eigenvalues:\n", observable);
             PrintVector(eigenvalues);
             printf("\n\n");
+            DumpMathematicaSingle(observable, num_states, matrix, m_path_);
         } else {
             auto states = dmrg_progress_.DoneStates();
 
@@ -937,14 +942,16 @@ public:
                                          AugmentMPS(psi_acted, left_dangling_ind, right_dangling_ind),
                                          {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 2, "Verbose", true}
                     );
+//                    psi_acted = applyMPO(AugmentMPO(id_op, left_dangling_ind, right_dangling_ind),
+//                                         AugmentMPS(psi_acted, left_dangling_ind, right_dangling_ind),
+//                                         {"Cutoff", svd_cutoff, "Verbose", true}
+//                    );
                     println("Checkpoint 2");
                     psi_acted = applyMPO(AugmentMPO(id_op, left_dangling_ind, right_dangling_ind),
                                          psi_acted, {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 1, "Verbose", true});
                     println("Checkpoint 3");
 //                    states_acted.at(i) = psi_acted;
-                    println(states_acted.size());
                     states_acted.push_back(psi_acted);
-                    println(states_acted.size());
 
                     dmrg_progress_.psis_acted_by_rho_.push_back(psi_acted);
                     dmrg_progress_.WriteRho(progress_path_);
