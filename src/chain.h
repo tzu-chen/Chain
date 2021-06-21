@@ -33,13 +33,32 @@ MPS Z3FourierTransform(MPS const& psi, SiteSet const& sites_new);
 
 // Swap sites b and b+1
 void Swap(MPS& psi, const SiteSet& sites, int b);
-
+void SwapThree(MPS &psi, SiteSet const& sites, int b);
 MPS AugmentMPSZipper(MPS const& original_psi, Index const& sl, Index const& sll);
 
 // Copy of the applyMPO function of ITensor using the density matrix method
 // For customization and examining bottleneck
 MPS mydensityMatrixApplyMPOImpl(MPO const& K, MPS const& psi, Args args);
 
+class ThreeSiteGate{
+public:
+    ThreeSiteGate(SiteSet const& sites, int i1, int i2, int i3);
+    operator const ITensor&() const { return gate_; }
+    int i1() const { return i1_; }
+    int i2() const { return i2_; }
+    int i3() const { return i3_; }
+    ITensor const& gate() const { return gate_; }
+private:
+    int i1_, i2_, i3_;
+    ITensor gate_;
+    void makeSwapGate(SiteSet const& sites);
+};
+
+ITensor inline
+operator*(ThreeSiteGate const& G, ITensor T) { T *= G.gate(); return T; }
+
+ITensor inline
+operator*(ITensor T, ThreeSiteGate const& G) { T *= G.gate(); return T; }
 // UNUSED
 //typedef ITensor (FData::*TwoSiteGate) (const Index& s1, const Index& s2);
 //void ActLocal(MPS& psi, const ITensor& G, int b);
