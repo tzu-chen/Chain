@@ -1,6 +1,13 @@
 #include "utility.h"
 
 
+void CleanFile(const std::filesystem::path &p) {
+    std::string filename = std::string(p);
+    FILE * file;
+    file = fopen(filename.c_str(), "w");
+    fclose(file);
+}
+
 std::vector<double> CalcEE(MPS psi, int num_sites) {
     std::vector<double> SvNs;
     for (auto b=1; b < num_sites; b++) {
@@ -73,13 +80,87 @@ void DumpMathematicaSingle(const string& name, int len, const ITensor& tensor, c
     fclose(file);
 }
 
-void CleanMathematica(const std::filesystem::path& p) {
+// Print the real parts of std::vector<Cplx> object into a Mathematica-compatible array.
+void PrintVector(std::vector<Cplx> vector) {
+    print("{");
+    if (vector.size() > 0) {
+        print(vector.at(0).real());
+        for (int i=1; i<vector.size(); i++) {
+            print(",");
+            print(vector.at(i).real());
+        }
+    }
+    print("}");
+}
+
+// Print std::vector<Real> object into a Mathematica-compatible array.
+void PrintVector(std::vector<Real> vector) {
+    print("{");
+    if (vector.size() > 0) {
+        print(vector.at(0));
+        for (int i = 1; i < vector.size(); i++) {
+            print(",");
+            print(vector.at(i));
+        }
+    }
+    print("}");
+}
+
+// Print std::vector<std::vector<Real>> object into a Mathematica-compatible array.
+void PrintMatrix(std::vector<std::vector<Real>> matrix) {
+    print("{\n");
+    if (matrix.size() > 0) {
+        PrintVector(matrix.at(0));
+        for (int i=1; i<matrix.size(); i++) {
+            print(",\n");
+            PrintVector(matrix.at(i));
+        }
+    }
+    print("\n}\n");
+}
+
+// Print std::vector<std::vector<Real>> object into a Mathematica-compatible array.
+void DumpMatrix(std::vector<std::vector<Real>> matrix, const std::filesystem::path &p) {
     std::string filename = std::string(p);
-    // Delete original content
     FILE * file;
     file = fopen(filename.c_str(),"w");
+    fprintf(file, "{\n");
+    if (matrix.size() > 0) {
+        auto vector = matrix.at(0);
+        fprintf(file, "{");
+        if (vector.size() > 0) {
+            fprintf(file, "%g", vector.at(0));
+            for (int i = 1; i < vector.size(); i++) {
+                fprintf(file, ",");
+                fprintf(file, "%g", vector.at(i));
+            }
+        }
+        fprintf(file, "}");
+        for (int i=1; i<matrix.size(); i++) {
+            fprintf(file, ",\n");
+            vector = matrix.at(i);
+            fprintf(file, "{");
+            if (vector.size() > 0) {
+                fprintf(file, "%g", vector.at(0));
+                for (int i = 1; i < vector.size(); i++) {
+                    fprintf(file, ",");
+                    fprintf(file, "%g", vector.at(i));
+                }
+            }
+            fprintf(file, "}");
+        }
+    }
+    fprintf(file, "\n}\n");
     fclose(file);
 }
+
+//void CleanMathematica(const std::filesystem::path& p) {
+//    std::string filename = std::string(p);
+//    // Delete original content
+//    FILE * file;
+//    file = fopen(filename.c_str(),"w");
+//    fclose(file);
+//}
 
 //void DumpMathematicaAll(int len, const ITensor& En, const ITensor& OpT, const ITensor& OpR, const std::filesystem::path& p) {
 //    std::string filename = std::string(p);

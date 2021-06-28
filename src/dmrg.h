@@ -188,9 +188,10 @@ class DMRG {
     std::filesystem::path ee_directory_ = prefix_ / "ee";
     std::filesystem::path en_directory_ = prefix_ / "en";
     std::filesystem::path m_directory_ =  prefix_ / "m";
+    std::filesystem::path an_directory_ =  prefix_ / "an";
     std::string filename_; // does not include extension
 
-    std::filesystem::path progress_path_, ee_path_, en_path_, m_path_;
+    std::filesystem::path progress_path_, ee_path_, en_path_, m_path_, an_path_;
     SiteSetType sites_;
 
     DMRGProgress<SiteSetType> dmrg_progress_;
@@ -255,26 +256,13 @@ public:
         num_reps_til_stable_ = 3;
         gs_precision_ = std::pow(es_precision_, 1);
 
-        // Chain parameters
-//        k_ = cos(theta_ * Pi);
-//        j_ = sin(theta_ * Pi) * cos(phi_ * Pi);
-//        m_ = sin(theta_ * Pi) * sin(phi_ * Pi);
-//        if (std::abs(k_) < 1E-5) {
-//            k_ = 0;
-//        }
-//        if (std::abs(j_) < 1E-5) {
-//            j_ = 0;
-//        }
-//        if (std::abs(m_) < 1E-5) {
-//            m_ = 0;
-//        }
-
         // File I/O
         filename_ = format("%s_%s_%d_%d_%g_%g_%g_%s_%d", site_type_, boundary_condition_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_precision_, coupling_str_, u_, charge_);
         progress_path_ = progress_directory_ / filename_;
         ee_path_ = ee_directory_ / (filename_ + ".ee");
         en_path_ = en_directory_ / (filename_ + ".en");
         m_path_ = m_directory_ / (filename_ + ".m");
+        an_path_ = an_directory_ / (filename_ + ".an");
     }
 
     bool IsSimulatingGroundState() {
@@ -320,11 +308,14 @@ public:
     std::string StateName() {
         std::string state_name;
         switch(dmrg_progress_.NumDoneStates()) {
-            case 0 : state_name = "Ground state"; break;
-            case 1 : state_name = "1st excited state"; break;
-            case 2 : state_name = "2nd excited state"; break;
-            case 3 : state_name = "3rd excited state"; break;
-            default : state_name = format("%dth excited state", dmrg_progress_.NumDoneStates()); break;
+//            case 0 : state_name = "Ground state"; break;
+//            case 1 : state_name = "1st excited state"; break;
+//            case 2 : state_name = "2nd excited state"; break;
+//            case 3 : state_name = "3rd excited state"; break;
+            case 0 : state_name = "1st state"; break;
+            case 1 : state_name = "2nd state"; break;
+            case 2 : state_name = "3rd state"; break;
+            default : state_name = format("%dth state", dmrg_progress_.NumDoneStates()+1); break;
         }
         return state_name;
     }
@@ -332,7 +323,7 @@ public:
     // If QN conserving, create charge-neutral initial state and change center site to specified charge
     MPS DefaultInitState() {
         auto pre_init_state = InitState(sites_,"0");
-        int center = (num_sites_ + 1) / 2;
+        int center = (num_sites_+1)/2;
         pre_init_state.set(center, std::to_string(charge_));
         MPS init_state = MPS(pre_init_state);
         return init_state;
@@ -483,10 +474,6 @@ public:
                 }
             }
 
-            // Completed current state
-            DumpEnergy(dmrg_progress_.NumDoneStates(), en_ / num_sites_, en_path_);
-            printf("\n> E/L of %s: %g\n\n", state_name_, en_ / num_sites_);
-
             // If using sine-squared deformed to hot start for periodic
             // Make appropriate transition from SSD to PBC while using SSD result as initial state for PBC
             if (hot_start == 1) {
@@ -502,6 +489,10 @@ public:
             dmrg_progress_.NextState(); // Even if no next state, this marks completion of current state
             dmrg_progress_.Write(progress_path_);
 
+            // Completed current state
+            DumpEnergy(dmrg_progress_.NumDoneStates()+1, en_, en_path_);
+            printf("\n> Energy of %s: %g\n\n", state_name_, en_);
+
             // Check whether to simulate next state
             if (dmrg_progress_.NumDoneStates() >= num_states_) {
                 break;
@@ -509,95 +500,331 @@ public:
         }
     }
 
-    // Print the real parts of std::vector<Cplx> object into a Mathematica-compatible array.
-    void PrintVector(std::vector<Cplx> vector) {
-        print("{");
-        if (vector.size() > 0) {
-            print(vector.at(0).real());
-            for (int i=1; i<vector.size(); i++) {
-                print(",");
-                print(vector.at(i).real());
-            }
-        }
-        print("}");
-    }
-
-    // Print std::vector<Real> object into a Mathematica-compatible array.
-    void PrintVector(std::vector<Real> vector) {
-        print("{");
-        if (vector.size() > 0) {
-            print(vector.at(0));
-            for (int i = 1; i < vector.size(); i++) {
-                print(",");
-                print(vector.at(i));
-            }
-        }
-        print("}");
-    }
-
-    // Check if the translation eigenvalue is a num_sites_ root of unity to within numerical precision
-    // If close to the nth power of the generating root of unity, make it n and return filtered vector
-    std::vector<Cplx> FilterTranslation(std::vector<Cplx> translation_eigenvalues) {
-        std::vector<Cplx> result;
-        for (int i=0; i<translation_eigenvalues.size(); i++) {
-//            Cplx tmp = pow(translation_eigenvalues.at(i), num_sites_);
-//            if (abs(tmp.imag()) < 1E-3 && abs(tmp.real()-1) < 1E-3) {
-//                result.push_back(tmp);
+//    // Check if the translation eigenvalue is a num_sites_ root of unity to within numerical precision
+//    // If close to the nth power of the generating root of unity, make it n and return filtered vector
+//    std::vector<Cplx> FilterTranslation(std::vector<Cplx> translation_eigenvalues) {
+//        std::vector<Cplx> result;
+//        for (int i=0; i<translation_eigenvalues.size(); i++) {
+//            Cplx tmp = log(translation_eigenvalues.at(i)) / (2 * Pi * 1_i) * num_sites_;
+//            if (abs(tmp.imag()) < 1E-1 && abs(tmp.real()-round(tmp.real())) < 1E-1) {
+//                if (round(tmp.real()) == -0) {
+//                    result.push_back( 0 );
+//                } else if (round(tmp.real()) == - num_sites_/2) {
+//                    result.push_back( num_sites_/2 );
+//                } else {
+//                    result.push_back( round(tmp.real()) );
+//                }
 //            }
-            Cplx tmp = log(translation_eigenvalues.at(i)) / (2 * Pi * 1_i) * num_sites_;
-            if (abs(tmp.imag()) < 1E-1 && abs(tmp.real()-round(tmp.real())) < 1E-1) {
-                if (round(tmp.real()) == -0) {
-                    result.push_back( 0 );
-                } else if (round(tmp.real()) == - num_sites_/2) {
-                    result.push_back( num_sites_/2 );
-                } else {
-                    result.push_back( round(tmp.real()) );
+//        }
+//        return result;
+//    }
+//
+//    // Check if the rho eigenvalue is one of the possibilities to within numerical precision
+//    // If close to a possibility p, make it p and return filtered vector
+//    std::vector<Cplx> FilterRho(std::vector<Cplx> rho_eigenvalues, std::vector<Cplx> possibilities) {
+//        std::vector<Cplx> result;
+//        for (int i=0; i<rho_eigenvalues.size(); i++) {
+//            Cplx tmp = rho_eigenvalues.at(i);
+////            println(tmp);
+////            if (abs(tmp.imag()) < 1E-3) {
+//                for (int j=0; j<possibilities.size(); j++) {
+//                    if (abs(tmp - possibilities.at(j)) < 1E-1) {
+//                        result.push_back(possibilities.at(j));
+//                    }
+//                }
+////            }
+//        }
+//        return result;
+//    }
+//
+//    std::vector<Cplx> OrderedAppend(std::vector<Cplx> old_vector, std::vector<Cplx> new_vector) {
+//        std::vector<Cplx> old_vector_copy = old_vector;
+//        std::vector<Cplx> new_ones;
+//        for (int i=0; i<new_vector.size(); i++) {
+//            bool is_contained = false;
+//            for (int j=0; j<old_vector_copy.size(); j++) {
+//                if (new_vector.at(i) == old_vector_copy.at(j)) {
+//                    old_vector_copy.erase(old_vector_copy.begin() + j);
+//                    is_contained = true;
+//                    break;
+//                }
+//            }
+//            if (!is_contained) {
+//                new_ones.push_back(new_vector.at(i));
+//            }
+//        }
+//        for (int i=0; i<new_ones.size(); i++) {
+//            old_vector.push_back(new_ones.at(i));
+//        }
+//        return old_vector;
+//    }
+
+    // Measure matrix elements of translation operator and rho defect operator
+    ITensor Measure(std::string observable) {
+        // Default svd_cutoff for applyMPO(density matrix variant) is 1E-12
+        // Setting to larger value will speed up the program significantly at the cost of accuracy of measurements
+        float svd_cutoff = 1E-5;
+
+        // Variable declaration
+        MPS psi_acted;
+        std::vector<MPS> states_acted;
+
+        if (std::filesystem::exists(progress_directory_ / (filename_ + ".pgs"))) {
+            dmrg_progress_.Read(progress_path_);
+        } else {
+            printf("\n> No progress file available\n");
+            return ITensor();
+        }
+
+        int num_states = std::min(dmrg_progress_.NumDoneStates(), num_states_);
+        auto s = Index(num_states);
+        auto sP = prime(s);
+        auto matrix = ITensor(dag(s), sP);
+        if (observable == "energy") {
+            std::vector<Real> eigenvalues;
+            for (int i=0;i<num_states;i++) {
+                eigenvalues.push_back(dmrg_progress_.Energies().at(i));
+                matrix.set(i+1,i+1,dmrg_progress_.Energies().at(i));
+            }
+//            printf("\n> %s eigenvalues:\n", observable);
+//            PrintVector(eigenvalues);
+//            printf("\n\n");
+            DumpMathematicaSingle(observable, num_states, matrix, m_path_);
+            // fixme
+            CleanFile(en_path_);
+            for (int i=0;i<dmrg_progress_.NumDoneStates();i++) {
+                DumpEnergy(i+1, dmrg_progress_.Energies().at(i), en_path_);
+            }
+        } else {
+            auto states = dmrg_progress_.DoneStates();
+
+            // fixme: refactor Haagerup/HaagerupQ branching
+            // Perform change of basis if appropriate in order to use F symbols
+            // Rotate HaagerupQ to Haagerup
+            // Golden -> Golden, Haagerup, HaagerupQ -> Haagerup
+            SiteSet sites;
+            if (site_type_ == "golden" or site_type_ == "haagerup") {
+                sites = sites_;
+                for (int i = 0; i < num_states; i++) {
+                    auto new_psi = MPS(sites);
+                    auto psi = states.at(i);
+                    for (auto j : range1(num_sites_)) {
+                        new_psi.set(j, psi(j) * delta(siteIndex(psi, j), sites(j)));
+                    }
+                    states.at(i) = new_psi;
+                }
+            } else {
+                sites = Haagerup(num_sites_);
+                for (int i = 0; i < num_states; i++) {
+                    auto states_no_qn = removeQNs(states.at(i));
+                    states.at(i) = Z3FourierTransform(states_no_qn, sites);
                 }
             }
-        }
-        return result;
-    }
 
-    // Check if the rho eigenvalue is one of the possibilities to within numerical precision
-    // If close to a possibility p, make it p and return filtered vector
-    std::vector<Cplx> FilterRho(std::vector<Cplx> rho_eigenvalues, std::vector<Cplx> possibilities) {
-        std::vector<Cplx> result;
-        for (int i=0; i<rho_eigenvalues.size(); i++) {
-            Cplx tmp = rho_eigenvalues.at(i);
-            println(tmp);
-//            if (abs(tmp.imag()) < 1E-3) {
-                for (int j=0; j<possibilities.size(); j++) {
-                    if (abs(tmp - possibilities.at(j)) < 1E-1) {
-                        result.push_back(possibilities.at(j));
+            if (observable == "translation") {
+                auto translation_op = TranslationOp(sites); // periodic MPS
+                for (int i = 0; i < num_states; i++) {
+                    psi_acted = MPS(states.at(i));
+                    printf("\nActing translation on %d/%d...", i+1, num_states);
+//                    psi_acted = applyMPO(translation_op, psi_acted, {"Method", "Fit", "Cutoff", svd_cutoff, "Verbose", true});
+                    for (int j=1; j<num_sites_; j++) {
+                        Swap(psi_acted, sites, j);
+                    }
+                    printf("finished.");
+//                    PrintData(psi_acted);
+                    // three-site swap gate. now only working for 3n+2 and not using augment zipper yet.
+//                    for (int j=1; j<num_sites_-1; j+=2){
+//                        SwapThree(psi_acted, sites, j);
+//                    }
+                    states_acted.push_back(psi_acted);
+                }
+                printf("\nFinished translation.\n");
+            }
+
+            auto left_dangling_ind = Index(36, "Site");
+            auto right_dangling_ind = Index(36, "Site");
+
+            if (observable == "rho") {
+                if (std::filesystem::exists(progress_directory_ / (filename_ + ".rho"))) {
+                    dmrg_progress_.ReadRho(progress_path_);
+                    for (int i=0; i<std::min(num_states, (int) dmrg_progress_.StatesActedByRho().size()); i++) {
+                        states_acted.push_back(dmrg_progress_.StatesActedByRho().at(i));
                     }
                 }
-//            }
-        }
-        return result;
-    }
+                auto rho_op = RhoOp(sites, site_type_); // dangling periodic MPS
+                auto id_op = IdentityOp(sites, rho_op); // dangling periodic MPS with matching indices with rho_op
+                for (int i = states_acted.size(); i < num_states; i++) {
+                    // Initialize
+                    psi_acted = MPS(states.at(i));
+                    // fixme
+//                    auto left_dangling_ind = Index(6, "Site");
+//                    auto left_left_dangling_ind = Index(6, "Site");
+//                    auto augmented_psi = AugmentMPSZipper(psi_acted, left_dangling_ind, left_left_dangling_ind);
+//                    PrintData(innerC(augmented_psi, augmented_psi));
+//                    return;
+                    // Act by rho defect in two steps
+                    // First act by dangling rho operator
+                    // Then act by dangling identity operator
+                    printf("\nActing rho on %d/%d...", i+1, num_states);
+                    psi_acted = applyMPO(AugmentMPO(rho_op, left_dangling_ind, right_dangling_ind),
+                                         AugmentMPS(psi_acted, left_dangling_ind, right_dangling_ind),
+                                         {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 2}
+                    );
+                    psi_acted = applyMPO(AugmentMPO(id_op, left_dangling_ind, right_dangling_ind),
+                                         psi_acted, {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 1});
+                    printf("finished.");
+                    states_acted.push_back(psi_acted);
 
-    std::vector<Cplx> OrderedAppend(std::vector<Cplx> old_vector, std::vector<Cplx> new_vector) {
-        std::vector<Cplx> old_vector_copy = old_vector;
-        std::vector<Cplx> new_ones;
-        for (int i=0; i<new_vector.size(); i++) {
-            bool is_contained = false;
-            for (int j=0; j<old_vector_copy.size(); j++) {
-                if (new_vector.at(i) == old_vector_copy.at(j)) {
-                    old_vector_copy.erase(old_vector_copy.begin() + j);
-                    is_contained = true;
-                    break;
+                    dmrg_progress_.psis_acted_by_rho_.push_back(psi_acted);
+                    dmrg_progress_.WriteRho(progress_path_);
+                }
+                printf("\nFinished rho.\n");
+            }
+
+            Real en_shift = 0;
+            // Uncomment if shift by ground state energy
+            // en_shift = dmrg_progress.Energies().at(0);
+
+            for (int i = 0; i < num_states; i++) {
+                if (observable == "energy") {
+                    matrix.set(s(i+1), sP(i+1), dmrg_progress_.Energies().at(i) - en_shift);
+                }
+                for (int j = 0; j < num_states; j++) {
+                    if (observable == "translation") {
+                        matrix.set(s(i+1), sP(j+1), innerC(states.at(i), states_acted.at(j)));
+                    }
+                    if (observable == "rho") {
+                        matrix.set(s(i+1), sP(j+1),
+                                   innerC(AugmentMPS(states.at(i), left_dangling_ind, right_dangling_ind),
+                                          states_acted.at(j)));
+                    }
                 }
             }
-            if (!is_contained) {
-                new_ones.push_back(new_vector.at(i));
-            }
+            DumpMathematicaSingle(observable, num_states, matrix, m_path_);
+
+//            // Analysis of translation and rho eigenvalues assuming that the states are simulated well enough
+//            // Otherwise, better work with the Mathematica .m file created above
+//            std::vector<Cplx> eigenvalues;
+//            for (int i = 0; i < num_states; i++) {
+//                auto submatrix = ITensor(dag(s), sP);
+//                for (int j = 1; j <= i+1; j++) {
+//                    for (int k = 1; k <= i+1; k++) {
+//                        submatrix.set(s(j), sP(k), eltC(matrix, j, k));
+//                        submatrix.set(s(j), sP(k), eltC(matrix, j, k));
+//                    }
+//                }
+//                auto[U, sub_eigenvalues] = eigen(submatrix);
+//                std::vector<Cplx> eigenvalues_tmp;
+//                for (int j = 1; j <= i+1; j++) {
+//                    eigenvalues_tmp.push_back(eltC(sub_eigenvalues, j, j));
+//                }
+//                if (observable == "translation") {
+//                    eigenvalues_tmp = FilterTranslation(eigenvalues_tmp);
+//                }
+//                if (observable == "rho") {
+//                    std::vector<Cplx> rho_possibilities;
+//                    if (site_type_ == "golden") {
+//                        rho_possibilities = {(1 + sqrt(5)) / 2, (1 - sqrt(5)) / 2};
+//                    } else {
+//                        rho_possibilities = {(3 + sqrt(13)) / 2, (3 - sqrt(13)) / 2, 1, -1};
+//                    }
+//                    eigenvalues_tmp = FilterRho(eigenvalues_tmp, rho_possibilities);
+//                }
+//                eigenvalues = OrderedAppend(eigenvalues, eigenvalues_tmp);
+//            }
+//            printf("> %s eigenvalues:\n", observable);
+//            PrintVector(eigenvalues);
+//            printf("\n\n");
         }
-        for (int i=0; i<new_ones.size(); i++) {
-            old_vector.push_back(new_ones.at(i));
-        }
-        return old_vector;
+        return matrix;
     }
 
+    // Mode 1
+    void Analyze() {
+        if (not std::filesystem::exists(m_directory_)) {
+            std::filesystem::create_directory(m_directory_);
+        }
+        if (not std::filesystem::exists(an_directory_)) {
+            std::filesystem::create_directory(an_directory_);
+        }
+        PrintJob(false);
+        CleanFile(m_path_);
+        auto energy_matrix = Measure("energy");
+        auto translation_matrix = Measure("translation");
+        auto rho_matrix = Measure("rho");
+
+        // Uniformize the ITensor Index structure
+        auto s = findInds(energy_matrix, {})(1);
+        auto s_translation = findInds(translation_matrix, {})(1).noPrime();
+        auto s_rho = findInds(rho_matrix, {})(1).noPrime();
+        translation_matrix = translation_matrix * delta(s, s_translation) * delta(prime(s), prime(s_translation));
+        rho_matrix = rho_matrix * delta(s, s_rho) * delta(prime(s), prime(s_rho));
+
+        auto m = energy_matrix/num_sites_ + translation_matrix + rho_matrix;
+        auto[U,D] = eigen(m);
+        U.conj();
+        energy_matrix = dag(U)*energy_matrix*prime(U);
+        translation_matrix = dag(U)*translation_matrix*prime(U);
+        rho_matrix = dag(U)*rho_matrix*prime(U);
+        int num_states = std::min(dmrg_progress_.NumDoneStates(), num_states_);
+        std::vector<std::vector<Real>> result;
+        auto precision = 1000000.0;
+        for (int i=1;i<=num_states;i++) {
+            auto momentum = std::round((log(eltC(translation_matrix,i,i))/(2*Pi*1_i) * num_sites_).real()*precision)/precision;
+            if (momentum == -num_sites_/2) { momentum = num_sites_/2;}
+            auto rho = std::round(eltC(rho_matrix,i,i).real()*precision)/precision;
+            if (rho == -0) { rho = 0;}
+            result.push_back( std::vector<Real>({ eltC(energy_matrix,i,i).real(), momentum, rho }) );
+        }
+        struct {
+            bool operator()(std::vector<Real> a, std::vector<Real> b) const { return a.at(0) < b.at(0); }
+        } compare;
+        std::sort(result.begin(), result.end(), compare);
+        printf("\nSpectrum:  {energy, momentum, rho}\n");
+        PrintMatrix(result);
+        DumpMatrix(result, an_path_);
+    }
+
+    // Mode 2
+    void AnalyzeWithoutRho() {
+        if (not std::filesystem::exists(m_directory_)) {
+            std::filesystem::create_directory(m_directory_);
+        }
+        if (not std::filesystem::exists(an_directory_)) {
+            std::filesystem::create_directory(an_directory_);
+        }
+        PrintJob(false);
+        CleanFile(m_path_);
+        auto energy_matrix = Measure("energy");
+        auto translation_matrix = Measure("translation");
+
+        // Uniformize the ITensor Index structure
+        auto s = findInds(energy_matrix, {})(1);
+        auto s_translation = findInds(translation_matrix, {})(1).noPrime();
+        translation_matrix = translation_matrix * delta(s, s_translation) * delta(prime(s), prime(s_translation));
+
+        auto m = energy_matrix/num_sites_ + translation_matrix;
+        auto[U,D] = eigen(m);
+        U.conj();
+        energy_matrix = dag(U)*energy_matrix*prime(U);
+        translation_matrix = dag(U)*translation_matrix*prime(U);
+        int num_states = std::min(dmrg_progress_.NumDoneStates(), num_states_);
+        std::vector<std::vector<Real>> result;
+        int precision = 100000.0;
+        for (int i=1;i<=num_states;i++) {
+            auto momentum = std::round((log(eltC(translation_matrix,i,i))/(2*Pi*1_i) * num_sites_).real()*precision)/precision;
+            if (momentum == -num_sites_/2) { momentum = num_sites_/2;}
+            result.push_back( std::vector<Real>({ eltC(energy_matrix,i,i).real(), momentum }) );
+        }
+        struct {
+            bool operator()(std::vector<Real> a, std::vector<Real> b) const { return a.at(0) < b.at(0); }
+        } compare;
+        std::sort(result.begin(), result.end(), compare);
+        printf("\nSpectrum:  {energy, momentum}\n");
+        PrintMatrix(result);
+    }
+
+    // Mode 3
     void Energies() {
         if (std::filesystem::exists(progress_directory_ / (filename_ + ".pgs"))) {
             dmrg_progress_.Read(progress_path_);
@@ -615,6 +842,7 @@ public:
         print("},\n");
     }
 
+    // Mode 4
     void NormalizeEnergies() {
         if (std::filesystem::exists(progress_directory_ / (filename_ + ".pgs"))) {
             dmrg_progress_.Read(progress_path_);
@@ -644,414 +872,6 @@ public:
         } else {
             println("Fewer than 3 states available");
         }
-    }
-
-//    // Measure matrix elements of translation operator and rho defect operator
-//    void Analyze() {
-//        if (not std::filesystem::exists(m_directory_)) {
-//            std::filesystem::create_directory(m_directory_);
-//        }
-//
-//        PrintJob(false);
-//
-//        // Default svd_cutoff for applyMPO(density matrix variant) is 1E-12
-//        // Setting to larger value will speed up the program significantly at the cost of accuracy of measurements
-//        float svd_cutoff = 1E-8;
-//
-//        // Variable declaration
-//        MPS psi_translated;
-//        MPS psi_acted_by_rho;
-//        std::vector<MPS> states_translated;
-//        std::vector<MPS> states_acted_by_rho;
-//
-//        if (std::filesystem::exists(progress_directory_ / (filename_ + ".pgs"))) {
-//            dmrg_progress_.Read(progress_path_);
-//        } else {
-//            printf("\n> No progress file available\n");
-//            return;
-//        }
-//
-//        auto states = dmrg_progress_.DoneStates();
-//        int num_states = std::min(dmrg_progress_.NumDoneStates(), num_states_);
-//
-//        // fixme: refactor Haagerup/HaagerupQ branching
-//        // Perform change of basis if appropriate in order to use F symbols
-//        // Rotate HaagerupQ to Haagerup
-//        // Golden -> Golden, Haagerup, HaagerupQ -> Haagerup
-//        SiteSet sites;
-//        if (site_type_ == "golden" or site_type_ == "haagerup") {
-//            sites = sites_;
-//            for (int i = 0; i < num_states; i++) {
-//                auto new_psi = MPS(sites);
-//                auto psi = states.at(i);
-//                for (auto j : range1(num_sites_)) {
-//                    new_psi.set(j, psi(j) * delta(siteIndex(psi, j), sites(j)) );
-//                }
-//                states.at(i) = new_psi;
-//            }
-//        } else {
-//            sites = Haagerup(num_sites_);
-//            for (int i = 0; i < num_states; i++) {
-//                auto states_no_qn = removeQNs(states.at(i));
-//                states.at(i) = Z3FourierTransform(states_no_qn, sites);
-//            }
-//        }
-//
-//        auto translate_op = TranslationOp(sites); // periodic MPS
-//        auto rho_op = RhoOp(sites, site_type_); // dangling periodic MPS
-//        auto id_op = IdentityOp(sites, rho_op); // dangling periodic MPS with matching indices with rho_op
-//
-//        // Dangling bond indices at the edges of MPO
-//        // fixme: 36?
-//        auto left_dangling_ind = Index(36, "Site");
-//        auto right_dangling_ind = Index(36, "Site");
-//
-//        // fixme: Can we use OpenMP for this?
-//        for (int i=0;i<num_states;i++) {
-//            states_translated.push_back(MPS());
-//            states_acted_by_rho.push_back(MPS());
-//        }
-//
-//        {
-////            auto np = omp_get_num_threads();
-////            println(np);
-////            #pragma omp parallel for default(shared) private(i, psi_translated, psi_acted_by_rho)
-//            for (int i = 0; i < num_states; i++) {
-//                // Initialize
-//                psi_translated = MPS(states.at(i));
-//                psi_acted_by_rho = MPS(states.at(i));
-//
-//                // Act by translation
-//                psi_translated = applyMPO(translate_op, psi_translated);
-////            states_translated.push_back(psi_translated);
-//                states_translated.at(i) = psi_translated;
-//
-//                // Act by rho defect in two steps
-//                // First act by dangling rho operator
-//                // Then act by dangling identity operator
-//                psi_acted_by_rho = applyMPO(AugmentMPO(rho_op, left_dangling_ind, right_dangling_ind),
-//                                            AugmentMPS(psi_acted_by_rho, left_dangling_ind, right_dangling_ind),
-//                                            {"Cutoff", svd_cutoff}
-//                );
-//                psi_acted_by_rho = applyMPO(AugmentMPO(id_op, left_dangling_ind, right_dangling_ind),
-//                                            psi_acted_by_rho, {"Cutoff", svd_cutoff});
-////            states_acted_by_rho.push_back(psi_acted_by_rho);
-//                states_acted_by_rho.at(i) = psi_acted_by_rho;
-//
-//                // println(innerC(AugmentMPS(psiR, left_extra, right_extra),step2));
-//
-////            psiR = applyMPO(TranslationOp(sites, true), psiR);
-////            if (site_name_ == "golden") {
-////                GoldenFData f_data = GoldenFData();
-////                ActLocal(psiR, f_data.RhoDefectCell(sites(1), sites(2)),1);
-////            } else if (site_name_ == "haagerup") {
-////                HaagerupFData f_data = HaagerupFData();
-////                ActLocal(psiR, f_data.RhoDefectCell(sites(1), sites(2)),1);
-////            }
-////            psiR = applyMPO(TranslationOp(sites, false), psiR);
-//            }
-//        }
-//
-//        // Create ITensors for
-//        // En: Energies
-//        // OpT: Matrix elements between psi and psi_translated
-//        // OpR: Matrix elements between psi and psi_acted_by_rho
-//        auto s = Index(num_states);
-//        auto sP = prime(s);
-//        auto en_matrix = ITensor(dag(s), sP);
-//        auto translation_matrix = ITensor(dag(s), sP);
-//        auto rho_matrix = ITensor(dag(s), sP);
-//
-//        Real en_shift = 0;
-//        // Uncomment if shift by ground state energy
-//        // en_shift = dmrg_progress.Energies().at(0);
-//
-//        for (int i=0; i < num_states; i++) {
-//            en_matrix.set(s(i+1), sP(i+1), dmrg_progress_.Energies().at(i) - en_shift);
-//            for (int j=0; j < num_states; j++) {
-//                translation_matrix.set(s(i+1), sP(j+1), innerC(states.at(i), states_translated.at(j)));
-//                rho_matrix.set(s(i+1), sP(j+1), innerC(AugmentMPS(states.at(i), left_dangling_ind, right_dangling_ind), states_acted_by_rho.at(j)));
-//            }
-//        }
-//        DumpMathematicaAll(num_states, en_matrix, translation_matrix, rho_matrix, m_path_);
-//
-//        // Diagonalize translation
-//        auto [UT,translation_diag] = eigen(translation_matrix);
-//        // Diagonalize rho
-//        auto [UR,rho_diag] = eigen(rho_matrix);
-//
-////        printf("\n> Ordered set of energies:\n");
-////        PrintData(en_matrix);
-////        printf("\n> Unordered set of translation eigenvalues:\n");
-////        PrintData(translation_diag);
-////        printf("\n> Unordered set of rho eigenvalues:\n");
-////        PrintData(rho_diag);
-//
-//        // Analysis of translation and rho eigenvalues assuming that the states are simulated well enough
-//        // Otherwise, better work with the Mathematica .m file created above
-//        // fixme: make method of sites?
-//        std::vector<Cplx> rho_possibilities;
-//        if (site_type_ == "golden") {
-//            rho_possibilities = { (1+sqrt(5))/2, (1-sqrt(5))/2 };
-//        } else {
-//            rho_possibilities = { (3+sqrt(13))/2, (3-sqrt(13))/2, 1, -1 };
-//        }
-//        std::vector<Cplx> translation_eigenvalues;
-//        std::vector<Cplx> rho_eigenvalues;
-//        for (int i=0; i<num_states; i++) {
-//            auto translation_submatrix = ITensor(dag(s), sP);
-//            auto rho_submatrix = ITensor(dag(s), sP);
-//            for (int j=1; j<=i+1; j++) {
-//                for (int k=1; k<=i+1; k++) {
-//                    translation_submatrix.set(s(j), sP(k), eltC(translation_matrix, j, k));
-//                    rho_submatrix.set(s(j), sP(k), eltC(rho_matrix, j, k));
-//                }
-//            }
-//            auto [UT,translation_sub_eigenvalues] = eigen(translation_submatrix);
-//            auto [UR,rho_sub_eigenvalues] = eigen(rho_submatrix);
-//            std::vector<Cplx> translation_eigenvalues_tmp;
-//            std::vector<Cplx> rho_eigenvalues_tmp;
-//            for (int j=1; j<=i+1; j++) {
-//                translation_eigenvalues_tmp.push_back(eltC(translation_sub_eigenvalues, j, j));
-//                rho_eigenvalues_tmp.push_back(eltC(rho_sub_eigenvalues, j, j));
-//            }
-//            translation_eigenvalues_tmp = FilterTranslation(translation_eigenvalues_tmp);
-//            rho_eigenvalues_tmp = FilterRho(rho_eigenvalues_tmp, rho_possibilities);
-//            translation_eigenvalues = OrderedAppend(translation_eigenvalues, translation_eigenvalues_tmp);
-//            rho_eigenvalues = OrderedAppend(rho_eigenvalues, rho_eigenvalues_tmp);
-//        }
-//
-////        printf("{{%s},", coupling_str_);
-////        PrintVector(rho_eigenvalues);
-////        print("},\n");
-//
-//        printf("\n> Energies:\n");
-//        std::vector<Real> energies = dmrg_progress_.Energies();
-//        energies.pop_back();
-//        PrintVector(energies);
-//        printf("\n\n> Translation eigenvalues:\n");
-//        PrintVector(translation_eigenvalues);
-//        printf("\n\n> rho eigenvalues:\n");
-//        PrintVector(rho_eigenvalues);
-//        printf("\n\n");
-//    }
-
-    // Measure matrix elements of translation operator and rho defect operator
-    void Measure(std::string observable) {
-        // Default svd_cutoff for applyMPO(density matrix variant) is 1E-12
-        // Setting to larger value will speed up the program significantly at the cost of accuracy of measurements
-        float svd_cutoff = 1E-5;
-
-        // Variable declaration
-        MPS psi_acted;
-        std::vector<MPS> states_acted;
-
-        if (std::filesystem::exists(progress_directory_ / (filename_ + ".pgs"))) {
-            dmrg_progress_.Read(progress_path_);
-        } else {
-            printf("\n> No progress file available\n");
-            return;
-        }
-
-        int num_states = std::min(dmrg_progress_.NumDoneStates(), num_states_);
-
-        if (observable == "energy") {
-            std::vector<Real> eigenvalues;
-            auto s = Index(num_states);
-            auto sP = prime(s);
-            auto matrix = ITensor(dag(s), sP);
-            for (int i=0;i<num_states;i++) {
-                eigenvalues.push_back(dmrg_progress_.Energies().at(i));
-                matrix.set(i+1,i+1,dmrg_progress_.Energies().at(i));
-            }
-            printf("\n> %s eigenvalues:\n", observable);
-            PrintVector(eigenvalues);
-            printf("\n\n");
-            DumpMathematicaSingle(observable, num_states, matrix, m_path_);
-        } else {
-            auto states = dmrg_progress_.DoneStates();
-
-            // fixme: refactor Haagerup/HaagerupQ branching
-            // Perform change of basis if appropriate in order to use F symbols
-            // Rotate HaagerupQ to Haagerup
-            // Golden -> Golden, Haagerup, HaagerupQ -> Haagerup
-            SiteSet sites;
-            if (site_type_ == "golden" or site_type_ == "haagerup") {
-                sites = sites_;
-                for (int i = 0; i < num_states; i++) {
-                    auto new_psi = MPS(sites);
-                    auto psi = states.at(i);
-                    for (auto j : range1(num_sites_)) {
-                        new_psi.set(j, psi(j) * delta(siteIndex(psi, j), sites(j)));
-                    }
-                    states.at(i) = new_psi;
-                }
-            } else {
-                sites = Haagerup(num_sites_);
-                for (int i = 0; i < num_states; i++) {
-                    auto states_no_qn = removeQNs(states.at(i));
-                    states.at(i) = Z3FourierTransform(states_no_qn, sites);
-                }
-            }
-
-//            for (int i = 0; i < num_states; i++) {
-//                states_acted.push_back(MPS());
-//            }
-
-            if (observable == "translation") {
-                auto translation_op = TranslationOp(sites); // periodic MPS
-                for (int i = 0; i < num_states; i++) {
-                    psi_acted = MPS(states.at(i));
-                    printf("Acting translation on %g/%g...", i+1, num_states);
-//                    psi_acted = applyMPO(translation_op, psi_acted, {"Method", "Fit", "Cutoff", svd_cutoff, "Verbose", true});
-                    for (int j=1; j<num_sites_; j++) {
-                        Swap(psi_acted, sites, j);
-                    }
-                    printf("finished.\n");
-//                    PrintData(psi_acted);
-                    // three-site swap gate. now only working for 3n+2 and not using augment zipper yet.
-//                    for (int j=1; j<num_sites_-1; j+=2){
-//                        SwapThree(psi_acted, sites, j);
-//                    }
-                    states_acted.push_back(psi_acted);
-                }
-                println("Finished translation.");
-            }
-
-            auto left_dangling_ind = Index(36, "Site");
-            auto right_dangling_ind = Index(36, "Site");
-
-            if (observable == "rho") {
-                if (std::filesystem::exists(progress_directory_ / (filename_ + ".rho"))) {
-                    dmrg_progress_.ReadRho(progress_path_);
-                    for (int i=0; i<std::min(num_states, (int) dmrg_progress_.StatesActedByRho().size()); i++) {
-                        states_acted.push_back(dmrg_progress_.StatesActedByRho().at(i));
-                    }
-                }
-                auto rho_op = RhoOp(sites, site_type_); // dangling periodic MPS
-                auto id_op = IdentityOp(sites, rho_op); // dangling periodic MPS with matching indices with rho_op
-                for (int i = states_acted.size(); i < num_states; i++) {
-                    // Initialize
-                    psi_acted = MPS(states.at(i));
-                    // fixme
-//                    auto left_dangling_ind = Index(6, "Site");
-//                    auto left_left_dangling_ind = Index(6, "Site");
-//                    auto augmented_psi = AugmentMPSZipper(psi_acted, left_dangling_ind, left_left_dangling_ind);
-//                    PrintData(innerC(augmented_psi, augmented_psi));
-//                    return;
-                    // Act by rho defect in two steps
-                    // First act by dangling rho operator
-                    // Then act by dangling identity operator
-                    printf("Acting rho on %g/%g...", i+1, num_states);
-                    psi_acted = applyMPO(AugmentMPO(rho_op, left_dangling_ind, right_dangling_ind),
-                                         AugmentMPS(psi_acted, left_dangling_ind, right_dangling_ind),
-                                         {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 2}
-                    );
-                    psi_acted = applyMPO(AugmentMPO(id_op, left_dangling_ind, right_dangling_ind),
-                                         psi_acted, {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 1});
-                    printf("finished.\n");
-                    states_acted.push_back(psi_acted);
-
-                    dmrg_progress_.psis_acted_by_rho_.push_back(psi_acted);
-                    dmrg_progress_.WriteRho(progress_path_);
-                }
-            }
-
-//            println("Acted operator");
-
-            // Create ITensor
-            auto s = Index(num_states);
-            auto sP = prime(s);
-            auto matrix = ITensor(dag(s), sP);
-
-            Real en_shift = 0;
-            // Uncomment if shift by ground state energy
-            // en_shift = dmrg_progress.Energies().at(0);
-
-            for (int i = 0; i < num_states; i++) {
-                if (observable == "energy") {
-                    matrix.set(s(i+1), sP(i+1), dmrg_progress_.Energies().at(i) - en_shift);
-                }
-                for (int j = 0; j < num_states; j++) {
-                    if (observable == "translation") {
-                        matrix.set(s(i+1), sP(j+1), innerC(states.at(i), states_acted.at(j)));
-                    }
-                    if (observable == "rho") {
-                        matrix.set(s(i+1), sP(j+1),
-                                   innerC(AugmentMPS(states.at(i), left_dangling_ind, right_dangling_ind),
-                                          states_acted.at(j)));
-                    }
-                }
-            }
-            DumpMathematicaSingle(observable, num_states, matrix, m_path_);
-//            println("Computed inner product");
-
-//            // Diagonalize
-//            auto [U,diag] = eigen(matrix);
-//            printf("\n> %s eigenvalues (unordered):\n", observable);
-//            PrintData(diag);
-
-            // Analysis of translation and rho eigenvalues assuming that the states are simulated well enough
-            // Otherwise, better work with the Mathematica .m file created above
-
-            std::vector<Cplx> eigenvalues;
-            for (int i = 0; i < num_states; i++) {
-                auto submatrix = ITensor(dag(s), sP);
-                for (int j = 1; j <= i+1; j++) {
-                    for (int k = 1; k <= i+1; k++) {
-                        submatrix.set(s(j), sP(k), eltC(matrix, j, k));
-                        submatrix.set(s(j), sP(k), eltC(matrix, j, k));
-                    }
-                }
-                auto[U, sub_eigenvalues] = eigen(submatrix);
-                std::vector<Cplx> eigenvalues_tmp;
-                for (int j = 1; j <= i+1; j++) {
-                    eigenvalues_tmp.push_back(eltC(sub_eigenvalues, j, j));
-                }
-                if (observable == "translation") {
-                    eigenvalues_tmp = FilterTranslation(eigenvalues_tmp);
-                }
-                if (observable == "rho") {
-                    std::vector<Cplx> rho_possibilities;
-                    if (site_type_ == "golden") {
-                        rho_possibilities = {(1 + sqrt(5)) / 2, (1 - sqrt(5)) / 2};
-                    } else {
-                        rho_possibilities = {(3 + sqrt(13)) / 2, (3 - sqrt(13)) / 2, 1, -1};
-                    }
-                    eigenvalues_tmp = FilterRho(eigenvalues_tmp, rho_possibilities);
-                }
-                eigenvalues = OrderedAppend(eigenvalues, eigenvalues_tmp);
-            }
-            printf("> %s eigenvalues:\n", observable);
-            PrintVector(eigenvalues);
-            printf("\n\n");
-        }
-
-//        printf("{{%s},", coupling_str_);
-//        PrintVector(rho_eigenvalues);
-//        print("},\n");
-
-    }
-
-    void AnalyzeNoRho() {
-        if (not std::filesystem::exists(m_directory_)) {
-            std::filesystem::create_directory(m_directory_);
-        }
-        PrintJob(false);
-        CleanMathematica(m_path_);
-        Measure("energy");
-        Measure("translation");
-    }
-
-    void Analyze() {
-        if (not std::filesystem::exists(m_directory_)) {
-            std::filesystem::create_directory(m_directory_);
-        }
-        PrintJob(false);
-        CleanMathematica(m_path_);
-        Measure("energy");
-        Measure("translation");
-        Measure("rho");
     }
 };
 

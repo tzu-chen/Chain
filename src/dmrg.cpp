@@ -3,7 +3,7 @@
 #include "dmrg.h"
 #include <cxxopts.hpp>
 // Uncomment this and the std::chrono lines to enable timing
-//#include <chrono>
+#include <chrono>
 
 int main(int argc, char** argv) {
     cxxopts::Options options("Chain", "Simulates DMRG on anyon chains.");
@@ -14,8 +14,6 @@ int main(int argc, char** argv) {
         ("d", "Max bond dimension", cxxopts::value<int>())
         ("c,cutoff", "SVD cutoff", cxxopts::value<float>())
         ("p,precision", "Energy precision", cxxopts::value<float>())
-//        ("theta", "theta", cxxopts::value<float>())
-//        ("phi", "phi", cxxopts::value<float>())
         ("j,couplings", "Couplings", cxxopts::value<std::string>())
         ("u,penalty", "Penalty size", cxxopts::value<float>())
         ("q,charge_", "Charge", cxxopts::value<int>())
@@ -37,8 +35,6 @@ int main(int argc, char** argv) {
             result["c"].as<float>(),
             result["p"].as<float>(),
             result["j"].as<std::string>(),
-//            result["theta"].as<float>(),
-//            result["phi"].as<float>(),
             result["u"].as<float>(),
             result["q"].as<int>(),
             result["n"].as<int>(),
@@ -49,7 +45,7 @@ int main(int argc, char** argv) {
         if (std::get<10>(params) == 1) {
             dmrg.Analyze();
         } else if (std::get<10>(params) == 2) {
-            dmrg.AnalyzeNoRho();
+            dmrg.AnalyzeWithoutRho();
         } else if (std::get<10>(params) == 3) {
             dmrg.Energies();
         } else if (std::get<10>(params) == 4) {
@@ -61,9 +57,12 @@ int main(int argc, char** argv) {
     } else if (std::get<0>(params) == "haagerup") {
         auto dmrg = DMRG<Haagerup>(params);
         if (std::get<10>(params) == 1) {
+            auto start = std::chrono::high_resolution_clock::now();
             dmrg.Analyze();
+            auto stop = std::chrono::high_resolution_clock::now();
+            printf("\nMeasurements total time spent: %gs\n", std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() / 1000000);
         } else if (std::get<10>(params) == 2) {
-            dmrg.AnalyzeNoRho();
+            dmrg.AnalyzeWithoutRho();
         } else if (std::get<10>(params) == 3) {
             dmrg.Energies();
         } else if (std::get<10>(params) == 4) {
@@ -78,9 +77,9 @@ int main(int argc, char** argv) {
             auto start = std::chrono::high_resolution_clock::now();
             dmrg.Analyze();
             auto stop = std::chrono::high_resolution_clock::now();
-            std::cout << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() / 1000000 << std::endl;
+            printf("\nMeasurements total time spent: %gs\n", std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() / 1000000);
         } else if (std::get<10>(params) == 2) {
-            dmrg.AnalyzeNoRho();
+            dmrg.AnalyzeWithoutRho();
         } else if (std::get<10>(params) == 3) {
             dmrg.Energies();
         } else if (std::get<10>(params) == 4) {
