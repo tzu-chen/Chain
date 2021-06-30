@@ -224,7 +224,7 @@ MPS Z3FourierTransform(MPS const& psi, SiteSet const& sites_new) {
 }
 
 // fixme
-MPS AugmentMPSZipper(MPS const& original_psi, Index const& sl, Index const& sll) {
+MPS ZipperAugmentMPS(MPS const& original_psi, Index const& sl, Index const& sll) {
     auto augmented_psi = MPS(length(original_psi) + 2);
     auto extra_bond_index_left = Index(1, "l=0,Link");
     auto extra_l = ITensor(sl, extra_bond_index_left);
