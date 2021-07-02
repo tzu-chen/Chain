@@ -9,19 +9,19 @@ itensor -> extern/itensor/include/itensor
 
 lib -> extern/itensor/lib
 
-5. Modify the openblas/mkl/etc location in CMakeLists.txt, matching ITensor options.mk. For example, the following change is appropriate for the Harvard cluster:
+5. Duplicate CMakeListsTemplate.txt as CMakeLists.txt. Modify the openblas/mkl/etc location in CMakeLists.txt, matching ITensor options.mk. For example, the following change is appropriate for the Harvard cluster:
 
 -L/usr/lib64 -> -L/usr/local/opt/openblas/lib
 
 -I/usr/include/openblas -> -I/usr/local/opt/openblas/include
 
-Also included is a file CMakeLists_Mac.txt that works on Ying's Mac. To use it, rename it to CMakeLists.txt. Further modification may be needed to correctly link libraries.
+Also included is a template CMakeListsMac.txt that works on Ying's Mac. Further modification may be needed to correctly link libraries.
 
 6. For cmake versions earlier than 2.8, you can manually modify cmake_minimum_required, but you may need to explicitly include extra libraries. If GNU version is older, you may need to add -lstdc++fs to ITENSOR_LINK_FLAGS.
 7. Create a folder called build. Change directory into it.
-8. Simulate "cmake ..". This should generate a makefile.
-9. The program by default creates and stores data to directories under the Chain folder. To change this, modify the variable kPath in src/path.h.
-10. Simulate make.
+8. Run "cmake ..". This should generate a makefile.
+9. Duplicate src/path_template.h file as src/path.h. This file specifies the directory to store data, and is by default set to the Chain folder. To change this, modify the variable kPath in src/path.h.
+10. Run make.
 
 # Usage
 
@@ -37,14 +37,16 @@ The built binary accepts the following arguments:
 * -u, --penalty: coefficient for the penalty term [float]; e.g., 2.
 * -q, --charge: QN charge (only valid for haagerupq) [int]; e.g., 0.
 * -n, --nstates: number of excited states to simulate/analyze [int]; e.g., 1 for just the ground state.
-* -m, --mode: currently provides 4 modes [int];
+* -m, --mode: currently provides 5 modes [int];
   
-  0: run the dmrg simulation,
+  0: run dmrg simulation,
   
   1: measure energy, translation, and rho eigenvalues (measuring rho takes roughly (dim H)^(L-4) seconds), 
   
   2: measure energy and translation eigenvalues, 
   
-  3: measure energies.
+  3: measure energies (normalization dependent),
 
-  4: measure energy ratios.
+  4: measure energy ratios (normalization independent),
+
+  5: run dmrg simulation while performing 1 (charge=0) or 2 (otherwise) after simulation of each state.

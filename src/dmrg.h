@@ -395,7 +395,7 @@ public:
     }
 
     // Simulate states by DMRG
-    void Simulate() {
+    void Simulate(bool analyze = false) {
         if (not std::filesystem::exists(progress_directory_)) {
             std::filesystem::create_directory(progress_directory_);
         }
@@ -415,6 +415,14 @@ public:
             if (dmrg_progress_.NumDoneStates() >= num_states_) {
                 printf("\n> Job already complete\n> Requested number of states: %d \n> Completed number of states: %d\n\n", num_states_,
                        dmrg_progress_.NumDoneStates());
+                // fixme
+                if (analyze) {
+                    if (charge_==0) {
+                        Analyze();
+                    } else {
+                        AnalyzeWithoutRho();
+                    }
+                }
                 return;
             }
         } else {
@@ -543,10 +551,12 @@ public:
             DumpEnergy(dmrg_progress_.NumDoneStates()+1, en_, en_path_);
             printf("\n> Energy of %s: %g\n\n", state_name_, en_);
 
-            if (charge_==0) {
-                Analyze();
-            } else {
-                AnalyzeWithoutRho();
+            if (analyze) {
+                if (charge_==0) {
+                    Analyze();
+                } else {
+                    AnalyzeWithoutRho();
+                }
             }
 
             // Check whether to simulate next state
@@ -839,6 +849,10 @@ public:
 
     // Mode 1
     void Analyze() {
+        if (not std::filesystem::exists(progress_directory_ / (filename_ + ".pgs"))) {
+            printf("\n> No progress file available\n");
+            return;
+        }
         if (not std::filesystem::exists(m_directory_)) {
             std::filesystem::create_directory(m_directory_);
         }
@@ -886,6 +900,10 @@ public:
 
     // Mode 2
     void AnalyzeWithoutRho() {
+        if (not std::filesystem::exists(progress_directory_ / (filename_ + ".pgs"))) {
+            printf("\n> No progress file available\n");
+            return;
+        }
         if (not std::filesystem::exists(m_directory_)) {
             std::filesystem::create_directory(m_directory_);
         }
