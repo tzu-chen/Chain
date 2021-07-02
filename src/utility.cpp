@@ -1,12 +1,12 @@
 #include "utility.h"
 
 
-void CleanFile(const std::filesystem::path &p) {
-    std::string filename = std::string(p);
-    FILE * file;
-    file = fopen(filename.c_str(), "w");
-    fclose(file);
-}
+//void CleanFile(const std::filesystem::path &p) {
+//    std::string filename = std::string(p);
+//    FILE * file;
+//    file = fopen(filename.c_str(), "w");
+//    fclose(file);
+//}
 
 std::vector<double> CalcEE(MPS psi, int num_sites) {
     std::vector<double> SvNs;

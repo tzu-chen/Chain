@@ -27,6 +27,8 @@ public:
     std::vector<MPS> psis_;
     std::vector<MPO> Hs_;
     std::vector<MPS> psis_acted_by_rho_;
+    std::vector<MPS> psis_acted_by_translation_;
+    std::vector<MPS> psis_acted_by_hamiltonian_;
 
     void SetSites(SiteSetType sites) {
         sites_ = sites;
@@ -54,6 +56,10 @@ public:
         Hs_.emplace_back(MPO(1));
     }
 
+    MPO H() {
+        return Hs_.back();
+    }
+
     std::tuple<int,int,Real,MPS,MPO> All() {
         return std::tuple<int,int,Real,MPS,MPO>(num_sweeps_vec_.back(), max_dims_.back(), ens_.back(), psis_.back(), Hs_.back());
     }
@@ -65,6 +71,14 @@ public:
             past_psis.push_back(psis_.at(i));
         }
         return past_psis;
+    }
+
+    std::vector<MPS> StatesActedByHamiltonian() {
+        return psis_acted_by_hamiltonian_;
+    }
+
+    std::vector<MPS> StatesActedByTranslation() {
+        return psis_acted_by_translation_;
     }
 
     std::vector<MPS> StatesActedByRho() {
@@ -125,6 +139,41 @@ public:
 //            }
         }
 
+    }
+
+    void WriteHamiltonian(const std::filesystem::path& p) const
+    {
+        std::string path = std::string(p);
+        writeToFile(path + ".ham", psis_acted_by_hamiltonian_);
+    }
+
+    void ReadHamiltonian(const std::filesystem::path& p)
+    {
+        std::string path = std::string(p);
+        try{
+            readFromFile(path + ".ham", psis_acted_by_hamiltonian_);
+        } catch (std::exception const& e) {
+            println(e.what());
+            psis_acted_by_hamiltonian_.pop_back();
+        }
+
+    }
+
+    void WriteTranslation(const std::filesystem::path& p) const
+    {
+        std::string path = std::string(p);
+        writeToFile(path + ".tra", psis_acted_by_translation_);
+    }
+
+    void ReadTranslation(const std::filesystem::path& p)
+    {
+        std::string path = std::string(p);
+        try{
+            readFromFile(path + ".tra", psis_acted_by_translation_);
+        } catch (std::exception const& e) {
+            println(e.what());
+            psis_acted_by_translation_.pop_back();
+        }
     }
 
     void WriteRho(const std::filesystem::path& p) const
@@ -248,6 +297,7 @@ public:
         // DMRG parameters
         gs_max_bond_dim_ = es_max_bond_dim_;
         noise_ = 0.0;
+        // fixme: maybe make smaller
         ortho_weight = 1000.0;
 
         // DMRG design
@@ -493,6 +543,12 @@ public:
             DumpEnergy(dmrg_progress_.NumDoneStates()+1, en_, en_path_);
             printf("\n> Energy of %s: %g\n\n", state_name_, en_);
 
+            if (charge_==0) {
+                Analyze();
+            } else {
+                AnalyzeWithoutRho();
+            }
+
             // Check whether to simulate next state
             if (dmrg_progress_.NumDoneStates() >= num_states_) {
                 break;
@@ -580,50 +636,90 @@ public:
         auto s = Index(num_states);
         auto sP = prime(s);
         auto matrix = ITensor(dag(s), sP);
-        if (observable == "energy") {
-            std::vector<Real> eigenvalues;
-            for (int i=0;i<num_states;i++) {
-                eigenvalues.push_back(dmrg_progress_.Energies().at(i));
-                matrix.set(i+1,i+1,dmrg_progress_.Energies().at(i));
-            }
-//            printf("\n> %s eigenvalues:\n", observable);
-//            PrintVector(eigenvalues);
-//            printf("\n\n");
-            DumpMathematicaSingle(observable, num_states, matrix, m_path_);
+//        if (observable == "energy") {
+//            std::vector<Real> eigenvalues;
+//            for (int i=0;i<num_states;i++) {
+//                eigenvalues.push_back(dmrg_progress_.Energies().at(i));
+//                matrix.set(i+1,i+1,dmrg_progress_.Energies().at(i));
+//            }
+////            printf("\n> %s eigenvalues:\n", observable);
+////            PrintVector(eigenvalues);
+////            printf("\n\n");
+//            DumpMathematicaSingle(observable, num_states, matrix, m_path_);
             // fixme
-            CleanFile(en_path_);
+//            CleanFile(en_path_);
+            std::filesystem::remove(en_path_);
             for (int i=0;i<dmrg_progress_.NumDoneStates();i++) {
                 DumpEnergy(i+1, dmrg_progress_.Energies().at(i), en_path_);
             }
-        } else {
+//        } else
+        {
             auto states = dmrg_progress_.DoneStates();
 
             // fixme: refactor Haagerup/HaagerupQ branching
             // Perform change of basis if appropriate in order to use F symbols
             // Rotate HaagerupQ to Haagerup
             // Golden -> Golden, Haagerup, HaagerupQ -> Haagerup
-            SiteSet sites;
-            if (site_type_ == "golden" or site_type_ == "haagerup") {
-                sites = sites_;
-                for (int i = 0; i < num_states; i++) {
-                    auto new_psi = MPS(sites);
-                    auto psi = states.at(i);
-                    for (auto j : range1(num_sites_)) {
-                        new_psi.set(j, psi(j) * delta(siteIndex(psi, j), sites(j)));
+            SiteSet sites = sites_;
+            if (observable != "energy") {
+                if (site_type_ == "golden" or site_type_ == "haagerup") {
+                    sites = sites_;
+                    for (int i = 0; i < num_states; i++) {
+                        auto new_psi = MPS(sites);
+                        auto psi = states.at(i);
+                        for (auto j : range1(num_sites_)) {
+                            new_psi.set(j, psi(j) * delta(siteIndex(psi, j), sites(j)));
+                        }
+                        states.at(i) = new_psi;
                     }
-                    states.at(i) = new_psi;
-                }
-            } else {
-                sites = Haagerup(num_sites_);
-                for (int i = 0; i < num_states; i++) {
-                    auto states_no_qn = removeQNs(states.at(i));
-                    states.at(i) = Z3FourierTransform(states_no_qn, sites);
+                } else {
+                    sites = Haagerup(num_sites_);
+                    for (int i = 0; i < num_states; i++) {
+                        auto states_no_qn = removeQNs(states.at(i));
+                        states.at(i) = Z3FourierTransform(states_no_qn, sites);
+                    }
                 }
             }
 
+            if (observable == "energy") {
+                if (std::filesystem::exists(progress_directory_ / (filename_ + ".ham"))) {
+                    dmrg_progress_.ReadHamiltonian(progress_path_);
+                    for (int i=0; i<std::min(num_states, (int) dmrg_progress_.StatesActedByHamiltonian().size()); i++) {
+                        states_acted.push_back(dmrg_progress_.StatesActedByHamiltonian().at(i));
+                    }
+                }
+//                auto H = sites.Hamiltonian(boundary_condition_, num_sites_, u_, couplings_);
+                MPO H;
+                for (int i = states_acted.size(); i < num_states; i++) {
+                    psi_acted = MPS(states.at(i));
+                    H = dmrg_progress_.Hs_.at(i);
+                    printf("\nActing Hamiltonian on %d/%d...", i+1, num_states);
+//                    psi_acted = applyMPO(translation_op, psi_acted, {"Method", "Fit", "Cutoff", svd_cutoff, "Verbose", true});
+                    psi_acted = applyMPO(H, psi_acted
+//                                         {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 2}
+                    );
+                    printf("finished.");
+//                    PrintData(psi_acted);
+                    // three-site swap gate. now only working for 3n+2 and not using augment zipper yet.
+//                    for (int j=1; j<num_sites_-1; j+=2){
+//                        SwapThree(psi_acted, sites, j);
+//                    }
+                    states_acted.push_back(psi_acted);
+                    dmrg_progress_.psis_acted_by_hamiltonian_.push_back(psi_acted);
+                    dmrg_progress_.WriteHamiltonian(progress_path_);
+                }
+                printf("\nFinished Hamiltonian.\n");
+            }
+
             if (observable == "translation") {
+                if (std::filesystem::exists(progress_directory_ / (filename_ + ".tra"))) {
+                    dmrg_progress_.ReadTranslation(progress_path_);
+                    for (int i=0; i<std::min(num_states, (int) dmrg_progress_.StatesActedByTranslation().size()); i++) {
+                        states_acted.push_back(dmrg_progress_.StatesActedByTranslation().at(i));
+                    }
+                }
                 auto translation_op = TranslationOp(sites); // periodic MPS
-                for (int i = 0; i < num_states; i++) {
+                for (int i = states_acted.size(); i < num_states; i++) {
                     psi_acted = MPS(states.at(i));
                     printf("\nActing translation on %d/%d...", i+1, num_states);
 //                    psi_acted = applyMPO(translation_op, psi_acted, {"Method", "Fit", "Cutoff", svd_cutoff, "Verbose", true});
@@ -637,6 +733,8 @@ public:
 //                        SwapThree(psi_acted, sites, j);
 //                    }
                     states_acted.push_back(psi_acted);
+                    dmrg_progress_.psis_acted_by_translation_.push_back(psi_acted);
+                    dmrg_progress_.WriteTranslation(progress_path_);
                 }
                 printf("\nFinished translation.\n");
             }
@@ -686,11 +784,11 @@ public:
             // en_shift = dmrg_progress.Energies().at(0);
 
             for (int i = 0; i < num_states; i++) {
-                if (observable == "energy") {
-                    matrix.set(s(i+1), sP(i+1), dmrg_progress_.Energies().at(i) - en_shift);
-                }
+//                if (observable == "energy") {
+//                    matrix.set(s(i+1), sP(i+1), dmrg_progress_.Energies().at(i) - en_shift);
+//                }
                 for (int j = 0; j < num_states; j++) {
-                    if (observable == "translation") {
+                    if (observable == "energy" || observable == "translation") {
                         matrix.set(s(i+1), sP(j+1), innerC(states.at(i), states_acted.at(j)));
                     }
                     if (observable == "rho") {
@@ -748,7 +846,8 @@ public:
             std::filesystem::create_directory(an_directory_);
         }
         PrintJob(false);
-        CleanFile(m_path_);
+//        CleanFile(m_path_);
+        std::filesystem::remove(m_path_);
         auto energy_matrix = Measure("energy");
         auto translation_matrix = Measure("translation");
         auto rho_matrix = Measure("rho");
@@ -794,7 +893,8 @@ public:
             std::filesystem::create_directory(an_directory_);
         }
         PrintJob(false);
-        CleanFile(m_path_);
+//        CleanFile(m_path_);
+        std::filesystem::remove(m_path_);
         auto energy_matrix = Measure("energy");
         auto translation_matrix = Measure("translation");
 

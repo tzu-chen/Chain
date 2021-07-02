@@ -6,7 +6,7 @@
 using namespace itensor;
 
 // Clean file at path into blank file
-void CleanFile(const std::filesystem::path &p);
+//void CleanFile(const std::filesystem::path &p);
 
 // Calculate entanglement entropy curve
 std::vector<double> CalcEE(MPS psi, int num_sites);
