@@ -113,7 +113,7 @@ ITensor FData::RhoDefectCell(const Index &s1, const Index &s2) {
 double FData::FSymbol(int i, int j, int k, int l, int m, int n) const { return 0;}
 
 double FData::TetrahedralSymbol(int i, int j, int k, int l, int m, int n) const {
-    return FData::FSymbol(i, j, k, l, m, n) / QD(m) / QD(n);
+    return FSymbol(i, j, k, l, m, n) / QD(m) / QD(n);
 }
 
 void FData::DumpFMathematica(const std::string filename) {

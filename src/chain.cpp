@@ -449,11 +449,33 @@ void Swap(MPS &psi, const SiteSet &sites, int b) {
     psi.set(b+1,S*V);
 }
 
-void SwapThree(MPS &psi, SiteSet const& sites, int b){
+void localSwap(MPS &psi, int b){
+    psi.position(b);
+    auto tag = tags(rightLinkIndex(psi,1));
+    auto s1 = siteIndex(psi, b);
+    auto s2 = siteIndex(psi, b+1);
+    auto x = ITensor(dag(s1),prime(s2));
+    auto y = ITensor(dag(s2),prime(s1));
+    for(auto j : range1(s1))
+    {
+        x.set(dag(s1)(j),prime(s2)(j),1.);
+        y.set(dag(s2)(j),prime(s1)(j),1.);
+    }
+    auto wf = psi(b) * psi(b+1) * x * y;
+    wf.noPrime();
+    auto [U,S,V] = svd(wf,inds(psi(b)),{"Cutoff=",1E-5});
+
+    U.replaceTags(TagSet("U,Link,0"), tag);
+    S.replaceTags(TagSet("U,Link,0"), tag);
+
+    psi.set(b,U);
+    psi.set(b+1,S*V);
+}
+
+void ActThree(MPS & psi, ITensor const& G, int b){
     psi.position(b);
     auto tag1 = tags(rightLinkIndex(psi, 1));
     auto tag2 = tags(rightLinkIndex(psi, 2));
-    auto G = ThreeSiteGate(sites, b, b+1,b+2);
     auto wf = psi(b) * psi(b+1) * psi(b+2);
     wf = wf * G;
     wf.noPrime();
@@ -525,4 +547,13 @@ void ThreeSiteGate::makeSwapGate(const SiteSet &sites) {
         c.set(dag(s3)(j),prime(s2)(j),1.);
     }
     gate_ = a*b*c;
+}
+
+ThreeSiteGate::ThreeSiteGate(const SiteSet &sites, int i1, int i2, int i3, ITensor gate) {
+    std::vector<int> inds = {i1, i2, i3};
+    std::sort (inds.begin(), inds.end());
+    i1_ = inds[0];
+    i2_ = inds[1];
+    i3_ = inds[2];
+    gate_ = gate;
 }
