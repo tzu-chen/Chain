@@ -734,7 +734,9 @@ public:
                     printf("\nActing translation on %d/%d...", i+1, num_states);
 //                    psi_acted = applyMPO(translation_op, psi_acted, {"Method", "Fit", "Cutoff", svd_cutoff, "Verbose", true});
                     for (int j=1; j<num_sites_; j++) {
-                        Swap(psi_acted, sites, j);
+//                        Swap(psi_acted, sites, j);
+                        // fixme: test localSwap
+                        localSwap(psi_acted, j);
                     }
                     printf("finished.");
 //                    PrintData(psi_acted);
@@ -753,11 +755,23 @@ public:
             auto right_dangling_ind = Index(36, "Site");
 
             if (observable == "rho") {
+//                // fixme: test ActThree using older rho operator specific to L=3
+//                auto dummy_FF = HaagerupFData();
+//                auto rho = dummy_FF.RhoDefect3(sites(1), sites(2), sites(3));
+//                auto dummy_psi0 = MPS(states.at(0));
+//                auto dummy_psi = MPS(states.at(0));
+//                ActThree(dummy_psi, rho, 1);
+//                println(innerC(dummy_psi, dummy_psi0));
+//                for(int i=1;i<=3;i++){
+//                    rho *= dummy_psi0(i) * prime(dummy_psi0(i)).conj();
+//                }
+//                PrintData(rho);
+
                 // zipper start
                 auto dummy_l = Index(6, "Site");
                 auto dummy_ll = Index(6, "Site");
-                auto zipperMPS0 = ZipperAugmentMPS(states.at(0), dummy_l, dummy_ll);
-                auto zipperMPS = zipperMPS0;
+                auto zipperMPS0 = ZipperAugmentMPS(MPS(states.at(0)), dummy_l, dummy_ll);
+                auto zipperMPS = MPS(zipperMPS0);
                 auto dummy_F = HaagerupFData();
                 auto FGate = dummy_F.ZipperAugmentGate(siteIndex(zipperMPS, 1),
                                                          siteIndex(zipperMPS, 2),
@@ -799,6 +813,7 @@ public:
                                                        siteIndex(zipperMPS, 3)), 1);
                 println(innerC(zipperMPS, zipperMPS0));
                 // zipper end
+
                 if (std::filesystem::exists(progress_directory_ / (filename_ + ".rho"))) {
                     dmrg_progress_.ReadRho(progress_path_);
                     for (int i=0; i<std::min(num_states, (int) dmrg_progress_.StatesActedByRho().size()); i++) {

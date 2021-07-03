@@ -55,7 +55,7 @@ public:
 //
 //    ITensor RhoDefect2(const Index& s1, const Index& s2);
 //
-//    ITensor RhoDefect3(const Index& s1, const Index& s2, const Index& s3);
+    ITensor RhoDefect3(const Index& s1, const Index& s2, const Index& s3);
 //
 //    ITensor RhoDefect4(const Index& s1, const Index& s2, const Index& s3, const Index& s4);
 //
