@@ -231,7 +231,7 @@ MPS ZipperAugmentMPS(MPS const& original_psi, Index const& sl, Index const& sll)
     auto extra_bond_index_left_left = Index(1, "l=-1,Link");
     auto extra_ll = ITensor(sll, extra_bond_index_left_left);
     for (auto i:range1(dim(sl))) {
-        extra_l.set(i, 1, 1);
+        extra_l.set(i, 1, 1. / dim(sl));
     }
     for (auto i:range1(dim(sll))) {
         extra_ll.set(i, 1, 1. / dim(sll));

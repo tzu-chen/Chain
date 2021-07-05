@@ -768,50 +768,63 @@ public:
 //                PrintData(rho);
 
                 // zipper start
-                auto dummy_l = Index(6, "Site");
-                auto dummy_ll = Index(6, "Site");
-                auto zipperMPS0 = ZipperAugmentMPS(MPS(states.at(0)), dummy_l, dummy_ll);
-                auto zipperMPS = MPS(zipperMPS0);
-                auto dummy_F = HaagerupFData();
-                auto FGate = dummy_F.ZipperAugmentGate(siteIndex(zipperMPS, 1),
-                                                         siteIndex(zipperMPS, 2),
-                                                         siteIndex(zipperMPS, 3));
-                auto ns = num_sites_ + 2;
-                ActThree(zipperMPS, FGate, 1);
-                for (int i=2; i < ns-1; i++){
-                    ActThree(zipperMPS, dummy_F.ZipperGate(siteIndex(zipperMPS, i),
-                                                           siteIndex(zipperMPS, i+1),
-                                                           siteIndex(zipperMPS, i+2)),
-                             i
+                for (int k=0;k<4;k++) {
+                    auto dummy_l = Index(6, "Site");
+                    auto dummy_ll = Index(6, "Site");
+                    auto zipperMPS0 = MPS(ZipperAugmentMPS(MPS(states.at(k)), dummy_l, dummy_ll));
+                    auto zipperMPS = MPS(zipperMPS0);
+                    auto dummy_F = HaagerupFData();
+                    auto FGate = dummy_F.ZipperAugmentGate(siteIndex(zipperMPS, 1),
+                                                           siteIndex(zipperMPS, 2),
+                                                           siteIndex(zipperMPS, 3));
+                    auto ns = num_sites_ + 2;
+                    ActThree(zipperMPS0, dummy_F.ZipperDeltaGate(siteIndex(zipperMPS,1),
+                                                           siteIndex(zipperMPS,2),
+                                                           siteIndex(zipperMPS,3)),
+                             1
                     );
-                }
-                for (int j=1; j < ns; j++) {
-                    localSwap(zipperMPS, j);
-                }
-                ActThree(zipperMPS, dummy_F.ZipperGate(siteIndex(zipperMPS, ns-2),
-                                                       siteIndex(zipperMPS, ns-1),
-                                                       siteIndex(zipperMPS, ns)),
-                         ns-2
+                    ActThree(zipperMPS, dummy_F.ZipperDeltaGate(siteIndex(zipperMPS,1),
+                                                                 siteIndex(zipperMPS,2),
+                                                                 siteIndex(zipperMPS,3)),
+                             1
+                    );
+//                    println(innerC(zipperMPS0, zipperMPS));
+                    ActThree(zipperMPS, FGate, 1);
+                    for (int i = 2; i < ns - 1; i++) {
+                        ActThree(zipperMPS, dummy_F.ZipperGate(siteIndex(zipperMPS, i),
+                                                               siteIndex(zipperMPS, i + 1),
+                                                               siteIndex(zipperMPS, i + 2)),
+                                 i
+                        );
+                    }
+                    for (int j = 1; j < ns; j++) {
+                        localSwap(zipperMPS, j);
+                    }
+                    ActThree(zipperMPS, dummy_F.ZipperGate(siteIndex(zipperMPS, ns - 2),
+                                                           siteIndex(zipperMPS, ns - 1),
+                                                           siteIndex(zipperMPS, ns)),
+                             ns - 2
 
-                );
-                for (int j=1; j < ns; j++) {
-                    localSwap(zipperMPS, j);
+                    );
+                    for (int j = 1; j < ns; j++) {
+                        localSwap(zipperMPS, j);
+                    }
+                    ActThree(zipperMPS, dummy_F.ZipperReductionGate(siteIndex(zipperMPS, ns - 2),
+                                                                    siteIndex(zipperMPS, ns - 1),
+                                                                    siteIndex(zipperMPS, ns)),
+                             ns - 2
+                             );
+                    for (int j = ns - 1; j > 0; j--) {
+                        localSwap(zipperMPS, j);
+                    }
+                    for (int j = ns - 1; j > 0; j--) {
+                        localSwap(zipperMPS, j);
+                    }
+                    for (int j=ns-1; j >0; j--) {
+                        localSwap(zipperMPS, j);
+                    }
+                    println(innerC(zipperMPS, zipperMPS0));
                 }
-                ActThree(zipperMPS, dummy_F.ZipperGate(siteIndex(zipperMPS, ns-2),
-                                                       siteIndex(zipperMPS, ns-1),
-                                                       siteIndex(zipperMPS, ns)),
-                         ns-2
-                );
-                for (int j=ns-1; j >0; j--) {
-                    localSwap(zipperMPS, j);
-                }
-                for (int j=ns-1; j >0; j--) {
-                    localSwap(zipperMPS, j);
-                }
-                ActThree(zipperMPS, dummy_F.ZipperReductionGate(siteIndex(zipperMPS, 1),
-                                                       siteIndex(zipperMPS, 2),
-                                                       siteIndex(zipperMPS, 3)), 1);
-                println(innerC(zipperMPS, zipperMPS0));
                 // zipper end
 
                 if (std::filesystem::exists(progress_directory_ / (filename_ + ".rho"))) {

@@ -113,7 +113,8 @@ ITensor FData::RhoDefectCell(const Index &s1, const Index &s2) {
 double FData::FSymbol(int i, int j, int k, int l, int m, int n) const { return 0;}
 
 double FData::TetrahedralSymbol(int i, int j, int k, int l, int m, int n) const {
-    return FSymbol(i, j, k, l, m, n) / sqrt( QD(m) * QD(n) );
+    return FSymbol(i, j, k, l, m, n);
+//    / sqrt( QD(m) * QD(n) );
 }
 
 void FData::DumpFMathematica(const std::string filename) {
@@ -137,6 +138,29 @@ void FData::DumpFMathematica(const std::string filename) {
 }
 
 // fixme
+ITensor FData::ZipperDeltaGate(const Index &s1, const Index &s2, const Index &s3) const {
+    auto s1P = prime(s1);
+    auto s2P = prime(s2);
+    auto s3P = prime(s3);
+    auto Op = ITensor(dag(s1), s1P, dag(s2), s2P, dag(s3), s3P);
+    for (int i1=1; i1 <= kRk_; i1++) {
+        for (int j1=1; j1 <= kRk_; j1++) {
+            for (int i2=1; i2 <= kRk_; i2++) {
+                for (int j2=1; j2 <= kRk_; j2++) {
+                    for (int i3=1; i3 <= kRk_; i3++) {
+                        for (int j3 = 1; j3 <= kRk_; j3++) {
+                            if (i3==j1 && i3==j2 && i3==j3) {
+                                Op.set(s1(i1), s1P(j1), s2(i2), s2P(j2), s3(i3), s3P(j3), 1);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return Op;
+}
+
 ITensor FData::ZipperAugmentGate(const Index &s1, const Index &s2, const Index &s3) const {
     auto s1P = prime(s1);
     auto s2P = prime(s2);
@@ -148,8 +172,8 @@ ITensor FData::ZipperAugmentGate(const Index &s1, const Index &s2, const Index &
                 for (int j2=1; j2 <= kRk_; j2++) {
                     for (int i3=1; i3 <= kRk_; i3++) {
                         for (int j3 = 1; j3 <= kRk_; j3++) {
-                            if (i2==j1 && i2==j3) {
-                                auto f = TetrahedralSymbol(kRho_, kRho_, i2, i2, 1, j2);
+                            if (i3==j1 && i3==j3) {
+                                auto f = TetrahedralSymbol(kRho_, kRho_, i3, i3, 1, j2);
                                 if (f != 0) {
                                     Op.set(s1(i1), s1P(j1), s2(i2), s2P(j2), s3(i3), s3P(j3), f);
                                 }
@@ -175,7 +199,8 @@ ITensor FData::ZipperGate(const Index &s1, const Index &s2, const Index &s3) con
                     for (int i3=1; i3 <= kRk_; i3++) {
                         for (int j3 = 1; j3 <= kRk_; j3++) {
                             if (i1==j1 && i3==j3) {
-                                auto f = TetrahedralSymbol(i1, kRho_, i3, kRho_, i2, j2);
+//                                auto f = TetrahedralSymbol(i1, kRho_, i3, kRho_, i2, j2);
+                                auto f = TetrahedralSymbol(kRho_, i1, kRho_, i3, i2, j2);
                                 if (f != 0) {
                                     Op.set(s1(i1), s1P(j1), s2(i2), s2P(j2), s3(i3), s3P(j3), f);
                                 }
@@ -200,9 +225,11 @@ ITensor FData::ZipperReductionGate(const Index &s1, const Index &s2, const Index
                 for (int j2=1; j2 <= kRk_; j2++) {
                     for (int i3=1; i3 <= kRk_; i3++) {
                         for (int j3 = 1; j3 <= kRk_; j3++) {
-                            if (i1==j3 && i1==j2) {
-                                auto f = sqrt( QD(i2) * QD(kRho_) / QD(i1) );
-                                if (f != 0) {
+                            if (i1==i3 && i1==j1 && i1==j2 && i1==j3) {
+                                // fixme
+                                if (HasFusion(kRho_, i1, i2) && HasFusion(kRho_, i2, i1))
+                                {
+                                    auto f = sqrt(QD(i2) * QD(kRho_) / QD(i1));
                                     Op.set(s1(i1), s1P(j1), s2(i2), s2P(j2), s3(i3), s3P(j3), f);
                                 }
                             }
