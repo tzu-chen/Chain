@@ -6,7 +6,7 @@
 
 using namespace itensor;
 
-
+double kCutoff = 1E-8;
 
 MPO TranslationOp(const SiteSet& sites, bool inv) {
     int N = sites.length();
@@ -19,12 +19,14 @@ MPO TranslationOp(const SiteSet& sites, bool inv) {
     auto B = std::vector<ITensor>(N);
     if (not inv) {
         for (auto j : range1(N-1)) {
+            // fixme
             auto[Aj, Bj] = factor(G[j], {sites(j), prime(sites(j))}, {"MaxDim", 100});
             A[j] = Aj;
             B[j] = Bj;
         }
     } else {
         for (auto j : range1(N-1)) {
+            // fixme
             auto[Aj, Bj] = factor(G[N-j], {sites(N-j), prime(sites(N-j))}, {"MaxDim", 100});
             A[N-j] = Aj;
             B[N-j] = Bj;
@@ -440,7 +442,7 @@ void Swap(MPS &psi, const SiteSet &sites, int b) {
     wf.noPrime();
 
 //    auto [U,S,V] = svd(wf,inds(psi(b)));
-    auto [U,S,V] = svd(wf,inds(psi(b)),{"Cutoff=",1E-5});
+    auto [U,S,V] = svd(wf,inds(psi(b)),{"Cutoff=",kCutoff});
     // fixme: U vs u_
     U.replaceTags(TagSet("U,Link,0"), tag);
     S.replaceTags(TagSet("U,Link,0"), tag);
@@ -463,7 +465,7 @@ void localSwap(MPS &psi, int b){
     }
     auto wf = psi(b) * psi(b+1) * x * y;
     wf.noPrime();
-    auto [U,S,V] = svd(wf,inds(psi(b)),{"Cutoff=",1E-5});
+    auto [U,S,V] = svd(wf,inds(psi(b)),{"Cutoff=",kCutoff});
 
     U.replaceTags(TagSet("U,Link,0"), tag);
     S.replaceTags(TagSet("U,Link,0"), tag);

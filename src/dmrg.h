@@ -700,15 +700,16 @@ public:
                 }
 //                auto H = sites.Hamiltonian(boundary_condition_, num_sites_, u_, couplings_);
                 MPO H;
+                println("\nAct Hamiltonian...");
                 for (int i = states_acted.size(); i < num_states; i++) {
                     psi_acted = MPS(states.at(i));
                     H = dmrg_progress_.Hs_.at(i);
-                    printf("\nActing Hamiltonian on %d/%d...", i+1, num_states);
+                    printf("\r%d/%d", i+1, num_states);
 //                    psi_acted = applyMPO(translation_op, psi_acted, {"Method", "Fit", "Cutoff", svd_cutoff, "Verbose", true});
                     psi_acted = applyMPO(H, psi_acted
 //                                         {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 2}
                     );
-                    printf("finished.");
+//                    printf("finished.");
 //                    PrintData(psi_acted);
                     // three-site swap gate. now only working for 3n+2 and not using augment zipper yet.
 //                    for (int j=1; j<num_sites_-1; j+=2){
@@ -718,7 +719,7 @@ public:
                     dmrg_progress_.psis_acted_by_hamiltonian_.push_back(psi_acted);
                     dmrg_progress_.WriteHamiltonian(progress_path_);
                 }
-                printf("\nFinished Hamiltonian.\n");
+                printf("\r...finished.\n");
             }
 
             if (observable == "translation") {
@@ -729,16 +730,17 @@ public:
                     }
                 }
                 auto translation_op = TranslationOp(sites); // periodic MPS
+                println("\nAct translation...");
                 for (int i = states_acted.size(); i < num_states; i++) {
                     psi_acted = MPS(states.at(i));
-                    printf("\nActing translation on %d/%d...", i+1, num_states);
+                    printf("\r%d/%d", i+1, num_states);
 //                    psi_acted = applyMPO(translation_op, psi_acted, {"Method", "Fit", "Cutoff", svd_cutoff, "Verbose", true});
                     for (int j=1; j<num_sites_; j++) {
 //                        Swap(psi_acted, sites, j);
                         // fixme: test localSwap
                         localSwap(psi_acted, j);
                     }
-                    printf("finished.");
+//                    printf("finished.");
 //                    PrintData(psi_acted);
                     // three-site swap gate. now only working for 3n+2 and not using augment zipper yet.
 //                    for (int j=1; j<num_sites_-1; j+=2){
@@ -748,7 +750,7 @@ public:
                     dmrg_progress_.psis_acted_by_translation_.push_back(psi_acted);
                     dmrg_progress_.WriteTranslation(progress_path_);
                 }
-                printf("\nFinished translation.\n");
+                printf("\r...finished.\n");
             }
 
             auto left_dangling_ind = Index(36, "Site");
@@ -767,65 +769,70 @@ public:
 //                }
 //                PrintData(rho);
 
-                // zipper start
-                for (int k=0;k<4;k++) {
-                    auto dummy_l = Index(6, "Site");
-                    auto dummy_ll = Index(6, "Site");
-                    auto zipperMPS0 = MPS(ZipperAugmentMPS(MPS(states.at(k)), dummy_l, dummy_ll));
-                    auto zipperMPS = MPS(zipperMPS0);
-                    auto dummy_F = HaagerupFData();
-                    auto FGate = dummy_F.ZipperAugmentGate(siteIndex(zipperMPS, 1),
-                                                           siteIndex(zipperMPS, 2),
-                                                           siteIndex(zipperMPS, 3));
-                    auto ns = num_sites_ + 2;
-                    ActThree(zipperMPS0, dummy_F.ZipperDeltaGate(siteIndex(zipperMPS,1),
-                                                           siteIndex(zipperMPS,2),
-                                                           siteIndex(zipperMPS,3)),
-                             1
-                    );
-                    ActThree(zipperMPS, dummy_F.ZipperDeltaGate(siteIndex(zipperMPS,1),
-                                                                 siteIndex(zipperMPS,2),
-                                                                 siteIndex(zipperMPS,3)),
-                             1
-                    );
-//                    println(innerC(zipperMPS0, zipperMPS));
-                    ActThree(zipperMPS, FGate, 1);
-                    for (int i = 2; i < ns - 1; i++) {
-                        ActThree(zipperMPS, dummy_F.ZipperGate(siteIndex(zipperMPS, i),
-                                                               siteIndex(zipperMPS, i + 1),
-                                                               siteIndex(zipperMPS, i + 2)),
-                                 i
-                        );
-                    }
-                    for (int j = 1; j < ns; j++) {
-                        localSwap(zipperMPS, j);
-                    }
-                    ActThree(zipperMPS, dummy_F.ZipperGate(siteIndex(zipperMPS, ns - 2),
-                                                           siteIndex(zipperMPS, ns - 1),
-                                                           siteIndex(zipperMPS, ns)),
-                             ns - 2
-
-                    );
-                    for (int j = 1; j < ns; j++) {
-                        localSwap(zipperMPS, j);
-                    }
-                    ActThree(zipperMPS, dummy_F.ZipperReductionGate(siteIndex(zipperMPS, ns - 2),
-                                                                    siteIndex(zipperMPS, ns - 1),
-                                                                    siteIndex(zipperMPS, ns)),
-                             ns - 2
-                             );
-                    for (int j = ns - 1; j > 0; j--) {
-                        localSwap(zipperMPS, j);
-                    }
-                    for (int j = ns - 1; j > 0; j--) {
-                        localSwap(zipperMPS, j);
-                    }
-                    for (int j=ns-1; j >0; j--) {
-                        localSwap(zipperMPS, j);
-                    }
-                    println(innerC(zipperMPS, zipperMPS0));
-                }
-                // zipper end
+//                // zipper start
+//                for (int k=0;k<1;k++) {
+//                    auto start = std::chrono::high_resolution_clock::now();
+//
+//                    auto dummy_l = Index(6, "Site");
+//                    auto dummy_ll = Index(6, "Site");
+//                    auto zipperMPS0 = MPS(ZipperAugmentMPS(MPS(states.at(k)), dummy_l, dummy_ll));
+//                    auto zipperMPS = MPS(zipperMPS0);
+//                    auto dummy_F = HaagerupFData();
+//                    auto FGate = dummy_F.ZipperAugmentGate(siteIndex(zipperMPS, 1),
+//                                                           siteIndex(zipperMPS, 2),
+//                                                           siteIndex(zipperMPS, 3));
+//                    auto ns = num_sites_ + 2;
+//                    ActThree(zipperMPS0, dummy_F.ZipperDeltaGate(siteIndex(zipperMPS,1),
+//                                                           siteIndex(zipperMPS,2),
+//                                                           siteIndex(zipperMPS,3)),
+//                             1
+//                    );
+//                    ActThree(zipperMPS, dummy_F.ZipperDeltaGate(siteIndex(zipperMPS,1),
+//                                                                 siteIndex(zipperMPS,2),
+//                                                                 siteIndex(zipperMPS,3)),
+//                             1
+//                    );
+////                    println(innerC(zipperMPS0, zipperMPS));
+//                    ActThree(zipperMPS, FGate, 1);
+//                    for (int i = 2; i < ns - 1; i++) {
+//                        ActThree(zipperMPS, dummy_F.ZipperGate(siteIndex(zipperMPS, i),
+//                                                               siteIndex(zipperMPS, i + 1),
+//                                                               siteIndex(zipperMPS, i + 2)),
+//                                 i
+//                        );
+//                    }
+//                    for (int j = 1; j < ns; j++) {
+//                        localSwap(zipperMPS, j);
+//                    }
+//                    ActThree(zipperMPS, dummy_F.ZipperGate(siteIndex(zipperMPS, ns - 2),
+//                                                           siteIndex(zipperMPS, ns - 1),
+//                                                           siteIndex(zipperMPS, ns)),
+//                             ns - 2
+//
+//                    );
+//                    for (int j = 1; j < ns; j++) {
+//                        localSwap(zipperMPS, j);
+//                    }
+//                    ActThree(zipperMPS, dummy_F.ZipperReductionGate(siteIndex(zipperMPS, ns - 2),
+//                                                                    siteIndex(zipperMPS, ns - 1),
+//                                                                    siteIndex(zipperMPS, ns)),
+//                             ns - 2
+//                             );
+//                    for (int j = ns - 1; j > 0; j--) {
+//                        localSwap(zipperMPS, j);
+//                    }
+//                    for (int j = ns - 1; j > 0; j--) {
+//                        localSwap(zipperMPS, j);
+//                    }
+//                    for (int j=ns-1; j >0; j--) {
+//                        localSwap(zipperMPS, j);
+//                    }
+//                    println(innerC(zipperMPS, zipperMPS0));
+//
+//                    auto stop = std::chrono::high_resolution_clock::now();
+//                    printf("\nTime spent: %gs\n", std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() / 1000000);
+//                }
+//                // zipper end
 
                 if (std::filesystem::exists(progress_directory_ / (filename_ + ".rho"))) {
                     dmrg_progress_.ReadRho(progress_path_);
@@ -835,7 +842,9 @@ public:
                 }
                 auto rho_op = RhoOp(sites, site_type_); // dangling periodic MPS
                 auto id_op = IdentityOp(sites, rho_op); // dangling periodic MPS with matching indices with rho_op
+                println("\nAct rho...");
                 for (int i = states_acted.size(); i < num_states; i++) {
+//                    auto start = std::chrono::high_resolution_clock::now();
                     // Initialize
                     psi_acted = MPS(states.at(i));
                     // fixme
@@ -847,20 +856,23 @@ public:
                     // Act by rho defect in two steps
                     // First act by dangling rho operator
                     // Then act by dangling identity operator
-                    printf("\nActing rho on %d/%d...", i+1, num_states);
+                    printf("\r%d/%d", i+1, num_states);
                     psi_acted = applyMPO(AugmentMPO(rho_op, left_dangling_ind, right_dangling_ind),
                                          AugmentMPS(psi_acted, left_dangling_ind, right_dangling_ind),
                                          {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 2}
                     );
                     psi_acted = applyMPO(AugmentMPO(id_op, left_dangling_ind, right_dangling_ind),
                                          psi_acted, {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 1});
-                    printf("finished.");
+//                    printf("finished.");
                     states_acted.push_back(psi_acted);
 
                     dmrg_progress_.psis_acted_by_rho_.push_back(psi_acted);
                     dmrg_progress_.WriteRho(progress_path_);
+
+//                    auto stop = std::chrono::high_resolution_clock::now();
+//                    printf("\nTime spent: %gs\n", std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() / 1000000);
                 }
-                printf("\nFinished rho.\n");
+                printf("\r...finished.\n");
             }
 
             Real en_shift = 0;
@@ -947,7 +959,8 @@ public:
         translation_matrix = translation_matrix * delta(s, s_translation) * delta(prime(s), prime(s_translation));
         rho_matrix = rho_matrix * delta(s, s_rho) * delta(prime(s), prime(s_rho));
 
-        auto m = energy_matrix/num_sites_ + translation_matrix + rho_matrix;
+        auto m = energy_matrix/num_sites_ + translation_matrix;
+//        + rho_matrix;
         auto[U,D] = eigen(m);
         U.conj();
         energy_matrix = dag(U)*energy_matrix*prime(U);
