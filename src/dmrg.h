@@ -629,8 +629,7 @@ public:
     ITensor Measure(std::string observable) {
         // Default svd_cutoff for applyMPO(density matrix variant) is 1E-12
         // Setting to larger value will speed up the program significantly at the cost of accuracy of measurements
-        float svd_cutoff = svd_cutoff_;
-//        1E-5;
+        float svd_cutoff = 1E-5;
 
         // Variable declaration
         MPS psi_acted;

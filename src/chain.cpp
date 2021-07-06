@@ -6,7 +6,7 @@
 
 using namespace itensor;
 
-double kCutoff = 1E-8;
+double kCutoff = 1E-5;
 
 MPO TranslationOp(const SiteSet& sites, bool inv) {
     int N = sites.length();
