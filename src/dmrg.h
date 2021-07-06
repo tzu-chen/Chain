@@ -629,7 +629,8 @@ public:
     ITensor Measure(std::string observable) {
         // Default svd_cutoff for applyMPO(density matrix variant) is 1E-12
         // Setting to larger value will speed up the program significantly at the cost of accuracy of measurements
-        float svd_cutoff = 1E-5;
+        float svd_cutoff = svd_cutoff_;
+//        1E-5;
 
         // Variable declaration
         MPS psi_acted;
@@ -701,13 +702,14 @@ public:
 //                auto H = sites.Hamiltonian(boundary_condition_, num_sites_, u_, couplings_);
                 MPO H;
                 println("\nAct Hamiltonian...");
+                println(dmrg_progress_.Energies().at(0));
                 for (int i = states_acted.size(); i < num_states; i++) {
                     psi_acted = MPS(states.at(i));
                     H = dmrg_progress_.Hs_.at(i);
                     printf("\r%d/%d", i+1, num_states);
 //                    psi_acted = applyMPO(translation_op, psi_acted, {"Method", "Fit", "Cutoff", svd_cutoff, "Verbose", true});
-                    psi_acted = applyMPO(H, psi_acted, {"Cutoff", svd_cutoff_}
-//                                         {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 2}
+                    psi_acted = applyMPO(H, psi_acted
+                                         , {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 1}
                     );
 //                    printf("finished.");
 //                    PrintData(psi_acted);
