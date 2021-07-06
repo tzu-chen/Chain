@@ -706,7 +706,7 @@ public:
                     H = dmrg_progress_.Hs_.at(i);
                     printf("\r%d/%d", i+1, num_states);
 //                    psi_acted = applyMPO(translation_op, psi_acted, {"Method", "Fit", "Cutoff", svd_cutoff, "Verbose", true});
-                    psi_acted = applyMPO(H, psi_acted
+                    psi_acted = applyMPO(H, psi_acted, {"Cutoff", svd_cutoff_}
 //                                         {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 2}
                     );
 //                    printf("finished.");
