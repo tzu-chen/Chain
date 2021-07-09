@@ -1,109 +1,103 @@
 #include "haagerup_q_site.h"
 
-#include <utility>
-
 inline int mod(int x,int N) {
     if (x>N)
         return x-N;
     return x;
 }
 
-HaagerupQSite::HaagerupQSite(Index I) : s(std::move(I)) {}
+HaagerupQSite::HaagerupQSite(Index I) : s_(std::move(I)) {}
 
 HaagerupQSite::HaagerupQSite(const Args &args) {
     auto ts=TagSet("Site,Haagerup");
     if (args.getBool("ConserveQNs",true))
     {
-        s = Index(QN({"P",0,3}),1,
-                  QN({"P",1,3}),1,
-                  QN({"P",2,3}),1,
-                  QN({"P",0,3}),1,
-                  QN({"P",1,3}),1,
-                  QN({"P",2,3}),1,Out,ts);
+        s_ = Index(QN({"P", 0, 3}), 1,
+                   QN({"P",1,3}), 1,
+                   QN({"P",2,3}), 1,
+                   QN({"P",0,3}), 1,
+                   QN({"P",1,3}), 1,
+                   QN({"P",2,3}), 1, Out, ts);
     }
     else
     {
-        s = Index(6,ts);
+        s_ = Index(6, ts);
     }
 }
 
-Index HaagerupQSite::index() const { return s; }
+Index HaagerupQSite::index() const { return s_; }
 
 IndexVal HaagerupQSite::state(const string &state) {
-//    if (state=="0") {
-//        return s(4);
-//    } else
-
     if (state=="1") {
-        return s(5);
+        return s_(5);
     } else if (state=="2") {
-        return s(6);
+        return s_(6);
     } else {
-        return s(4);
+        return s_(4);
     }
 //    throw ITError("State "+state+" not recognized");
 }
 
 ITensor HaagerupQSite::m(int i) const {
-    auto sP=prime(s);
-    auto Op=ITensor(dag(s),sP);
+    auto sP=prime(s_);
+    auto Op=ITensor(dag(s_), sP);
     if (i==1) {
-        Op.set(s(1),sP(1),1.0/3);
-        Op.set(s(2),sP(2),1.0/3);
-        Op.set(s(3),sP(3),1.0/3);
+        Op.set(s_(1), sP(1), 1.0 / 3);
+        Op.set(s_(2), sP(2), 1.0 / 3);
+        Op.set(s_(3), sP(3), 1.0 / 3);
     } else if (i==2) {
-        Op.set(s(1),sP(3),1.0/3);
-        Op.set(s(2),sP(1),1.0/3);
-        Op.set(s(3),sP(2),1.0/3);
+        Op.set(s_(1), sP(3), 1.0 / 3);
+        Op.set(s_(2), sP(1), 1.0 / 3);
+        Op.set(s_(3), sP(2), 1.0 / 3);
     } else if (i==3) {
-        Op.set(s(1),sP(2),1.0/3);
-        Op.set(s(2),sP(3),1.0/3);
-        Op.set(s(3),sP(1),1.0/3);
+        Op.set(s_(1), sP(2), 1.0 / 3);
+        Op.set(s_(2), sP(3), 1.0 / 3);
+        Op.set(s_(3), sP(1), 1.0 / 3);
     } else if (i==4) {
-        Op.set(s(4),sP(4),1.0/3);
-        Op.set(s(5),sP(5),1.0/3);
-        Op.set(s(6),sP(6),1.0/3);
+        Op.set(s_(4), sP(4), 1.0 / 3);
+        Op.set(s_(5), sP(5), 1.0 / 3);
+        Op.set(s_(6), sP(6), 1.0 / 3);
     } else if (i==5) {
-        Op.set(s(4),sP(6),1.0/3);
-        Op.set(s(5),sP(4),1.0/3);
-        Op.set(s(6),sP(5),1.0/3);
+        Op.set(s_(4), sP(6), 1.0 / 3);
+        Op.set(s_(5), sP(4), 1.0 / 3);
+        Op.set(s_(6), sP(5), 1.0 / 3);
     } else if (i==6) {
-        Op.set(s(4),sP(5),1.0/3);
-        Op.set(s(5),sP(6),1.0/3);
-        Op.set(s(6),sP(4),1.0/3);
+        Op.set(s_(4), sP(5), 1.0 / 3);
+        Op.set(s_(5), sP(6), 1.0 / 3);
+        Op.set(s_(6), sP(4), 1.0 / 3);
     }
     return Op;
 }
 
 ITensor HaagerupQSite::q(int i) const {
-    auto sP=prime(s);
-    auto Op=ITensor(dag(s),sP);
+    auto sP=prime(s_);
+    auto Op=ITensor(dag(s_), sP);
     if (i==1) {
-        Op.set(s(1),sP(1),0.030557695601338686774);
-        Op.set(s(2),sP(2),0.030557695601338686774);
-        Op.set(s(3),sP(3),0.030557695601338686774);
-        Op.set(s(4),sP(4),0.90832691319598393968);
-        Op.set(s(1),sP(4),0.16660245292295808691);
-        Op.set(s(4),sP(1),0.16660245292295808691);
+        Op.set(s_(1), sP(1), 0.030557695601338686774);
+        Op.set(s_(2), sP(2), 0.030557695601338686774);
+        Op.set(s_(3), sP(3), 0.030557695601338686774);
+        Op.set(s_(4), sP(4), 0.90832691319598393968);
+        Op.set(s_(1), sP(4), 0.16660245292295808691);
+        Op.set(s_(4), sP(1), 0.16660245292295808691);
     } else if (i==2) {
-        Op.set(s(1),sP(3),0.030557695601338686774);
-        Op.set(s(2),sP(1),0.030557695601338686774);
-        Op.set(s(3),sP(2),0.030557695601338686774);
-        Op.set(s(2),sP(4),0.16660245292295808691);
-        Op.set(s(4),sP(3),0.16660245292295808691);
+        Op.set(s_(1), sP(3), 0.030557695601338686774);
+        Op.set(s_(2), sP(1), 0.030557695601338686774);
+        Op.set(s_(3), sP(2), 0.030557695601338686774);
+        Op.set(s_(2), sP(4), 0.16660245292295808691);
+        Op.set(s_(4), sP(3), 0.16660245292295808691);
     } else if (i==3) {
-        Op.set(s(1),sP(2),0.030557695601338686774);
-        Op.set(s(2),sP(3),0.030557695601338686774);
-        Op.set(s(3),sP(1),0.030557695601338686774);
-        Op.set(s(3),sP(4),0.16660245292295808691);
-        Op.set(s(4),sP(2),0.16660245292295808691);
+        Op.set(s_(1), sP(2), 0.030557695601338686774);
+        Op.set(s_(2), sP(3), 0.030557695601338686774);
+        Op.set(s_(3), sP(1), 0.030557695601338686774);
+        Op.set(s_(3), sP(4), 0.16660245292295808691);
+        Op.set(s_(4), sP(2), 0.16660245292295808691);
     }
     return Op;
 }
 
 ITensor HaagerupQSite::q_all(Cplx c_3, Cplx c_5, Cplx c_6, Cplx c_7, int i, int j) const {
-    auto sP=prime(s);
-    auto Op=ITensor(dag(s),sP);
+    auto sP=prime(s_);
+    auto Op=ITensor(dag(s_), sP);
     Real c_1 = 0.033641737525777182951;
     Real c_2 = -0.018511383658106454101;
     Real c_4 = 0.23240812075600178448;
@@ -114,131 +108,131 @@ ITensor HaagerupQSite::q_all(Cplx c_3, Cplx c_5, Cplx c_6, Cplx c_7, int i, int 
     Cplx c_7_bar = conj(c_7);
     if (i==1) {
         if (j==1) {
-            Op.set(s(1),sP(1),c_1);
-            Op.set(s(1),sP(4),c_2);
-            Op.set(s(2),sP(2),c_1);
-            Op.set(s(2),sP(5),c_3);
-            Op.set(s(3),sP(3),c_1);
-            Op.set(s(3),sP(6),c_3_bar);
+            Op.set(s_(1), sP(1), c_1);
+            Op.set(s_(1), sP(4), c_2);
+            Op.set(s_(2), sP(2), c_1);
+            Op.set(s_(2), sP(5), c_3);
+            Op.set(s_(3), sP(3), c_1);
+            Op.set(s_(3), sP(6), c_3_bar);
 
-            Op.set(s(4),sP(1),c_2);
-            Op.set(s(4),sP(4),c_4);
-            Op.set(s(5),sP(2),c_3_bar);
-            Op.set(s(5),sP(5),1.0/3);
-            Op.set(s(6),sP(3),c_3);
-            Op.set(s(6),sP(6),1.0/3);
+            Op.set(s_(4), sP(1), c_2);
+            Op.set(s_(4), sP(4), c_4);
+            Op.set(s_(5), sP(2), c_3_bar);
+            Op.set(s_(5), sP(5), 1.0 / 3);
+            Op.set(s_(6), sP(3), c_3);
+            Op.set(s_(6), sP(6), 1.0 / 3);
         } else if (j==2) {
-            Op.set(s(1),sP(3),c_1);
-            Op.set(s(1),sP(6),c_3_bar);
-            Op.set(s(2),sP(1),c_1);
-            Op.set(s(2),sP(4),c_2);
-            Op.set(s(3),sP(2),c_1);
-            Op.set(s(3),sP(5),c_3);
+            Op.set(s_(1), sP(3), c_1);
+            Op.set(s_(1), sP(6), c_3_bar);
+            Op.set(s_(2), sP(1), c_1);
+            Op.set(s_(2), sP(4), c_2);
+            Op.set(s_(3), sP(2), c_1);
+            Op.set(s_(3), sP(5), c_3);
 
-            Op.set(s(4),sP(3),c_2);
-            Op.set(s(4),sP(6),c_5);
-            Op.set(s(5),sP(1),c_3_bar);
-            Op.set(s(5),sP(4),c_5);
-            Op.set(s(6),sP(2),c_3);
-            Op.set(s(6),sP(5),c_6);
+            Op.set(s_(4), sP(3), c_2);
+            Op.set(s_(4), sP(6), c_5);
+            Op.set(s_(5), sP(1), c_3_bar);
+            Op.set(s_(5), sP(4), c_5);
+            Op.set(s_(6), sP(2), c_3);
+            Op.set(s_(6), sP(5), c_6);
         } else if (j==3) {
-            Op.set(s(1),sP(2),c_1);
-            Op.set(s(1),sP(5),c_3);
-            Op.set(s(2),sP(3),c_1);
-            Op.set(s(2),sP(6),c_3_bar);
-            Op.set(s(3),sP(1),c_1);
-            Op.set(s(3),sP(4),c_2);
+            Op.set(s_(1), sP(2), c_1);
+            Op.set(s_(1), sP(5), c_3);
+            Op.set(s_(2), sP(3), c_1);
+            Op.set(s_(2), sP(6), c_3_bar);
+            Op.set(s_(3), sP(1), c_1);
+            Op.set(s_(3), sP(4), c_2);
 
-            Op.set(s(4),sP(2),c_2);
-            Op.set(s(4),sP(5),c_5_bar);
-            Op.set(s(5),sP(3),c_3_bar);
-            Op.set(s(5),sP(6),c_6_bar);
-            Op.set(s(6),sP(1),c_3);
-            Op.set(s(6),sP(4),c_5_bar);
+            Op.set(s_(4), sP(2), c_2);
+            Op.set(s_(4), sP(5), c_5_bar);
+            Op.set(s_(5), sP(3), c_3_bar);
+            Op.set(s_(5), sP(6), c_6_bar);
+            Op.set(s_(6), sP(1), c_3);
+            Op.set(s_(6), sP(4), c_5_bar);
         }
     } else if (i==2) {
         if (j==1) {
-            Op.set(s(1),sP(3),c_1);
-            Op.set(s(1),sP(6),c_3_bar);
-            Op.set(s(2),sP(1),c_1);
-            Op.set(s(2),sP(4),c_2);
-            Op.set(s(3),sP(2),c_1);
-            Op.set(s(3),sP(5),c_3);
+            Op.set(s_(1), sP(3), c_1);
+            Op.set(s_(1), sP(6), c_3_bar);
+            Op.set(s_(2), sP(1), c_1);
+            Op.set(s_(2), sP(4), c_2);
+            Op.set(s_(3), sP(2), c_1);
+            Op.set(s_(3), sP(5), c_3);
 
-            Op.set(s(4),sP(3),c_2);
-            Op.set(s(4),sP(6),c_5);
-            Op.set(s(5),sP(1),c_3_bar);
-            Op.set(s(5),sP(4),c_5);
-            Op.set(s(6),sP(2),c_3);
-            Op.set(s(6),sP(5),c_6);
+            Op.set(s_(4), sP(3), c_2);
+            Op.set(s_(4), sP(6), c_5);
+            Op.set(s_(5), sP(1), c_3_bar);
+            Op.set(s_(5), sP(4), c_5);
+            Op.set(s_(6), sP(2), c_3);
+            Op.set(s_(6), sP(5), c_6);
         } else if (j==2) {
-            Op.set(s(1),sP(2),c_1);
-            Op.set(s(1),sP(5),c_3);
-            Op.set(s(2),sP(3),c_1);
-            Op.set(s(2),sP(6),c_3_bar);
-            Op.set(s(3),sP(1),c_1);
-            Op.set(s(3),sP(4),c_2);
+            Op.set(s_(1), sP(2), c_1);
+            Op.set(s_(1), sP(5), c_3);
+            Op.set(s_(2), sP(3), c_1);
+            Op.set(s_(2), sP(6), c_3_bar);
+            Op.set(s_(3), sP(1), c_1);
+            Op.set(s_(3), sP(4), c_2);
 
-            Op.set(s(4),sP(2),c_2);
-            Op.set(s(4),sP(5),c_7);
-            Op.set(s(5),sP(3),c_3_bar);
-            Op.set(s(5),sP(6),c_5_bar);
-            Op.set(s(6),sP(1),c_3);
-            Op.set(s(6),sP(4),c_7);
+            Op.set(s_(4), sP(2), c_2);
+            Op.set(s_(4), sP(5), c_7);
+            Op.set(s_(5), sP(3), c_3_bar);
+            Op.set(s_(5), sP(6), c_5_bar);
+            Op.set(s_(6), sP(1), c_3);
+            Op.set(s_(6), sP(4), c_7);
         } else if (j==3) {
-            Op.set(s(1),sP(1),c_1);
-            Op.set(s(1),sP(4),c_2);
-            Op.set(s(2),sP(2),c_1);
-            Op.set(s(2),sP(5),c_3);
-            Op.set(s(3),sP(3),c_1);
-            Op.set(s(3),sP(6),c_3_bar);
+            Op.set(s_(1), sP(1), c_1);
+            Op.set(s_(1), sP(4), c_2);
+            Op.set(s_(2), sP(2), c_1);
+            Op.set(s_(2), sP(5), c_3);
+            Op.set(s_(3), sP(3), c_1);
+            Op.set(s_(3), sP(6), c_3_bar);
 
-            Op.set(s(4),sP(1),c_2);
-            Op.set(s(4),sP(4),c_8);
-            Op.set(s(5),sP(2),c_3_bar);
-            Op.set(s(6),sP(3),c_3);
+            Op.set(s_(4), sP(1), c_2);
+            Op.set(s_(4), sP(4), c_8);
+            Op.set(s_(5), sP(2), c_3_bar);
+            Op.set(s_(6), sP(3), c_3);
         }
     } else if (i==3) {
         if (j==1) {
-            Op.set(s(1),sP(2),c_1);
-            Op.set(s(1),sP(5),c_3);
-            Op.set(s(2),sP(3),c_1);
-            Op.set(s(2),sP(6),c_3_bar);
-            Op.set(s(3),sP(1),c_1);
-            Op.set(s(3),sP(4),c_2);
+            Op.set(s_(1), sP(2), c_1);
+            Op.set(s_(1), sP(5), c_3);
+            Op.set(s_(2), sP(3), c_1);
+            Op.set(s_(2), sP(6), c_3_bar);
+            Op.set(s_(3), sP(1), c_1);
+            Op.set(s_(3), sP(4), c_2);
 
-            Op.set(s(4),sP(2),c_2);
-            Op.set(s(4),sP(5),c_5_bar);
-            Op.set(s(5),sP(3),c_3_bar);
-            Op.set(s(5),sP(6),c_6_bar);
-            Op.set(s(6),sP(1),c_3);
-            Op.set(s(6),sP(4),c_5_bar);
+            Op.set(s_(4), sP(2), c_2);
+            Op.set(s_(4), sP(5), c_5_bar);
+            Op.set(s_(5), sP(3), c_3_bar);
+            Op.set(s_(5), sP(6), c_6_bar);
+            Op.set(s_(6), sP(1), c_3);
+            Op.set(s_(6), sP(4), c_5_bar);
         } else if (j==2) {
-            Op.set(s(1),sP(1),c_1);
-            Op.set(s(1),sP(4),c_2);
-            Op.set(s(2),sP(2),c_1);
-            Op.set(s(2),sP(5),c_3);
-            Op.set(s(3),sP(3),c_1);
-            Op.set(s(3),sP(6),c_3_bar);
+            Op.set(s_(1), sP(1), c_1);
+            Op.set(s_(1), sP(4), c_2);
+            Op.set(s_(2), sP(2), c_1);
+            Op.set(s_(2), sP(5), c_3);
+            Op.set(s_(3), sP(3), c_1);
+            Op.set(s_(3), sP(6), c_3_bar);
 
-            Op.set(s(4),sP(1),c_2);
-            Op.set(s(4),sP(4),c_8);
-            Op.set(s(5),sP(2),c_3_bar);
-            Op.set(s(6),sP(3),c_3);
+            Op.set(s_(4), sP(1), c_2);
+            Op.set(s_(4), sP(4), c_8);
+            Op.set(s_(5), sP(2), c_3_bar);
+            Op.set(s_(6), sP(3), c_3);
         } else if (j==3) {
-            Op.set(s(1),sP(3),c_1);
-            Op.set(s(1),sP(6),c_3_bar);
-            Op.set(s(2),sP(1),c_1);
-            Op.set(s(2),sP(4),c_2);
-            Op.set(s(3),sP(2),c_1);
-            Op.set(s(3),sP(5),c_3);
+            Op.set(s_(1), sP(3), c_1);
+            Op.set(s_(1), sP(6), c_3_bar);
+            Op.set(s_(2), sP(1), c_1);
+            Op.set(s_(2), sP(4), c_2);
+            Op.set(s_(3), sP(2), c_1);
+            Op.set(s_(3), sP(5), c_3);
 
-            Op.set(s(4),sP(3),c_2);
-            Op.set(s(4),sP(6),c_7_bar);
-            Op.set(s(5),sP(1),c_3_bar);
-            Op.set(s(5),sP(4),c_7_bar);
-            Op.set(s(6),sP(2),c_3);
-            Op.set(s(6),sP(5),c_5);
+            Op.set(s_(4), sP(3), c_2);
+            Op.set(s_(4), sP(6), c_7_bar);
+            Op.set(s_(5), sP(1), c_3_bar);
+            Op.set(s_(5), sP(4), c_7_bar);
+            Op.set(s_(6), sP(2), c_3);
+            Op.set(s_(6), sP(5), c_5);
         }
     }
     return Op;
@@ -425,11 +419,6 @@ MPO HaagerupQ::Hamiltonian(const std::string& boundary_condition, int num_sites,
             mpo += 3 * Kj,"m6",j,"q3",mod(j+1, num_sites),"m6",mod(j+2, num_sites);
         }
     }
-
-//    if (boundary_condition_ == "o") {
-//        ampo += 6*Uj,"m1",1;
-//        ampo += 6*Uj,"m1",num_sites_;
-//    }
 
     // rho
     Real Jj;

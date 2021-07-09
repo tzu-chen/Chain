@@ -11,10 +11,9 @@ using namespace itensor;
 // 4    r=\rho
 // 5    ar
 // 6    br
-
 class HaagerupQSite
 {
-    Index s;
+    Index s_;
 public:
     explicit HaagerupQSite(Index  I);
     explicit HaagerupQSite(Args const& args = Args::global());
@@ -39,14 +38,12 @@ public:
 
 };
 
-//using HaagerupQ=BasicSiteSet<HaagerupQSite>;
-
 class HaagerupQ: public BasicSiteSet<HaagerupQSite> {
 public:
     HaagerupQ() : BasicSiteSet<HaagerupQSite>() {};
-    HaagerupQ(int N, Args const& args = Args::global()) : BasicSiteSet<HaagerupQSite>(N, args) {};
+    explicit HaagerupQ(int N, Args const& args = Args::global()) : BasicSiteSet<HaagerupQSite>(N, args) {};
 
-    // Hamiltonian appropriate for the boundary condition, number of sites, and couplings
+    // Hamiltonian appropriate for the boundary condition, number of sites, and couplings.
     MPO Hamiltonian(const std::string& boundary_condition, int num_sites, Real U, std::vector<Real> couplings);
 };
 

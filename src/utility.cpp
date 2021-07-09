@@ -1,13 +1,7 @@
 #include "utility.h"
 
 
-//void CleanFile(const std::filesystem::path &p) {
-//    std::string filename = std::string(p);
-//    FILE * file;
-//    file = fopen(filename.c_str(), "w");
-//    fclose(file);
-//}
-
+// Calculate entanglement entropy curve.
 std::vector<double> CalcEE(MPS psi, int num_sites) {
     std::vector<double> SvNs;
     for (auto b=1; b < num_sites; b++) {
@@ -32,6 +26,7 @@ std::vector<double> CalcEE(MPS psi, int num_sites) {
     return SvNs;
 }
 
+// Append entanglement entropy curve to path (extension should be ee).
 void DumpEE(int num_sites, std::vector<double> SvNs, const std::filesystem::path &p) {
     std::string filename = std::string(p);
     FILE * ee_file;
@@ -44,6 +39,7 @@ void DumpEE(int num_sites, std::vector<double> SvNs, const std::filesystem::path
     fclose(ee_file);
 }
 
+// Append energy to path (extension should be en).
 void DumpEnergy(int state_order, Real en, const std::filesystem::path &p) {
     std::string filename = std::string(p);
     FILE * file;
@@ -56,6 +52,7 @@ void DumpEnergy(int state_order, Real en, const std::filesystem::path &p) {
     fclose(file);
 }
 
+// Append tensor in Mathematica matrix format to path (extension should be .m).
 void DumpMathematicaSingle(const string& name, int len, const ITensor& tensor, const std::filesystem::path &p) {
     std::string filename = std::string(p);
     FILE * file;
@@ -80,55 +77,16 @@ void DumpMathematicaSingle(const string& name, int len, const ITensor& tensor, c
     fclose(file);
 }
 
-// Print the real parts of std::vector<Cplx> object into a Mathematica-compatible array.
-void PrintVector(std::vector<Cplx> vector) {
-    print("{");
-    if (vector.size() > 0) {
-        print(vector.at(0).real());
-        for (int i=1; i<vector.size(); i++) {
-            print(",");
-            print(vector.at(i).real());
-        }
-    }
-    print("}");
-}
-
-// Print std::vector<Real> object into a Mathematica-compatible array.
-void PrintVector(std::vector<Real> vector) {
-    print("{");
-    if (vector.size() > 0) {
-        print(vector.at(0));
-        for (int i = 1; i < vector.size(); i++) {
-            print(",");
-            print(vector.at(i));
-        }
-    }
-    print("}");
-}
-
-// Print std::vector<std::vector<Real>> object into a Mathematica-compatible array.
-void PrintMatrix(std::vector<std::vector<Real>> matrix) {
-    print("{\n");
-    if (matrix.size() > 0) {
-        PrintVector(matrix.at(0));
-        for (int i=1; i<matrix.size(); i++) {
-            print(",\n");
-            PrintVector(matrix.at(i));
-        }
-    }
-    print("\n}\n");
-}
-
-// Print std::vector<std::vector<Real>> object into a Mathematica-compatible array.
+// Append std::vector<std::vector<Real>> object as a Mathematica format matrix to file (extension should be .an).
 void DumpMatrix(std::vector<std::vector<Real>> matrix, const std::filesystem::path &p) {
     std::string filename = std::string(p);
     FILE * file;
     file = fopen(filename.c_str(),"w");
     fprintf(file, "{\n");
-    if (matrix.size() > 0) {
+    if (!matrix.empty()) {
         auto vector = matrix.at(0);
         fprintf(file, "{");
-        if (vector.size() > 0) {
+        if (!vector.empty()) {
             fprintf(file, "%.10f", vector.at(0));
             for (int i = 1; i < vector.size(); i++) {
                 fprintf(file, ",");
@@ -140,11 +98,11 @@ void DumpMatrix(std::vector<std::vector<Real>> matrix, const std::filesystem::pa
             fprintf(file, ",\n");
             vector = matrix.at(i);
             fprintf(file, "{");
-            if (vector.size() > 0) {
+            if (!vector.empty()) {
                 fprintf(file, "%.10f", vector.at(0));
-                for (int i = 1; i < vector.size(); i++) {
+                for (int j = 1; j < vector.size(); j++) {
                     fprintf(file, ",");
-                    fprintf(file, "%.10f", vector.at(i));
+                    fprintf(file, "%.10f", vector.at(j));
                 }
             }
             fprintf(file, "}");
@@ -154,14 +112,47 @@ void DumpMatrix(std::vector<std::vector<Real>> matrix, const std::filesystem::pa
     fclose(file);
 }
 
-//void CleanMathematica(const std::filesystem::path& p) {
-//    std::string filename = std::string(p);
-//    // Delete original content
-//    FILE * file;
-//    file = fopen(filename.c_str(),"w");
-//    fclose(file);
-//}
+// Print the real parts of std::vector<Cplx> object as a Mathematica-compatible array.
+void PrintVector(std::vector<Cplx> vector) {
+    print("{");
+    if (!vector.empty()) {
+        print(vector.at(0).real());
+        for (int i=1; i<vector.size(); i++) {
+            print(",");
+            print(vector.at(i).real());
+        }
+    }
+    print("}");
+}
 
+// Print std::vector<Real> object as a Mathematica-compatible array.
+void PrintVector(std::vector<Real> vector) {
+    print("{");
+    if (!vector.empty()) {
+        print(vector.at(0));
+        for (int i = 1; i < vector.size(); i++) {
+            print(",");
+            print(vector.at(i));
+        }
+    }
+    print("}");
+}
+
+// Print std::vector<std::vector<Real>> object as a Mathematica-compatible matrix.
+void PrintMatrix(std::vector<std::vector<Real>> matrix) {
+    print("{\n");
+    if (!matrix.empty()) {
+        PrintVector(matrix.at(0));
+        for (int i=1; i<matrix.size(); i++) {
+            print(",\n");
+            PrintVector(matrix.at(i));
+        }
+    }
+    print("\n}\n");
+}
+
+// DEPRECIATED
+//
 //void DumpMathematicaAll(int len, const ITensor& En, const ITensor& OpT, const ITensor& OpR, const std::filesystem::path& p) {
 //    std::string filename = std::string(p);
 //    // Delete original content
@@ -172,8 +163,7 @@ void DumpMatrix(std::vector<std::vector<Real>> matrix, const std::filesystem::pa
 //    DumpMathematicaSingle("OpT", len, OpT, filename);
 //    DumpMathematicaSingle("OpR", len, OpR, filename);
 //}
-
-//// UNUSED
+//
 //Real Spin(Cplx num, int NN) {
 //    Real spin = log(num).imag()/(2*Pi)*NN;
 //    if (spin>NN/2) {
@@ -182,7 +172,7 @@ void DumpMatrix(std::vector<std::vector<Real>> matrix, const std::filesystem::pa
 //    return spin;
 //}
 //
-//// UNUSED
+//
 //Cplx Chop(Cplx num) {
 //    Real r = num.real();
 //    Real i = num.imag();

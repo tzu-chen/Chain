@@ -12,7 +12,6 @@ using namespace itensor;
 // 4    r=\rho
 // 5    ar
 // 6    br
-//using std::sqrt;
 class HaagerupSite
 {
     const double zeta_inv= (sqrt(13) - 3) / 2;
@@ -34,23 +33,9 @@ public:
     ITensor proj(int i) const;
 
     ITensor FF(int projector, int x, int y) const;
-
-//    ITensor
-//    FF(int i) const;
-//
-//    ITensor
-//    Frr(int i) const;
-//
-//    ITensor
-//    Frar(int i) const;
-//
-//    ITensor
-//    Frbr(int i) const;
     
     ITensor op(std::string const& opname,Args const& args = Args::global()) const;
 };
-
-//using Haagerup=BasicSiteSet<HaagerupSite>;
 
 class Haagerup: public BasicSiteSet<HaagerupSite> {
 public:

@@ -1,18 +1,19 @@
 #include "f_data.h"
 
 
-// What if we want to Add a subclass HaagerupIzumiFData?
+// TODO: Allow fusion categories beyond Haagerup-Izumi.
+
 FData::FData(int nu) {
-    kNu_ = nu;
-    kRho_ = kNu_ + 1;
-    kRk_ = 2 * kNu_;
-    kPhi_ = (sqrt(4 + kNu_ * kNu_) + kNu_) / 2;
-    kPhiInv_ = 1 / kPhi_;
-    kSqrtPhiInv_ = sqrt(kPhiInv_);
+    nu_ = nu;
+    rho_ = nu_ + 1;
+    rk_ = 2 * nu_;
+    phi_ = (sqrt(4 + nu_ * nu_) + nu_) / 2;
+    phi_inv_ = 1 / phi_;
+    sqrt_phi_inv_ = sqrt(phi_inv_);
 }
 
 bool FData::IsInvertible(int i) const {
-    if (i <= kNu_) {
+    if (i <= nu_) {
         return true;
     } else {
         return false;
@@ -20,8 +21,8 @@ bool FData::IsInvertible(int i) const {
 }
 
 int FData::Dual(int i) const {
-    if (i <= kNu_) {
-        return 1+((kNu_ + 1 - i) % kNu_);
+    if (i <= nu_) {
+        return 1+((nu_ + 1 - i) % nu_);
     } else {
         return i;
     }
@@ -29,15 +30,15 @@ int FData::Dual(int i) const {
 
 std::set<int> FData::Fusion(int a, int b) const {
     std::set<int> ans;
-    if (a <= kNu_ && b <= kNu_) {
-        ans.insert(1+((a+b-2) % kNu_));
-    } else if (a <= kNu_ && b > kNu_) {
-        ans.insert(kRho_ + ((a + b - 2) % kNu_));
-    } else if (a > kNu_ && b <= kNu_) {
-        return Fusion(1+((kRho_ - b) % kNu_), a);
+    if (a <= nu_ && b <= nu_) {
+        ans.insert(1+((a+b-2) % nu_));
+    } else if (a <= nu_ && b > nu_) {
+        ans.insert(rho_ + ((a + b - 2) % nu_));
+    } else if (a > nu_ && b <= nu_) {
+        return Fusion(1+((rho_ - b) % nu_), a);
     } else {
-        ans.insert(1+((kNu_ + a - b) % kNu_));
-        for (int i=kRho_; i <= kRk_; i++) {
+        ans.insert(1+((nu_ + a - b) % nu_));
+        for (int i=rho_; i <= rk_; i++) {
             ans.insert(i);
         }
     }
@@ -50,15 +51,15 @@ bool FData::HasFusion(int i, int j, int k) const {
 }
 
 double FData::QD(int i) const {
-    if (i <= kNu_) {
+    if (i <= nu_) {
         return 1;
     } else {
-        return kPhi_;
+        return phi_;
     }
 }
 
 int FData::Add(int i, int j) const {
-    return kRho_ + ((i+j-1) % kNu_);
+    return rho_ + ((i + j - 1) % nu_);
 }
 
 double FData::FSymbolPattern(int i, int j, int k, int l, int m, int n) const {
@@ -69,25 +70,24 @@ double FData::FSymbolPattern(int i, int j, int k, int l, int m, int n) const {
         return 1;
     }
     if (IsInvertible(m) && IsInvertible(n)) {
-        return kPhiInv_;
+        return phi_inv_;
     }
     if (IsInvertible(m) || IsInvertible(n)) {
-        return kSqrtPhiInv_;
+        return sqrt_phi_inv_;
     }
-    if (i != kRho_) {
-        return FSymbol(kRho_, j, Add(k, i - kRho_), l, m, n);
+    if (i != rho_) {
+        return FSymbol(rho_, j, Add(k, i - rho_), l, m, n);
     }
-    if (j != kRho_) {
-        return FSymbol(kRho_, kRho_, k, Add(l, j-kRho_), m, n);
+    if (j != rho_) {
+        return FSymbol(rho_, rho_, k, Add(l, j - rho_), m, n);
     }
-    if (k != kRho_) {
-        return FSymbol(kRho_, kRho_, kRho_, Add(l, kRho_ - k), m, Add(n, kRho_ - k));
+    if (k != rho_) {
+        return FSymbol(rho_, rho_, rho_, Add(l, rho_ - k), m, Add(n, rho_ - k));
     }
-    if (m != kRho_) {
-        return FSymbol(kRho_, kRho_, kRho_, l, kRho_, Add(n, m - kRho_));
+    if (m != rho_) {
+        return FSymbol(rho_, rho_, rho_, l, rho_, Add(n, m - rho_));
     }
-    // Should never All here
-    // Throw exception
+    throw ITError("FSymbolPattern failed.");
     return 0;
 }
 
@@ -95,11 +95,11 @@ ITensor FData::RhoDefectCell(const Index &s1, const Index &s2) {
     auto s1P = prime(s1);
     auto s2P = prime(s2);
     auto Op = ITensor(dag(s1), s1P, dag(s2), s2P);
-    for (int i1=1; i1 <= kRk_; i1++) {
-        for (int j1=1; j1 <= kRk_; j1++) {
-            for (int i2=1; i2 <= kRk_; i2++) {
-                for (int j2=1; j2 <= kRk_; j2++) {
-                    auto f = FSymbol(kRho_, i1, kRho_, j2, j1, i2) * sqrt(QD(i1) / QD(i2));
+    for (int i1=1; i1 <= rk_; i1++) {
+        for (int j1=1; j1 <= rk_; j1++) {
+            for (int i2=1; i2 <= rk_; i2++) {
+                for (int j2=1; j2 <= rk_; j2++) {
+                    auto f = FSymbol(rho_, i1, rho_, j2, j1, i2) * sqrt(QD(i1) / QD(i2));
                     if (f!=0) {
                         Op.set(s1(i1),s1P(j1),s2(i2),s2P(j2), f);
                     }
@@ -112,20 +112,20 @@ ITensor FData::RhoDefectCell(const Index &s1, const Index &s2) {
 
 double FData::FSymbol(int i, int j, int k, int l, int m, int n) const { return 0;}
 
-double FData::TetrahedralSymbol(int i, int j, int k, int l, int m, int n) const {
-    return FSymbol(i, j, k, l, m, n);
-//    / sqrt( QD(m) * QD(n) );
-}
+//double FData::TetrahedralSymbol(int i, int j, int k, int l, int m, int n) const {
+//    return FSymbol(i, j, k, l, m, n);
+////    / sqrt( QD(m) * QD(n) );
+//}
 
 void FData::DumpFMathematica(const std::string filename) {
     FILE * file;
     file = fopen(filename.c_str(),"w");
-    for (int i=1; i <= kRk_; i++) {
-        for (int j=1; j <= kRk_; j++) {
-            for (int k=1; k <= kRk_; k++) {
-                for (int l=1; l <= kRk_; l++) {
-                    for (int m=1; m <= kRk_; m++) {
-                        for (int n=1; n <= kRk_; n++) {
+    for (int i=1; i <= rk_; i++) {
+        for (int j=1; j <= rk_; j++) {
+            for (int k=1; k <= rk_; k++) {
+                for (int l=1; l <= rk_; l++) {
+                    for (int m=1; m <= rk_; m++) {
+                        for (int n=1; n <= rk_; n++) {
                             double f = FSymbol(i,j,k,l,m,n);
                             fprintf(file, "FFF[%d,%d,%d,%d][%d,%d] = %f;\n",i,j,k,l,m,n,f);
                         }
@@ -137,18 +137,17 @@ void FData::DumpFMathematica(const std::string filename) {
     fclose(file);
 }
 
-// fixme
 ITensor FData::ZipperDeltaGate(const Index &s1, const Index &s2, const Index &s3) const {
     auto s1P = prime(s1);
     auto s2P = prime(s2);
     auto s3P = prime(s3);
     auto Op = ITensor(dag(s1), s1P, dag(s2), s2P, dag(s3), s3P);
-    for (int i1=1; i1 <= kRk_; i1++) {
-        for (int j1=1; j1 <= kRk_; j1++) {
-            for (int i2=1; i2 <= kRk_; i2++) {
-                for (int j2=1; j2 <= kRk_; j2++) {
-                    for (int i3=1; i3 <= kRk_; i3++) {
-                        for (int j3 = 1; j3 <= kRk_; j3++) {
+    for (int i1=1; i1 <= rk_; i1++) {
+        for (int j1=1; j1 <= rk_; j1++) {
+            for (int i2=1; i2 <= rk_; i2++) {
+                for (int j2=1; j2 <= rk_; j2++) {
+                    for (int i3=1; i3 <= rk_; i3++) {
+                        for (int j3 = 1; j3 <= rk_; j3++) {
                             if (i3==j1 && i3==j2 && i3==j3) {
                                 Op.set(s1(i1), s1P(j1), s2(i2), s2P(j2), s3(i3), s3P(j3), 1);
                             }
@@ -166,14 +165,14 @@ ITensor FData::ZipperAugmentGate(const Index &s1, const Index &s2, const Index &
     auto s2P = prime(s2);
     auto s3P = prime(s3);
     auto Op = ITensor(dag(s1), s1P, dag(s2), s2P, dag(s3), s3P);
-    for (int i1=1; i1 <= kRk_; i1++) {
-        for (int j1=1; j1 <= kRk_; j1++) {
-            for (int i2=1; i2 <= kRk_; i2++) {
-                for (int j2=1; j2 <= kRk_; j2++) {
-                    for (int i3=1; i3 <= kRk_; i3++) {
-                        for (int j3 = 1; j3 <= kRk_; j3++) {
+    for (int i1=1; i1 <= rk_; i1++) {
+        for (int j1=1; j1 <= rk_; j1++) {
+            for (int i2=1; i2 <= rk_; i2++) {
+                for (int j2=1; j2 <= rk_; j2++) {
+                    for (int i3=1; i3 <= rk_; i3++) {
+                        for (int j3 = 1; j3 <= rk_; j3++) {
                             if (i3==j1 && i3==j3) {
-                                auto f = TetrahedralSymbol(kRho_, kRho_, i3, i3, 1, j2);
+                                auto f = FSymbol(rho_, rho_, i3, i3, 1, j2);
                                 if (f != 0) {
                                     Op.set(s1(i1), s1P(j1), s2(i2), s2P(j2), s3(i3), s3P(j3), f);
                                 }
@@ -192,15 +191,14 @@ ITensor FData::ZipperGate(const Index &s1, const Index &s2, const Index &s3) con
     auto s2P = prime(s2);
     auto s3P = prime(s3);
     auto Op = ITensor(dag(s1), s1P, dag(s2), s2P, dag(s3), s3P);
-    for (int i1=1; i1 <= kRk_; i1++) {
-        for (int j1=1; j1 <= kRk_; j1++) {
-            for (int i2=1; i2 <= kRk_; i2++) {
-                for (int j2=1; j2 <= kRk_; j2++) {
-                    for (int i3=1; i3 <= kRk_; i3++) {
-                        for (int j3 = 1; j3 <= kRk_; j3++) {
+    for (int i1=1; i1 <= rk_; i1++) {
+        for (int j1=1; j1 <= rk_; j1++) {
+            for (int i2=1; i2 <= rk_; i2++) {
+                for (int j2=1; j2 <= rk_; j2++) {
+                    for (int i3=1; i3 <= rk_; i3++) {
+                        for (int j3 = 1; j3 <= rk_; j3++) {
                             if (i1==j1 && i3==j3) {
-//                                auto f = TetrahedralSymbol(i1, kRho_, i3, kRho_, i2, j2);
-                                auto f = TetrahedralSymbol(kRho_, i1, kRho_, i3, i2, j2);
+                                auto f = FSymbol(rho_, i1, rho_, i3, i2, j2);
                                 if (f != 0) {
                                     Op.set(s1(i1), s1P(j1), s2(i2), s2P(j2), s3(i3), s3P(j3), f);
                                 }
@@ -219,17 +217,16 @@ ITensor FData::ZipperReductionGate(const Index &s1, const Index &s2, const Index
     auto s2P = prime(s2);
     auto s3P = prime(s3);
     auto Op = ITensor(dag(s1), s1P, dag(s2), s2P, dag(s3), s3P);
-    for (int i1=1; i1 <= kRk_; i1++) {
-        for (int j1=1; j1 <= kRk_; j1++) {
-            for (int i2=1; i2 <= kRk_; i2++) {
-                for (int j2=1; j2 <= kRk_; j2++) {
-                    for (int i3=1; i3 <= kRk_; i3++) {
-                        for (int j3 = 1; j3 <= kRk_; j3++) {
+    for (int i1=1; i1 <= rk_; i1++) {
+        for (int j1=1; j1 <= rk_; j1++) {
+            for (int i2=1; i2 <= rk_; i2++) {
+                for (int j2=1; j2 <= rk_; j2++) {
+                    for (int i3=1; i3 <= rk_; i3++) {
+                        for (int j3 = 1; j3 <= rk_; j3++) {
                             if (i1==i3 && i1==j1 && i1==j2 && i1==j3) {
-                                // fixme
-                                if (HasFusion(kRho_, i1, i2) && HasFusion(kRho_, i2, i1))
+                                if (HasFusion(rho_, i1, i2) && HasFusion(rho_, i2, i1))
                                 {
-                                    auto f = sqrt(QD(i2) * QD(kRho_) / QD(i1));
+                                    auto f = sqrt(QD(i2) * QD(rho_) / QD(i1));
                                     Op.set(s1(i1), s1P(j1), s2(i2), s2P(j2), s3(i3), s3P(j3), f);
                                 }
                             }
@@ -246,8 +243,8 @@ GoldenFData::GoldenFData() : FData(1) {
 }
 
 double GoldenFData::FSymbol(int i, int j, int k, int l, int m, int n) const {
-    if (i == kRho_ && j == kRho_ && k == kRho_ && m == kRho_ && !(IsInvertible(l)) && !(IsInvertible(n))) {
-        return -kPhiInv_;
+    if (i == rho_ && j == rho_ && k == rho_ && m == rho_ && !(IsInvertible(l)) && !(IsInvertible(n))) {
+        return -phi_inv_;
     }
     return FSymbolPattern(i, j, k, l, m, n);
 }
@@ -260,7 +257,7 @@ HaagerupFData::HaagerupFData() : FData(3) {
 }
 
 double HaagerupFData::FSymbol(int i, int j, int k, int l, int m, int n) const {
-    if (i == kRho_ && j == kRho_ && k == kRho_ && m == kRho_ && !(IsInvertible(l)) && !(IsInvertible(n))) {
+    if (i == rho_ && j == rho_ && k == rho_ && m == rho_ && !(IsInvertible(l)) && !(IsInvertible(n))) {
         switch(l+n) {
             case 8 : return x_;
             case 9 : return y1_;
@@ -272,7 +269,8 @@ double HaagerupFData::FSymbol(int i, int j, int k, int l, int m, int n) const {
     return FSymbolPattern(i, j, k, l, m, n);
 }
 
-// UNUSED BEGIN HERE
+// DEPRECIATED
+//
 //ITensor FData::HasFusionITensor(const SiteSet &sites, int i1, int i2, int i3) const {
 //    auto s1 = sites(i1);
 //    auto s2 = sites(i2);
@@ -352,31 +350,31 @@ double HaagerupFData::FSymbol(int i, int j, int k, int l, int m, int n) const {
 //}
 //
 
-ITensor FData::RhoDefect3(const Index &s1, const Index &s2, const Index &s3){
-    auto s1P = prime(s1);
-    auto s2P = prime(s2);
-    auto s3P = prime(s3);
-    auto Op = ITensor(dag(s1), s1P, dag(s2), s2P, dag(s3), s3P);
-    for(int i1=1;i1<=kRk_;i1++){
-        for(int j1=1;j1<=kRk_;j1++){
-            for(int i2=1;i2<=kRk_;i2++){
-                for(int j2=1;j2<=kRk_;j2++){
-                    for(int i3=1;i3<=kRk_;i3++){
-                        for(int j3=1;j3<=kRk_;j3++){
-                            // auto f = FSymbol(kRho,i1,kRho,Dual(j2),j1,i2) * sqrt(D(i1)/D(i2)) * FSymbol(kRho,i2,kRho,Dual(j3),j2,i3) * sqrt(D(i2)/D(i3)) * FSymbol(kRho,i3,kRho,Dual(j1),j3,i1) * sqrt(D(i3)/D(i1));
-                            auto f = FSymbol(kRho_,i1,kRho_,j2,j1,i2) * sqrt(QD(i1)/QD(i2)) * FSymbol(kRho_,i2,kRho_,j3,j2,i3) * sqrt(QD(i2)/QD(i3)) * FSymbol(kRho_,i3,kRho_,j1,j3,i1) * sqrt(QD(i3)/QD(i1));
-                            // auto f = FSymbol(kRho,i1,kRho,j2,Dual(j1),Dual(i2)) * sqrt(D(i1)/D(i2)) * FSymbol(kRho,i2,kRho,j3,Dual(j2),Dual(i3)) * sqrt(D(i2)/D(i3)) * FSymbol(kRho,i3,kRho,j1,Dual(j3),Dual(i1)) * sqrt(D(i3)/D(i1));
-                            if(f!=0){
-                                Op.set(s1(i1),s1P(j1),s2(i2),s2P(j2),s3(i3),s3P(j3), f);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return Op;
-}
+//ITensor FData::RhoDefect3(const Index &s1, const Index &s2, const Index &s3){
+//    auto s1P = prime(s1);
+//    auto s2P = prime(s2);
+//    auto s3P = prime(s3);
+//    auto Op = ITensor(dag(s1), s1P, dag(s2), s2P, dag(s3), s3P);
+//    for(int i1=1; i1 <= rk_; i1++){
+//        for(int j1=1; j1 <= rk_; j1++){
+//            for(int i2=1; i2 <= rk_; i2++){
+//                for(int j2=1; j2 <= rk_; j2++){
+//                    for(int i3=1; i3 <= rk_; i3++){
+//                        for(int j3=1; j3 <= rk_; j3++){
+//                            // auto f = FSymbol(kRho,i1,kRho,Dual(j2),j1,i2) * sqrt(D(i1)/D(i2)) * FSymbol(kRho,i2,kRho,Dual(j3),j2,i3) * sqrt(D(i2)/D(i3)) * FSymbol(kRho,i3,kRho,Dual(j1),j3,i1) * sqrt(D(i3)/D(i1));
+//                            auto f = FSymbol(rho_, i1, rho_, j2, j1, i2) * sqrt(QD(i1) / QD(i2)) * FSymbol(rho_, i2, rho_, j3, j2, i3) * sqrt(QD(i2) / QD(i3)) * FSymbol(rho_, i3, rho_, j1, j3, i1) * sqrt(QD(i3) / QD(i1));
+//                            // auto f = FSymbol(kRho,i1,kRho,j2,Dual(j1),Dual(i2)) * sqrt(D(i1)/D(i2)) * FSymbol(kRho,i2,kRho,j3,Dual(j2),Dual(i3)) * sqrt(D(i2)/D(i3)) * FSymbol(kRho,i3,kRho,j1,Dual(j3),Dual(i1)) * sqrt(D(i3)/D(i1));
+//                            if(f!=0){
+//                                Op.set(s1(i1),s1P(j1),s2(i2),s2P(j2),s3(i3),s3P(j3), f);
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//    return Op;
+//}
 
 //ITensor FData::RhoDefect3(const Index &s1, const Index &s2, const Index &s3) {
 //    auto s1P = prime(s1);

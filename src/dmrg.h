@@ -10,17 +10,13 @@
 
 using namespace itensor;
 
-//#ifdef ITENSOR_USE_OMP
-//#include "/usr/local/opt/libomp/include/omp.h"
-//#endif
-
 
 // Reads and writes data coming out of DMRG
 template<typename SiteSetType>
 class DMRGProgress {
 public:
     SiteSetType sites_;
-    // Each element below is the latest progress for a given state
+    // Each element below is the latest progress for a given state.
     std::vector<int> num_sweeps_vec_;
     std::vector<int> max_dims_;
     std::vector<Real> ens_;
@@ -102,13 +98,6 @@ public:
         writeToFile(path + ".en", ens_);
         writeToFile(path + ".psi", psis_);
         writeToFile(path + ".H", Hs_);
-
-        // Uncomment to save backup files
-//        writeToFile(path + ".pgs.bk", times_swepts_);
-//        writeToFile(path + ".md.bk", maxdims_);
-//        writeToFile(path + ".en.bk", ens_);
-//        writeToFile(path + ".psi.bk", psis_);
-//        writeToFile(path + ".H.bk", Hs_);
     }
 
     void Read(const std::filesystem::path& p)
@@ -122,13 +111,7 @@ public:
             readFromFile(path + ".psi", psis_);
             readFromFile(path + ".H", Hs_);
         } catch (std::exception const& e) {
-//            try{
-//                readFromFile(path + ".pgs.bk", times_swepts_);
-//                readFromFile(path + ".md.bk", maxdims_);
-//                readFromFile(path + ".en.bk", ens_);
-//                readFromFile(path + ".psi.bk", psis_);
-//                readFromFile(path + ".H.bk", Hs_);
-//            } catch (std::exception const& e) {
+            // File is corrupted, start over
                 println(e.what());
                 num_sweeps_vec_.clear();
                 max_dims_.clear();
@@ -136,11 +119,11 @@ public:
                 psis_.clear();
                 Hs_.clear();
             NextState();
-//            }
         }
 
     }
 
+    // Write and read states acted by Hamiltonian, translation, and rho.
     void WriteHamiltonian(const std::filesystem::path& p) const
     {
         std::string path = std::string(p);
@@ -191,22 +174,19 @@ public:
             println(e.what());
             psis_acted_by_rho_.pop_back();
         }
-
     }
 };
 
-// Examples of SiteSetType are Golden, Haagerup, HaagerupQ
+// SiteSetType can be Golden, Haagerup, HaagerupQ
 template<typename SiteSetType>
 class DMRG {
-    std::string site_type_; // eg. golden, haagerup, haagerupq
-    std::string boundary_condition_; // "p" for periodic, "o" for open, "s" for sine-squared deformed
+    std::string site_type_; // "golden", "haagerup", "haagerupq"
+    std::string boundary_condition_;
+        // "p" for periodic, "o" for open, "s" for sine-squared deformed, "sp" for hot-starting "p" with "s"
     std::string job_; // site_name_ + boundary_condition_
 
     // Chain parameters
     int num_sites_;
-    Real theta_; // angle between K (identity) and J (rho)
-    Real phi_;
-//    Real k_, j_, u_, m_; // K (identity), J (rho), M (a * rho), U (penalty)
     Real u_;
     std::string coupling_str_;
     std::vector<Real> couplings_;
@@ -218,7 +198,7 @@ class DMRG {
     int es_max_bond_dim_;
     double svd_cutoff_;
     double noise_;
-    double ortho_weight;
+    double orthogonal_weight;
 
     // DMRG design
     float precision_; // Finish DMRG of current state if energy changes by less than precision_/num_sites_ for num_reps_til_stable_ reps
@@ -230,9 +210,7 @@ class DMRG {
     int num_states_; // total number of states to run DMRG
 
     // File I/O
-    // Modify prefix_ if storing in custom location
     std::filesystem::path prefix_ = kPath;
-//    std::filesystem::current_path().parent_path();
     std::filesystem::path progress_directory_ = prefix_ / "pgs";
     std::filesystem::path ee_directory_ = prefix_ / "ee";
     std::filesystem::path en_directory_ = prefix_ / "en";
@@ -266,12 +244,6 @@ public:
         es_precision_ = std::get<5>(params);
         coupling_str_ = std::get<6>(params);
         couplings_ = ParseCouplings(coupling_str_);
-//        for (int i=0;i<couplings_.size();i++) {
-//            println(couplings_.at(i));
-//        }
-//        PrintData(couplings_);
-//        theta_ = std::get<6>(params);
-//        phi_ = std::get<7>(params);
         u_ = std::get<7>(params);
         charge_ = std::get<8>(params);
         num_states_ = std::get<9>(params);
@@ -291,14 +263,13 @@ public:
             printf("Invalid boundary condition");
             return;
         }
-        // fixme: refactor so that we're passing the most basic variable type instead of a type alias
-        // fixme: pass site instead of SiteSet
+        // fixme: refactor so that we're passing the most basic variable type instead of a type alias.
+        // fixme: pass site instead of SiteSet.
 
         // DMRG parameters
         gs_max_bond_dim_ = es_max_bond_dim_;
         noise_ = 0.0;
-        // fixme: maybe make smaller
-        ortho_weight = 1000.0;
+        orthogonal_weight = 1000.0;
 
         // DMRG design
         init_num_sweeps_per_rep_ = 5;
@@ -315,70 +286,7 @@ public:
         an_path_ = an_directory_ / (filename_ + ".an");
     }
 
-    bool IsSimulatingGroundState() {
-        if (std::filesystem::exists(progress_directory_ / (filename_ + ".pgs"))) {
-            return dmrg_progress_.NumDoneStates() == 0;
-        } else {
-            return true;
-        }
-    }
-
-    void PrintJob(bool with_sweeps) {
-        if (with_sweeps) {
-            int num_sweeps = dmrg_progress_.num_sweeps_vec_.back();
-            if (num_sweeps == 0) {
-                printf("\n  > Sweeps #1-#%d\n    %s of %s\n    L=%d  bond_dim=%d  svd_cutoff=%g  precision=%g  penalty=%g  couplings=%s  charge=%d\n", init_num_sweeps_per_rep_, state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_precision_, u_, coupling_str_, charge_);
-            } else {
-                printf("\n  > Sweep #%d\n    %s of %s\n    L=%d  bond_dim=%d  svd_cutoff=%g  precision=%g  penalty=%g  couplings=%s  charge=%d\n", num_sweeps+1, state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_precision_, u_, coupling_str_, charge_);
-            }
-        } else {
-            printf("\n> %s:  L=%d  bond_dim=%d  svd_cutoff=%g  precision=%g  penalty=%g  couplings=%s  charge=%d\n", job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_precision_, u_, coupling_str_, charge_);
-        }
-    }
-
-    // Adjust parameters depending on whether simulating ground state
-    void AdjustDMRGParams() {
-        if (IsSimulatingGroundState()) {
-            max_bond_dim = gs_max_bond_dim_;
-            precision_ = gs_precision_;
-        } else {
-            max_bond_dim = es_max_bond_dim_;
-            precision_ = es_precision_;
-        }
-    }
-
-    // Reset min energy and counters to simulate new state
-    void ResetDMRG() {
-        min_en_ = 1000000;
-        cnt_ = num_reps_til_stable_;
-        num_sweeps_ = 0;
-    }
-
-    // Decide name of the current state to simulate based on number of completed states
-    std::string StateName() {
-        std::string state_name;
-        switch(dmrg_progress_.NumDoneStates()) {
-//            case 0 : state_name = "Ground state"; break;
-//            case 1 : state_name = "1st excited state"; break;
-//            case 2 : state_name = "2nd excited state"; break;
-//            case 3 : state_name = "3rd excited state"; break;
-            case 0 : state_name = "1st state"; break;
-            case 1 : state_name = "2nd state"; break;
-            case 2 : state_name = "3rd state"; break;
-            default : state_name = format("%dth state", dmrg_progress_.NumDoneStates()+1); break;
-        }
-        return state_name;
-    }
-
-    // If QN conserving, create charge-neutral initial state and change center site to specified charge
-    MPS DefaultInitState() {
-        auto pre_init_state = InitState(sites_,"0");
-        int center = (num_sites_+1)/2;
-        pre_init_state.set(center, std::to_string(charge_));
-        MPS init_state = MPS(pre_init_state);
-        return init_state;
-    }
-
+    // Parse coupling string by comma for coefficients of projectors.
     std::vector<Real> ParseCouplings(std::string coupling_string) {
         std::vector<Real> couplings;
         std::stringstream s_stream(coupling_string);
@@ -394,7 +302,71 @@ public:
         return couplings;
     }
 
-    // Simulate states by DMRG
+    // Print information about the current job.
+    void PrintJob(bool with_sweeps) {
+        if (with_sweeps) {
+            int num_sweeps = dmrg_progress_.num_sweeps_vec_.back();
+            if (num_sweeps == 0) {
+                printf("\n  > Sweeps #1-#%d\n    %s of %s\n    L=%d  bond_dim=%d  svd_cutoff=%g  precision=%g  penalty=%g  couplings=%s  charge=%d\n", init_num_sweeps_per_rep_, state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_precision_, u_, coupling_str_, charge_);
+            } else {
+                printf("\n  > Sweep #%d\n    %s of %s\n    L=%d  bond_dim=%d  svd_cutoff=%g  precision=%g  penalty=%g  couplings=%s  charge=%d\n", num_sweeps+1, state_name_, job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_precision_, u_, coupling_str_, charge_);
+            }
+        } else {
+            printf("\n> %s:  L=%d  bond_dim=%d  svd_cutoff=%g  precision=%g  penalty=%g  couplings=%s  charge=%d\n", job_, num_sites_, gs_max_bond_dim_, svd_cutoff_, gs_precision_, u_, coupling_str_, charge_);
+        }
+    }
+
+    // Some actions, such as computing entanglement entropy curve, are to be done only for first state.
+    // Better DMRG parameters might also be desired for first state.
+    bool IsSimulatingFirstState() {
+        if (std::filesystem::exists(progress_directory_ / (filename_ + ".pgs"))) {
+            return dmrg_progress_.NumDoneStates() == 0;
+        } else {
+            return true;
+        }
+    }
+
+    // Adjust parameters depending on whether simulating first state.
+    void AdjustDMRGParams() {
+        if (IsSimulatingFirstState()) {
+            max_bond_dim = gs_max_bond_dim_;
+            precision_ = gs_precision_;
+        } else {
+            max_bond_dim = es_max_bond_dim_;
+            precision_ = es_precision_;
+        }
+    }
+
+    // Reset min energy and counters to simulate new state.
+    void ResetDMRG() {
+        min_en_ = 1000000;
+        cnt_ = num_reps_til_stable_;
+        num_sweeps_ = 0;
+    }
+
+    // Decide name of the current state to simulate based on number of completed states.
+    // Use 1st, 2nd instead of ground state, 1st excited state because for charged sector first state is not special.
+    std::string StateName() {
+        std::string state_name;
+        switch(dmrg_progress_.NumDoneStates()) {
+            case 0 : state_name = "1st state"; break;
+            case 1 : state_name = "2nd state"; break;
+            case 2 : state_name = "3rd state"; break;
+            default : state_name = format("%dth state", dmrg_progress_.NumDoneStates()+1); break;
+        }
+        return state_name;
+    }
+
+    // If QN conserving, create charge-neutral initial state and change center site to specified charge.
+    MPS DefaultInitState() {
+        auto pre_init_state = InitState(sites_,"0");
+        int center = (num_sites_+1)/2;
+        pre_init_state.set(center, std::to_string(charge_));
+        MPS init_state = MPS(pre_init_state);
+        return init_state;
+    }
+
+    // Simulate states by DMRG.
     void Simulate(bool analyze = false) {
         if (not std::filesystem::exists(progress_directory_)) {
             std::filesystem::create_directory(progress_directory_);
@@ -408,16 +380,15 @@ public:
         PrintJob(false);
 
         if (std::filesystem::exists(progress_directory_ / (filename_ + ".pgs"))) {
-            // Job was run before
-            // Read progress
+            // Job was run before, read progress
             dmrg_progress_.Read(progress_path_);
             sites_ = dmrg_progress_.Sites();
             if (dmrg_progress_.NumDoneStates() >= num_states_) {
                 printf("\n> Job already complete\n> Requested number of states: %d \n> Completed number of states: %d\n\n", num_states_,
                        dmrg_progress_.NumDoneStates());
-                // fixme
+                // Assumes that for charged sectors there is no need to measure rho, valid for Fibonacci and Haagerup.
                 if (analyze) {
-                    if (charge_==0) {
+                    if (charge_ == 0) {
                         Analyze();
                     } else {
                         AnalyzeWithoutRho();
@@ -426,7 +397,7 @@ public:
                 return;
             }
         } else {
-            // New job
+            // Job not run before, new job.
             dmrg_progress_.NextState();
             dmrg_progress_.SetSites(sites_);
             dmrg_progress_.Write(progress_path_);
@@ -436,48 +407,45 @@ public:
         MPO H = sites_.Hamiltonian(boundary_condition_, num_sites_, u_, couplings_);
         init_state_ = DefaultInitState();
 
-        // If using sine-squared deformed to hot start for periodic
+        // Only meaningful if using sine-squared deformed to hot start for periodic.
         // hot_start keeps track of which stage (1: SSD warmup, 0: PBC warmup, -1: PBC)
-        // Otherwise just -1
+        // Otherwise just -1.
         int hot_start = -1;
         if (boundary_condition_ == "sp") {
             hot_start = 1;
         }
 
-        // Loop over states
-        // Each iteration includes warmup and post-warmup DMRG runs until energy is stable
+        // Loop over states, each iteration includes warmup and post-warmup DMRG runs until energy is stable.
         for (;;) {
+            // TODO: refactor the multiple appearances of AdjustDMRGParams to here?
+//            AdjustDMRGParams();
             if (dmrg_progress_.num_sweeps_vec_.back() == 0 && hot_start != 0) {
-                // Not yet run
-                // Begin DMRG with warmup
+                // Did not begin to simulate, begin DMRG with warmup.
                 state_name_ = StateName();
                 printf("\n> Simulation: %s\n", state_name_);
-
                 AdjustDMRGParams();
                 ResetDMRG();
-
                 PrintJob(true);
-                // DMRG Warmup
+                // DMRG Warmup.
                 bond_dim_ = 200;
                 auto sweeps = Sweeps(init_num_sweeps_per_rep_);
                 sweeps.maxdim() = 10,20,40,80,200;
                 sweeps.cutoff() = std::max(1E-5, svd_cutoff_),std::max(1E-6, svd_cutoff_),std::max(1E-7, svd_cutoff_),std::max(1E-8, svd_cutoff_),std::max(1E-9, svd_cutoff_),std::max(1E-10, svd_cutoff_),std::max(1E-11, svd_cutoff_),std::max(1E-12, svd_cutoff_),svd_cutoff_;
                 sweeps.niter() = 2;
                 sweeps.noise() = noise_;
-                std::tie(en_, psi_) = dmrg(H, dmrg_progress_.DoneStates(), init_state_, sweeps, {"Quiet", true, "Weight=", ortho_weight});
+                std::tie(en_, psi_) = dmrg(H, dmrg_progress_.DoneStates(), init_state_, sweeps, {"Quiet", true, "Weight=", orthogonal_weight});
                 num_sweeps_ += init_num_sweeps_per_rep_;
                 dmrg_progress_.Update(num_sweeps_, bond_dim_, en_, psi_, H);
                 dmrg_progress_.Write(progress_path_);
             } else if (dmrg_progress_.num_sweeps_vec_.back() == 0 && hot_start == 0) {
+                // Only meaningful if using sine-squared deformed to hot start for periodic.
+                // Switching from SSD to PBC so warmup again.
                 state_name_ = StateName();
                 printf("\n> Simulation: %s\n", state_name_);
-
                 AdjustDMRGParams();
                 ResetDMRG();
-
                 PrintJob(true);
-                // DMRG
-                // Warmup by maintaining previous warmup DMRG parameters
+                // DMRG warmup by maintaining previous warmup DMRG parameters.
                 bond_dim_ = 200;
                 auto sweeps = Sweeps(init_num_sweeps_per_rep_);
                 sweeps.maxdim() = bond_dim_;
@@ -485,39 +453,38 @@ public:
                 sweeps.niter() = 2;
                 sweeps.noise() = noise_;
                 std::tie(en_, psi_) = dmrg(H, dmrg_progress_.DoneStates(), init_state_, sweeps,
-                                           {"Quiet", true, "Weight=", ortho_weight});
+                                           {"Quiet", true, "Weight=", orthogonal_weight});
                 num_sweeps_ += init_num_sweeps_per_rep_;
                 dmrg_progress_.Update(num_sweeps_, bond_dim_, en_, psi_, H);
                 dmrg_progress_.Write(progress_path_);
             } else {
+                // Warmup previously completed, no more warmup.
                 state_name_ = StateName();
                 printf("\n> Simulation: %s\n", state_name_);
             }
 
-            // Post-warmup DMRG runs
+            // Regular (post-warmup) DMRG runs.
             AdjustDMRGParams();
             for (;;) {
-                // Read progress
+                // Read progress.
                 std::tie(num_sweeps_, bond_dim_, en_, psi_, H) = dmrg_progress_.All();
-
-                // Dump entanglement entropy curve
-                // Only for simulation of ground state
-                if (IsSimulatingGroundState()) {
+                // Dump entanglement entropy curve, only for simulation of first state
+                if (IsSimulatingFirstState()) {
                     DumpEE(num_sites_, CalcEE(psi_, num_sites_), ee_path_);
                 }
-                // Gradually increase bond dimension each run until maximum
+                // Gradually increase bond dimension each run until maximum.
                 if (bond_dim_ <= max_bond_dim - 200) {
                     bond_dim_ += 200;
                 }
                 PrintJob(true);
-                // DMRG
+                // DMRG.
                 auto sw = Sweeps(num_sweeps_per_rep_);
                 sw.maxdim() = bond_dim_;
                 sw.cutoff() = svd_cutoff_;
                 sw.niter() = 2;
                 sw.noise() = noise_;
-                std::tie(en_, psi_) = dmrg(H, dmrg_progress_.DoneStates(), psi_, sw, {"Quiet=", true, "Weight=", ortho_weight});
-                // Decide whether energy has stabilized
+                std::tie(en_, psi_) = dmrg(H, dmrg_progress_.DoneStates(), psi_, sw, {"Quiet=", true, "Weight=", orthogonal_weight});
+                // Decide whether energy has stabilized.
                 if (abs(min_en_ - en_) * num_sites_ < precision_) {
                     cnt_ -= 1;
                 } else {
@@ -532,8 +499,8 @@ public:
                 }
             }
 
-            // If using sine-squared deformed to hot start for periodic
-            // Make appropriate transition from SSD to PBC while using SSD result as initial state for PBC
+            // Only meaningful if using sine-squared deformed to hot start for periodic.
+            // Make appropriate transition from SSD to PBC while using SSD result as initial state for PBC.
             if (hot_start == 1) {
                 H = sites_.Hamiltonian("p", num_sites_, u_, couplings_);
                 init_state_ = psi_;
@@ -544,13 +511,15 @@ public:
                 hot_start = -1;
             }
 
-            dmrg_progress_.NextState(); // Even if no next state, this marks completion of current state
+            // Even if no next state, this marks completion of current state.
+            dmrg_progress_.NextState();
             dmrg_progress_.Write(progress_path_);
 
-            // Completed current state
+            // Completed current state.
             DumpEnergy(dmrg_progress_.NumDoneStates()+1, en_, en_path_);
             printf("\n> Energy of %s: %g\n\n", state_name_, en_);
 
+            // Assumes that for charged sectors there is no need to measure rho, valid for Fibonacci and Haagerup.
             if (analyze) {
                 if (charge_==0) {
                     Analyze();
@@ -559,13 +528,17 @@ public:
                 }
             }
 
-            // Check whether to simulate next state
+            // Check whether to simulate next state.
             if (dmrg_progress_.NumDoneStates() >= num_states_) {
                 break;
             }
         }
     }
 
+//    DEPRECIATED
+//    The following methods decide filters out states with bad translation or rho eigenvalues.
+//    Decided it is better to just output the eigenvalues regardless.
+//
 //    // Check if the translation eigenvalue is a num_sites_ root of unity to within numerical precision
 //    // If close to the nth power of the generating root of unity, make it n and return filtered vector
 //    std::vector<Cplx> FilterTranslation(std::vector<Cplx> translation_eigenvalues) {
@@ -627,11 +600,11 @@ public:
 
     // Measure matrix elements of translation operator and rho defect operator
     ITensor Measure(std::string observable) {
-        // Default svd_cutoff for applyMPO(density matrix variant) is 1E-12
-        // Setting to larger value will speed up the program significantly at the cost of accuracy of measurements
+        // SVD cutoff for applying MPOs, default is 1E-12.
+        // Setting to coarser value will speed up the program at the cost of accuracy of measurements.
         float svd_cutoff = 1E-5;
 
-        // Variable declaration
+        // Variable declaration.
         MPS psi_acted;
         std::vector<MPS> states_acted;
 
@@ -646,6 +619,7 @@ public:
         auto s = Index(num_states);
         auto sP = prime(s);
         auto matrix = ITensor(dag(s), sP);
+        // fixme
 //        if (observable == "energy") {
 //            std::vector<Real> eigenvalues;
 //            for (int i=0;i<num_states;i++) {
@@ -656,24 +630,26 @@ public:
 ////            PrintVector(eigenvalues);
 ////            printf("\n\n");
 //            DumpMathematicaSingle(observable, num_states, matrix, m_path_);
-            // fixme
-//            CleanFile(en_path_);
             std::filesystem::remove(en_path_);
             for (int i=0;i<dmrg_progress_.NumDoneStates();i++) {
                 DumpEnergy(i+1, dmrg_progress_.Energies().at(i), en_path_);
             }
-//        } else
+            // fixme
         {
             auto states = dmrg_progress_.DoneStates();
 
-            // fixme: refactor Haagerup/HaagerupQ branching
-            // Perform change of basis if appropriate in order to use F symbols
-            // Rotate HaagerupQ to Haagerup
-            // Golden -> Golden, Haagerup, HaagerupQ -> Haagerup
-            SiteSet sites = sites_;
+            // fixme: refactor Haagerup/HaagerupQ branching.
+            // Perform change of basis on HaagerupQ state to turn into Haagerup state in order to use F-symbols.
+            // Golden -> Golden, Haagerup, HaagerupQ -> Haagerup.
+            SiteSet sites;
+            if (site_type_ == "golden") {
+                sites = Golden(num_sites_);
+            } else {
+                sites = Haagerup(num_sites_);
+            }
+
             if (observable != "energy") {
                 if (site_type_ == "golden" or site_type_ == "haagerup") {
-                    sites = sites_;
                     for (int i = 0; i < num_states; i++) {
                         auto new_psi = MPS(sites);
                         auto psi = states.at(i);
@@ -683,7 +659,6 @@ public:
                         states.at(i) = new_psi;
                     }
                 } else {
-                    sites = Haagerup(num_sites_);
                     for (int i = 0; i < num_states; i++) {
                         auto states_no_qn = removeQNs(states.at(i));
                         states.at(i) = Z3FourierTransform(states_no_qn, sites);
@@ -692,35 +667,58 @@ public:
             }
 
             if (observable == "energy") {
-                if (std::filesystem::exists(progress_directory_ / (filename_ + ".ham"))) {
-                    dmrg_progress_.ReadHamiltonian(progress_path_);
-                    for (int i=0; i<std::min(num_states, (int) dmrg_progress_.StatesActedByHamiltonian().size()); i++) {
-                        states_acted.push_back(dmrg_progress_.StatesActedByHamiltonian().at(i));
-                    }
-                }
-//                auto H = sites.Hamiltonian(boundary_condition_, num_sites_, u_, couplings_);
-                MPO H;
-                println("\nAct Hamiltonian...");
-                println(dmrg_progress_.Energies().at(0));
-                for (int i = states_acted.size(); i < num_states; i++) {
-                    psi_acted = MPS(states.at(i));
-                    H = dmrg_progress_.Hs_.at(i);
-                    printf("\r%d/%d", i+1, num_states);
-//                    psi_acted = applyMPO(translation_op, psi_acted, {"Method", "Fit", "Cutoff", svd_cutoff, "Verbose", true});
-                    psi_acted = applyMPO(H, psi_acted
-                                         , {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 1}
-                    );
-//                    printf("finished.");
-//                    PrintData(psi_acted);
-                    // three-site swap gate. now only working for 3n+2 and not using augment zipper yet.
-//                    for (int j=1; j<num_sites_-1; j+=2){
-//                        SwapThree(psi_acted, sites, j);
+                // TODO: Compute the Hamiltonian matrix for simulated states.
+                // Due to simulation error, there will be small off-diagonal elements.
+                // Idea is to diagonalize the Hamiltonian matrix to reduce simulation errors.
+                // Below are a few attempts, by applyMPO, inner, and davidson.
+
+                // applyMPO: density matrix method too heavy, fit method too inaccurate.
+//                if (std::filesystem::exists(progress_directory_ / (filename_ + ".ham"))) {
+//                    dmrg_progress_.ReadHamiltonian(progress_path_);
+//                    for (int i=0; i<std::min(num_states, (int) dmrg_progress_.StatesActedByHamiltonian().size()); i++) {
+//                        states_acted.push_back(dmrg_progress_.StatesActedByHamiltonian().at(i));
 //                    }
-                    states_acted.push_back(psi_acted);
-                    dmrg_progress_.psis_acted_by_hamiltonian_.push_back(psi_acted);
-                    dmrg_progress_.WriteHamiltonian(progress_path_);
-                }
-                printf("\r...finished.\n");
+//                }
+//                MPO H;
+//                println("\nAct Hamiltonian...");
+//                for (int i = states_acted.size(); i < num_states; i++) {
+//                    psi_acted = MPS(states.at(i));
+//                    H = dmrg_progress_.Hs_.at(i);
+//                    printf("\r%d/%d", i+1, num_states);
+//                    psi_acted = applyMPO(H, psi_acted, {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 1});
+//                    states_acted.push_back(psi_acted);
+//                    dmrg_progress_.psis_acted_by_hamiltonian_.push_back(psi_acted);
+//                    dmrg_progress_.WriteHamiltonian(progress_path_);
+//                }
+//                printf("\r...finished.\n");
+
+                // fixme: inner:
+//                H = dmrg_progress_.Hs_.at(0);
+//                auto psi = MPS(states.at(0));
+//                println(innerC(psi, H, psi));
+
+                // davidson: doesn't work for more than one state.
+//                println("davidson");
+//                H = dmrg_progress_.Hs_.at(0);
+//                LocalMPO PH(H, {});
+//                LocalMPO PH1(H, {});
+//                auto psi = MPS(states.at(0));
+//                auto psi1 = MPS(states.at(1));
+//                int b = (int) num_sites_/2;
+//                b = 1;
+//                PH.position(b,psi);
+//                PH.position(b,psi1);
+//                PH1.position(b,psi1);
+//                auto phi = psi(b)*psi(b+1);
+//                auto phi1 = psi1(b)*psi1(b+1);
+//                std::vector<ITensor> phis = {phi, phi1};
+//                double energy = davidson(PH,phi,{});
+//                double energy1 = davidson(PH1,phi1,{});
+//                println(energy);
+//                println(energy1);
+//                PrintVector(davidson(PH,phis,{}));
+//                println("");
+//                println("end");
             }
 
             if (observable == "translation") {
@@ -730,23 +728,16 @@ public:
                         states_acted.push_back(dmrg_progress_.StatesActedByTranslation().at(i));
                     }
                 }
-                auto translation_op = TranslationOp(sites); // periodic MPS
+                // Act translation by applyMPO, slower than consecutive swaps.
+//                auto translation_op = TranslationOp(sites);
                 println("\nAct translation...");
                 for (int i = states_acted.size(); i < num_states; i++) {
                     psi_acted = MPS(states.at(i));
                     printf("\r%d/%d", i+1, num_states);
 //                    psi_acted = applyMPO(translation_op, psi_acted, {"Method", "Fit", "Cutoff", svd_cutoff, "Verbose", true});
                     for (int j=1; j<num_sites_; j++) {
-//                        Swap(psi_acted, sites, j);
-                        // fixme: test localSwap
-                        localSwap(psi_acted, j);
+                        Swap(psi_acted, j);
                     }
-//                    printf("finished.");
-//                    PrintData(psi_acted);
-                    // three-site swap gate. now only working for 3n+2 and not using augment zipper yet.
-//                    for (int j=1; j<num_sites_-1; j+=2){
-//                        SwapThree(psi_acted, sites, j);
-//                    }
                     states_acted.push_back(psi_acted);
                     dmrg_progress_.psis_acted_by_translation_.push_back(psi_acted);
                     dmrg_progress_.WriteTranslation(progress_path_);
@@ -754,11 +745,14 @@ public:
                 printf("\r...finished.\n");
             }
 
+            // fixme: change 36 to rank squared.
             auto left_dangling_ind = Index(36, "Site");
             auto right_dangling_ind = Index(36, "Site");
 
             if (observable == "rho") {
-//                // fixme: test ActThree using older rho operator specific to L=3
+                // TODO: Zipper algorithm, currently slower and more inaccurate than applyMPO fit.
+
+                // test ActThree using older rho operator specific to L=3
 //                auto dummy_FF = HaagerupFData();
 //                auto rho = dummy_FF.RhoDefect3(sites(1), sites(2), sites(3));
 //                auto dummy_psi0 = MPS(states.at(0));
@@ -793,7 +787,6 @@ public:
 //                                                                 siteIndex(zipperMPS,3)),
 //                             1
 //                    );
-////                    println(innerC(zipperMPS0, zipperMPS));
 //                    ActThree(zipperMPS, FGate, 1);
 //                    for (int i = 2; i < ns - 1; i++) {
 //                        ActThree(zipperMPS, dummy_F.ZipperGate(siteIndex(zipperMPS, i),
@@ -841,22 +834,48 @@ public:
                         states_acted.push_back(dmrg_progress_.StatesActedByRho().at(i));
                     }
                 }
-                auto rho_op = RhoOp(sites, site_type_); // dangling periodic MPS
-                auto id_op = IdentityOp(sites, rho_op); // dangling periodic MPS with matching indices with rho_op
+
+                // Dangling MPOs.
+                auto rho_op = RhoOp(sites, site_type_);
+                auto id_op = IdentityOp(sites, rho_op); // Matching indices with rho_op.
                 println("\nAct rho...");
+
+                // TODO: Measure rho by davidson?
+
+                // Use nmultMPO to contract rho_op and id_op to create periodic MPO.
+//                println("nmultMPO");
+//                psi_acted = MPS(states.at(0));
+//                id_op.prime("Site");
+//                // Can verify that ordering of id_op and rho_op doesn't matter.
+//                auto rho_op_nmult = nmultMPO(id_op, rho_op);
+//                println(innerC(psi_acted, rho_op_nmult, psi_acted));
+//                println("end");
+
+                // TODO: Make applyMPO fit method work if first act identity MPO, density matrix method works but slow.
+//                rho_op = RhoOp(sites, site_type_);
+//                id_op = IdentityOp(sites, rho_op);
+//                println("inner");
+//                auto psi0 = MPS(states.at(0));
+//                psi0 = AugmentMPS(psi0, left_dangling_ind, right_dangling_ind);
+//                psi_acted = MPS(states.at(0));
+//                psi_acted = AugmentMPS(psi_acted, left_dangling_ind, right_dangling_ind);
+////                fitApplyMPOImpl(psi0,AugmentMPO(id_op, left_dangling_ind, right_dangling_ind),psi_acted,{"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 1});
+//                psi_acted = applyMPO(AugmentMPO(id_op, left_dangling_ind, right_dangling_ind),
+//                                     psi_acted, {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 1});
+//                println("checkpoint 1");
+//                println(innerC(psi0, psi_acted));
+//                println("checkpoint 2");
+//                println(innerC(psi_acted, AugmentMPO(rho_op, left_dangling_ind, right_dangling_ind),
+//                               psi0));
+//                println("end");
+
+                rho_op = RhoOp(sites, site_type_);
+                id_op = IdentityOp(sites, rho_op);
                 for (int i = states_acted.size(); i < num_states; i++) {
 //                    auto start = std::chrono::high_resolution_clock::now();
                     // Initialize
                     psi_acted = MPS(states.at(i));
-                    // fixme
-//                    auto left_dangling_ind = Index(6, "Site");
-//                    auto left_left_dangling_ind = Index(6, "Site");
-//                    auto augmented_psi = AugmentMPSZipper(psi_acted, left_dangling_ind, left_left_dangling_ind);
-//                    PrintData(innerC(augmented_psi, augmented_psi));
-//                    return;
-                    // Act by rho defect in two steps
-                    // First act by dangling rho operator
-                    // Then act by dangling identity operator
+                    // Act rho in two steps, first by dangling rho operator, then by dangling identity operator.
                     printf("\r%d/%d", i+1, num_states);
                     psi_acted = applyMPO(AugmentMPO(rho_op, left_dangling_ind, right_dangling_ind),
                                          AugmentMPS(psi_acted, left_dangling_ind, right_dangling_ind),
@@ -864,7 +883,6 @@ public:
                     );
                     psi_acted = applyMPO(AugmentMPO(id_op, left_dangling_ind, right_dangling_ind),
                                          psi_acted, {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 1});
-//                    printf("finished.");
                     states_acted.push_back(psi_acted);
 
                     dmrg_progress_.psis_acted_by_rho_.push_back(psi_acted);
@@ -877,15 +895,19 @@ public:
             }
 
             Real en_shift = 0;
-            // Uncomment if shift by ground state energy
+            // Uncomment if shift by ground state energy.
             // en_shift = dmrg_progress.Energies().at(0);
 
             for (int i = 0; i < num_states; i++) {
-//                if (observable == "energy") {
-//                    matrix.set(s(i+1), sP(i+1), dmrg_progress_.Energies().at(i) - en_shift);
-//                }
+                // Use energies obtained from DMRG (by davidson)
+                if (observable == "energy") {
+                    matrix.set(s(i+1), sP(i+1), dmrg_progress_.Energies().at(i) - en_shift);
+                }
+
                 for (int j = 0; j < num_states; j++) {
-                    if (observable == "energy" || observable == "translation") {
+                    // Uncomment to use energies obtained by diagonalizing Hamiltonian matrix.
+//                    if (observable == "energy" || observable == "translation") {
+                    if (observable == "translation") {
                         matrix.set(s(i+1), sP(j+1), innerC(states.at(i), states_acted.at(j)));
                     }
                     if (observable == "rho") {
@@ -897,8 +919,9 @@ public:
             }
             DumpMathematicaSingle(observable, num_states, matrix, m_path_);
 
-//            // Analysis of translation and rho eigenvalues assuming that the states are simulated well enough
-//            // Otherwise, better work with the Mathematica .m file created above
+//            DEPRECIATED
+//            // Analysis of translation and rho eigenvalues assuming that the states are simulated well enough.
+//            // Otherwise, better work with the Mathematica .m file created above.
 //            std::vector<Cplx> eigenvalues;
 //            for (int i = 0; i < num_states; i++) {
 //                auto submatrix = ITensor(dag(s), sP);
@@ -947,7 +970,6 @@ public:
             std::filesystem::create_directory(an_directory_);
         }
         PrintJob(false);
-//        CleanFile(m_path_);
         std::filesystem::remove(m_path_);
         auto energy_matrix = Measure("energy");
         auto translation_matrix = Measure("translation");
@@ -961,6 +983,7 @@ public:
         rho_matrix = rho_matrix * delta(s, s_rho) * delta(prime(s), prime(s_rho));
 
         auto m = energy_matrix/num_sites_ + translation_matrix;
+        // TODO: Diagonalization does not work well for haagerup if we do not include rho here.
 //        + rho_matrix;
         auto[U,D] = eigen(m);
         U.conj();
@@ -999,7 +1022,6 @@ public:
             std::filesystem::create_directory(an_directory_);
         }
         PrintJob(false);
-//        CleanFile(m_path_);
         std::filesystem::remove(m_path_);
         auto energy_matrix = Measure("energy");
         auto translation_matrix = Measure("translation");
