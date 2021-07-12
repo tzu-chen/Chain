@@ -746,8 +746,9 @@ public:
             }
 
             // fixme: change 36 to rank squared.
-            auto left_dangling_ind = Index(36, "Site");
-            auto right_dangling_ind = Index(36, "Site");
+            int d = dim(sites(1));
+            auto left_dangling_ind = Index(d*d, "Site");
+            auto right_dangling_ind = Index(d*d, "Site");
 
             if (observable == "rho") {
                 // TODO: Zipper algorithm, currently slower and more inaccurate than applyMPO fit.
@@ -868,6 +869,20 @@ public:
 //                println(innerC(psi_acted, AugmentMPO(rho_op, left_dangling_ind, right_dangling_ind),
 //                               psi0));
 //                println("end");
+
+                // TODO: Try to apply identity MPO by direct construction from the state. Failed.
+//                auto psi0 = MPS(states.at(0));
+//                auto psi_acted = MPS(states.at(0));
+//                auto psi1 = ApplyIdentityOp(psi0, d*d, left_dangling_ind, right_dangling_ind);
+//                psi0 = AugmentMPS(psi0, left_dangling_ind, right_dangling_ind);
+//                psi_acted = AugmentMPS(psi_acted, left_dangling_ind, right_dangling_ind);
+//                psi_acted = applyMPO(AugmentMPO(id_op, left_dangling_ind, right_dangling_ind), psi_acted);
+//                PrintData(psi1);
+//                PrintData(psi_acted);
+//                println(innerC(psi0, AugmentMPO(rho_op, left_dangling_ind, right_dangling_ind),
+//                               psi1));
+//                println(innerC(psi0, AugmentMPO(rho_op, left_dangling_ind, right_dangling_ind),
+//                               psi_acted));
 
                 rho_op = RhoOp(sites, site_type_);
                 id_op = IdentityOp(sites, rho_op);

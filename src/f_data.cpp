@@ -99,7 +99,8 @@ ITensor FData::RhoDefectCell(const Index &s1, const Index &s2) {
         for (int j1=1; j1 <= rk_; j1++) {
             for (int i2=1; i2 <= rk_; i2++) {
                 for (int j2=1; j2 <= rk_; j2++) {
-                    auto f = FSymbol(rho_, i1, rho_, j2, j1, i2) * sqrt(QD(i1) / QD(i2));
+                    auto f = FSymbol(rho_, i1, rho_, j2, j1, i2);
+//                    * sqrt(QD(i1) / QD(i2));
                     if (f!=0) {
                         Op.set(s1(i1),s1P(j1),s2(i2),s2P(j2), f);
                     }

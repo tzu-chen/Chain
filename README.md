@@ -15,7 +15,7 @@ lib -> extern/itensor/lib
 
 -I/usr/include/openblas -> -I/usr/local/opt/openblas/include
 
-Also included is a template CMakeListsMac.txt that works on Ying's Mac. Further modification may be needed to correctly link libraries.
+Also included is a template CMakeListsMac.txt that works on Ying's Mac. Further modification may be necessary to correctly link libraries.
 
 6. For cmake versions earlier than 2.8, you can manually modify cmake_minimum_required, but you may need to explicitly include extra libraries. If GNU version is older, you may need to add -lstdc++fs to ITENSOR_LINK_FLAGS.
 7. Create a folder called build. Change directory into it.
@@ -41,7 +41,7 @@ The built binary accepts the following arguments:
   
   0: run dmrg simulation,
   
-  1: measure energy, translation, and rho eigenvalues (measuring rho takes roughly (dim H)^(L-4) seconds), 
+  1: measure energy, translation and rho eigenvalues,
   
   2: measure energy and translation eigenvalues, 
   
@@ -50,3 +50,7 @@ The built binary accepts the following arguments:
   4: measure energy ratios (normalization independent),
 
   5: run dmrg simulation while performing 1 (charge=0) or 2 (otherwise) after simulation of each state.
+
+For example, the following command simulates a length 6 periodic Haagerup chain with QN charge conservation under pure rho projector in the neutral sector, and moreover measures energy, translation and rho eigenvalues after simulation of each state:
+
+./Chain -s haagerupq -b p -l 6 -d 1600 -c 1e-8 -p 1e-2 -j 0,-1,0 -u 2 -q 0 -n 1 -m 5

@@ -7,7 +7,7 @@
 using namespace itensor;
 
 // SVD cutoff used for Swap and possibly other operators.
-double kCutoff = 1E-8;
+double kCutoff = 1E-5;
 
 MPO TranslationOp(const SiteSet& sites, bool inv) {
     int N = sites.length();
@@ -164,6 +164,79 @@ MPS AugmentMPS(MPS const& original_psi, Index const& sl, Index const& sr) {
 
     return augmented_psi;
 }
+
+// TODO: Try to apply identity MPO by direct construction from the state. Failed.
+//MPS ApplyIdentityOp(MPS const& original_psi, int bond_dim, Index const& sl, Index const& sr) {
+//    auto len = length(original_psi);
+//    MPS psi = MPS(len+2);
+//    auto old_bond_inds = std::vector<Index>(len+1);
+//    auto new_bond_inds = std::vector<Index>(len+1);
+//    for (int i=1;i<len;i++) {
+//        old_bond_inds.at(i) = commonIndex(original_psi(i), original_psi(i+1), "Link");
+//        int old_dim = dim(old_bond_inds.at(i));
+//        new_bond_inds.at(i) = Index(old_dim + bond_dim, "l="+str(i)+",Link");
+//    }
+//    old_bond_inds.at(0) = Index(0);
+//    old_bond_inds.at(len) = Index(0);
+//    new_bond_inds.at(0) = Index(bond_dim, "l=0,Link");
+//    new_bond_inds.at(len) = Index(bond_dim, "l=inf,Link");
+//
+//    for (int i=1;i<=len+2;i++) {
+//        ITensor tensor;
+//        if (i==1) {
+//            tensor = ITensor(sl, new_bond_inds.at(0));
+//            for (int b=1;b<=bond_dim;b++) {
+//                tensor.set(sl(b), new_bond_inds.at(0)(b), 1);
+//            }
+//        } else if (i==len+2) {
+//            tensor = ITensor(sr, new_bond_inds.at(len));
+//            for (int b=1;b<=bond_dim;b++) {
+//                tensor.set(sr(b), new_bond_inds.at(len)(b), 1);
+//            }
+//        } else {
+//            auto site_ind = siteIndex(original_psi, i-1);
+//            auto new_left_bond_ind = new_bond_inds.at(i-2);
+//            auto new_right_bond_ind = new_bond_inds.at(i-1);
+//            tensor = ITensor(site_ind, new_left_bond_ind, new_right_bond_ind);
+//            auto old_left_bond_ind = old_bond_inds.at(i-2);
+//            auto old_right_bond_ind = old_bond_inds.at(i-1);
+//            int left_dim = dim(old_left_bond_ind);
+//            int right_dim = dim(old_right_bond_ind);
+//            for (int j=1;j<=dim(site_ind);j++) {
+//                for (int l=1;l<=left_dim+bond_dim;l++) {
+//                    for (int r=1;r<=right_dim+bond_dim;r++) {
+//                        Cplx value;
+//                        if (i==2) {
+//                            if (r<=right_dim) {
+//                                value = eltC(original_psi(i-1), site_ind(j), old_right_bond_ind(r));
+//                            } else {
+//                                value = 0;
+//                            }
+//                        } else if (i==len+1) {
+//                            if (l<=left_dim) {
+//                                value = eltC(original_psi(i-1), site_ind(j), old_left_bond_ind(l));
+//                            } else {
+//                                value = 0;
+//                            }
+//                        } else {
+//                            if (l<=left_dim && r<=right_dim) {
+//                                value = eltC(original_psi(i-1), site_ind(j), old_left_bond_ind(l), old_right_bond_ind(r));
+//                            } else {
+//                                value = 0;
+//                            }
+//                        }
+//                        tensor.set(site_ind(j), new_left_bond_ind(l), new_right_bond_ind(r), value);
+//                    }
+//                }
+//                for (int b=1;b<=bond_dim;b++) {
+//                    tensor.set(site_ind(j), new_left_bond_ind(left_dim + b), new_right_bond_ind(right_dim + b), 1);
+//                }
+//            }
+//        }
+//        psi.set(i, tensor);
+//    }
+//    return psi;
+//}
 
 MPO AugmentMPO(MPO const& original_mpo, Index const& sl, Index const& sr) {
     auto augmented_mpo = MPO(length(original_mpo) + 2);
