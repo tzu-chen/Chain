@@ -54,3 +54,5 @@ The built binary accepts the following arguments:
 For example, the following command simulates a length 6 periodic Haagerup chain with QN charge conservation under pure rho projector in the neutral sector, and moreover measures energy, translation and rho eigenvalues after simulation of each state:
 
 ./Chain -s haagerupq -b p -l 6 -d 1600 -c 1e-8 -p 1e-2 -j 0,-1,0 -u 2 -q 0 -n 1 -m 5
+
+The simulation and measurement results are stored in several files.  The .an file contains the diagonalized spectrum in the form of {energy, momentum, rho}, .ee file contains the entanglement entropy curve, .en file contains the energies without diagonalization, and .m file contains the energy, translation and rho matrices without diagonalization in Mathematica-compatible format.
