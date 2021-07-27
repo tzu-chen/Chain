@@ -89,38 +89,103 @@ public:
         return (int) psis_.size() - 1;
     }
 
-    void Write(const std::filesystem::path& p) const
+    void Write(const std::filesystem::path& p, bool backup = false) const
     {
         std::string path = std::string(p);
-        writeToFile(path + ".st", sites_);
-        writeToFile(path + ".pgs", num_sweeps_vec_);
-        writeToFile(path + ".md", max_dims_);
-        writeToFile(path + ".en", ens_);
-        writeToFile(path + ".psi", psis_);
-        writeToFile(path + ".H", Hs_);
+        if (!backup) {
+            writeToFile(path + ".st", sites_);
+            writeToFile(path + ".pgs", num_sweeps_vec_);
+            writeToFile(path + ".md", max_dims_);
+            writeToFile(path + ".en", ens_);
+            writeToFile(path + ".psi", psis_);
+            writeToFile(path + ".H", Hs_);
+        } else {
+            // Uncomment to save backup files
+            writeToFile(path + ".st.bk", sites_);
+            writeToFile(path + ".pgs.bk", num_sweeps_vec_);
+            writeToFile(path + ".md.bk", max_dims_);
+            writeToFile(path + ".en.bk", ens_);
+            writeToFile(path + ".psi.bk", psis_);
+            writeToFile(path + ".H.bk", Hs_);
+        }
     }
 
-    void Read(const std::filesystem::path& p)
+    void Read(const std::filesystem::path& p, bool backup = false)
     {
         std::string path = std::string(p);
-        try{
+        if (!backup) {
             readFromFile(path + ".st", sites_);
             readFromFile(path + ".pgs", num_sweeps_vec_);
             readFromFile(path + ".md", max_dims_);
             readFromFile(path + ".en", ens_);
             readFromFile(path + ".psi", psis_);
             readFromFile(path + ".H", Hs_);
-        } catch (std::exception const& e) {
-            // File is corrupted, start over
-                println(e.what());
-                num_sweeps_vec_.clear();
-                max_dims_.clear();
-                ens_.clear();
-                psis_.clear();
-                Hs_.clear();
-            NextState();
+        } else {
+            readFromFile(path + ".st.bk", sites_);
+            readFromFile(path + ".pgs.bk", num_sweeps_vec_);
+            readFromFile(path + ".md.bk", max_dims_);
+            readFromFile(path + ".en.bk", ens_);
+            readFromFile(path + ".psi.bk", psis_);
+            readFromFile(path + ".H.bk", Hs_);
         }
+//        catch (std::exception const& e) {
+//            try {
+//                readFromFile(path + ".st.bk", sites_);
+//                readFromFile(path + ".pgs.bk", num_sweeps_vec_);
+//                readFromFile(path + ".md.bk", max_dims_);
+//                readFromFile(path + ".en.bk", ens_);
+//                readFromFile(path + ".psi.bk", psis_);
+//                readFromFile(path + ".H.bk", Hs_);
+//            } catch (std::exception const &e) {
+//                // File is corrupted, start over
+//                println(e.what());
+//                num_sweeps_vec_.clear();
+//                max_dims_.clear();
+//                ens_.clear();
+//                psis_.clear();
+//                Hs_.clear();
+//                NextState();
+//            }
+//        }
+    }
 
+    void RecoverStates(const std::filesystem::path& p) {
+        Read(p);
+
+        std::vector<int> num_sweeps_vec = num_sweeps_vec_;
+        std::vector<int> max_dims = max_dims_;
+        std::vector<Real> ens = ens_;
+        std::vector<MPS> psis = psis_;
+        std::vector<MPO> Hs = Hs_;
+
+        num_sweeps_vec_ = std::vector<int>();
+        max_dims_ = std::vector<int>();
+        ens_ = std::vector<Real>();
+        psis_ = std::vector<MPS>();
+        Hs_ = std::vector<MPO>();
+        NextState();
+
+        int num_done_states = (int) psis.size()-1;
+        printf("Recover states from corrupt vector.\n");
+        for (int i=0;i<num_done_states;i++) {
+            innerC(psis.at(i),psis.at(i));
+            printf("\rState %d/%d is OK.", i+1, num_done_states);
+
+            num_sweeps_vec_.pop_back();
+            max_dims_.pop_back();
+            ens_.pop_back();
+            psis_.pop_back();
+            Hs_.pop_back();
+
+            num_sweeps_vec_.push_back(num_sweeps_vec.at(i));
+            max_dims_.push_back(max_dims.at(i));
+            ens_.push_back(ens.at(i));
+            psis_.push_back(psis.at(i));
+            Hs_.push_back(Hs.at(i));
+            NextState();
+
+            Write(p);
+        }
     }
 
     // Write and read states acted by Hamiltonian, translation, and rho.
@@ -128,6 +193,7 @@ public:
     {
         std::string path = std::string(p);
         writeToFile(path + ".ham", psis_acted_by_hamiltonian_);
+        writeToFile(path + ".ham.bk", psis_acted_by_hamiltonian_);
     }
 
     void ReadHamiltonian(const std::filesystem::path& p)
@@ -136,16 +202,20 @@ public:
         try{
             readFromFile(path + ".ham", psis_acted_by_hamiltonian_);
         } catch (std::exception const& e) {
-            println(e.what());
-            psis_acted_by_hamiltonian_.pop_back();
+            try{
+                readFromFile(path + ".ham.bk", psis_acted_by_hamiltonian_);
+            } catch (std::exception const& e) {
+                println(e.what());
+                psis_acted_by_hamiltonian_.pop_back();
+            }
         }
-
     }
 
     void WriteTranslation(const std::filesystem::path& p) const
     {
         std::string path = std::string(p);
         writeToFile(path + ".tra", psis_acted_by_translation_);
+        writeToFile(path + ".tra.bk", psis_acted_by_translation_);
     }
 
     void ReadTranslation(const std::filesystem::path& p)
@@ -154,8 +224,12 @@ public:
         try{
             readFromFile(path + ".tra", psis_acted_by_translation_);
         } catch (std::exception const& e) {
-            println(e.what());
-            psis_acted_by_translation_.pop_back();
+            try{
+                readFromFile(path + ".tra.bk", psis_acted_by_translation_);
+            } catch (std::exception const& e) {
+                println(e.what());
+                psis_acted_by_translation_.pop_back();
+            }
         }
     }
 
@@ -163,6 +237,7 @@ public:
     {
         std::string path = std::string(p);
         writeToFile(path + ".rho", psis_acted_by_rho_);
+        writeToFile(path + ".rho.bk", psis_acted_by_rho_);
     }
 
     void ReadRho(const std::filesystem::path& p)
@@ -171,8 +246,12 @@ public:
         try{
             readFromFile(path + ".rho", psis_acted_by_rho_);
         } catch (std::exception const& e) {
-            println(e.what());
-            psis_acted_by_rho_.pop_back();
+            try {
+                readFromFile(path + ".rho.bk", psis_acted_by_rho_);
+            } catch (std::exception const &e) {
+                println(e.what());
+                psis_acted_by_rho_.pop_back();
+            }
         }
     }
 };
@@ -366,8 +445,32 @@ public:
         return init_state;
     }
 
-    // Simulate states by DMRG.
+    // Cannot catch EXC_BAD_ACCESS on iOS
+    // https://stackoverflow.com/questions/16202029/is-there-a-way-to-catch-or-handle-exc-bad-access
     void Simulate(bool analyze = false) {
+        try {
+            SimulateRaw(analyze);
+        } catch (std::exception const& e) {
+            println(e.what());
+            // Replace progress files with backup progress files
+            // Put in try-catch because .bk files may not exist
+            try {
+                printf("Replace progress files with backup progress files.\n");
+                dmrg_progress_.Read(progress_path_, true);
+                dmrg_progress_.Write(progress_path_);
+            } catch (std::exception const& e) {
+            }
+            try {
+                SimulateRaw(analyze);
+            } catch (std::exception const& e) {
+                dmrg_progress_.RecoverStates(progress_path_);
+                Simulate(analyze);
+            }
+        }
+    }
+
+    // Simulate states by DMRG.
+    void SimulateRaw(bool analyze = false) {
         if (not std::filesystem::exists(progress_directory_)) {
             std::filesystem::create_directory(progress_directory_);
         }
@@ -401,7 +504,6 @@ public:
             dmrg_progress_.NextState();
             dmrg_progress_.SetSites(sites_);
             dmrg_progress_.Write(progress_path_);
-
         }
 
         MPO H = sites_.Hamiltonian(boundary_condition_, num_sites_, u_, couplings_);
@@ -483,6 +585,8 @@ public:
                 sw.cutoff() = svd_cutoff_;
                 sw.niter() = 2;
                 sw.noise() = noise_;
+                // TODO
+//                std::tie(en_, psi_) = dmrg(H, psi_, sw, {"Quiet=", true, "Weight=", orthogonal_weight});
                 std::tie(en_, psi_) = dmrg(H, dmrg_progress_.DoneStates(), psi_, sw, {"Quiet=", true, "Weight=", orthogonal_weight});
                 // Decide whether energy has stabilized.
                 if (abs(min_en_ - en_) * num_sites_ < precision_) {
@@ -514,6 +618,10 @@ public:
             // Even if no next state, this marks completion of current state.
             dmrg_progress_.NextState();
             dmrg_progress_.Write(progress_path_);
+            // Write backup progress files
+            if (dmrg_progress_.NumDoneStates() % 1 == 0) {
+                dmrg_progress_.Write(progress_path_, true);
+            }
 
             // Completed current state.
             DumpEnergy(dmrg_progress_.NumDoneStates()+1, en_, en_path_);
@@ -746,9 +854,8 @@ public:
             }
 
             // fixme: change 36 to rank squared.
-            int d = dim(sites(1));
-            auto left_dangling_ind = Index(d*d, "Site");
-            auto right_dangling_ind = Index(d*d, "Site");
+            auto left_dangling_ind = Index(36, "Site");
+            auto right_dangling_ind = Index(36, "Site");
 
             if (observable == "rho") {
                 // TODO: Zipper algorithm, currently slower and more inaccurate than applyMPO fit.
@@ -997,9 +1104,8 @@ public:
         translation_matrix = translation_matrix * delta(s, s_translation) * delta(prime(s), prime(s_translation));
         rho_matrix = rho_matrix * delta(s, s_rho) * delta(prime(s), prime(s_rho));
 
-        auto m = energy_matrix/num_sites_ + translation_matrix;
+        auto m = energy_matrix/num_sites_ + translation_matrix + rho_matrix;
         // TODO: Diagonalization does not work well for haagerup if we do not include rho here.
-//        + rho_matrix;
         auto[U,D] = eigen(m);
         U.conj();
         energy_matrix = dag(U)*energy_matrix*prime(U);
@@ -1116,6 +1222,11 @@ public:
         } else {
             println("Fewer than 3 states available");
         }
+    }
+
+    // Mode 6
+    void Repair() {
+        dmrg_progress_.RecoverStates(progress_path_);
     }
 };
 

@@ -52,6 +52,8 @@ int main(int argc, char** argv) {
             dmrg.NormalizeEnergies();
         } else if (std::get<10>(params) == 5) {
             dmrg.Simulate(true);
+        } else if (std::get<10>(params) == 6) {
+            dmrg.Repair();
         } else {
             dmrg.Simulate();
         }
@@ -71,6 +73,8 @@ int main(int argc, char** argv) {
             dmrg.NormalizeEnergies();
         } else if (std::get<10>(params) == 5) {
             dmrg.Simulate(true);
+        } else if (std::get<10>(params) == 6) {
+            dmrg.Repair();
         } else {
             dmrg.Simulate();
         }
@@ -90,6 +94,8 @@ int main(int argc, char** argv) {
             dmrg.NormalizeEnergies();
         } else if (std::get<10>(params) == 5) {
             dmrg.Simulate(true);
+        } else if (std::get<10>(params) == 6) {
+            dmrg.Repair();
         } else {
             dmrg.Simulate();
         }

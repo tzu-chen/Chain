@@ -28,7 +28,7 @@ Also included is a template CMakeListsMac.txt that works on Ying's Mac. Further 
 The built binary accepts the following arguments:
 
 * -s, --site: type of sites [std::string]; golden, haagerup, haagerupq (haagerup with QN conservation).
-* -b, --bc: type of boundary condition [std::string]; p(eriodic), o(pen), s(ine-squared deformed), sp (sine-squared deformed to hot start periodic).
+* -b, --bc: type of boundary condition [std::string]; p(eriodic), o(pen), d(irichlet), s(ine-squared deformed), sp (sine-squared deformed to hot start periodic).
 * -l: L = length of chain = number of sites [int].
 * -d: max bond dimension [int].
 * -c, --cutoff: cutoff for singular value decomposition [float]; e.g., 1e-8.
