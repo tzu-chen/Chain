@@ -62,6 +62,54 @@ ITensor Delta3ITensor(const Index& s1, const Index& s2, const Index& s3) {
     return a;
 }
 
+//MPO OpenRhoOp(const SiteSet& sites, const std::string& site_type) {
+//    int N = sites.length();
+//
+//    auto G = std::vector<ITensor>(N+1);
+//    if (site_type == "golden") {
+//        auto f = GoldenFData();
+//        for (auto j : range1(N-1)) {
+//            G[j] = f.RhoDefectCell(sites(j), sites(j+1));
+//        }
+//        G[N] = GoldenFData().RhoDefectCell(sites(N), sites(1));
+//    } else if (site_type == "haagerup" || site_type == "haagerupq") {
+//        auto f = HaagerupFData();
+//        for (auto j : range1(N-1)) {
+//            G[j] = f.RhoDefectCell(sites(j), sites(j+1));
+//        }
+//        G[N] = f.RhoDefectCell(sites(N), sites(1));
+//    }
+//    auto A = std::vector<ITensor>(N+1);
+//    auto B = std::vector<ITensor>(N+1);
+//    for (auto j : range1(N))
+//    {
+//        // TODO: Refactor.
+//        auto [Aj,Bj] = factor(G[j],{sites(j),prime(sites(j))});
+//        Aj.prime("Site").prime("Site");
+//        Bj.prime("Site").prime("Site").prime("Site").prime("Site");
+//        A[j] = Aj;
+//        B[j] = Bj;
+//    }
+//
+//    auto D12 = std::vector<ITensor>(N+1);
+//    auto D21 = std::vector<ITensor>(N+1);
+//    for (auto j : range1(N))
+//    {
+//        D12[j] = Delta3ITensor(dag(sites(j)), prime(sites(j),2), prime(sites(j),4) );
+//        D21[j] = Delta3ITensor(prime(sites(j)), dag(prime(sites(j), 3)), dag(prime(sites(j),5)) );
+//    }
+//
+//    auto m = MPO(N);
+//    m.set(1, A[1] * delta(sites(1), prime(sites(1), 2)) * delta(prime(sites(1)), prime(sites(1), 3)) );
+//    for (auto j : range1(2,N-1))
+//    {
+//        m.set(j, B[j-1] * A[j] * D12[j] * D21[j]);
+//    }
+//    m.set(N, B[N-1] * delta(sites(N), prime(sites(N), 4)) * delta(prime(sites(N)), prime(sites(N), 5)) );
+//
+//    return m;
+//}
+
 MPO RhoOp(const SiteSet& sites, const std::string& site_type) {
     int N = sites.length();
 

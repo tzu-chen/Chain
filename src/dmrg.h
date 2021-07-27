@@ -491,10 +491,14 @@ public:
                        dmrg_progress_.NumDoneStates());
                 // Assumes that for charged sectors there is no need to measure rho, valid for Fibonacci and Haagerup.
                 if (analyze) {
-                    if (charge_ == 0) {
-                        Analyze();
+                    if (boundary_condition_ == "p") {
+                        if (charge_ == 0) {
+                            Analyze();
+                        } else {
+                            AnalyzeWithoutRho();
+                        }
                     } else {
-                        AnalyzeWithoutRho();
+                        Energies();
                     }
                 }
                 return;
@@ -629,10 +633,14 @@ public:
 
             // Assumes that for charged sectors there is no need to measure rho, valid for Fibonacci and Haagerup.
             if (analyze) {
-                if (charge_==0) {
-                    Analyze();
+                if (boundary_condition_ == "p") {
+                    if (charge_ == 0) {
+                        Analyze();
+                    } else {
+                        AnalyzeWithoutRho();
+                    }
                 } else {
-                    AnalyzeWithoutRho();
+                    Energies();
                 }
             }
 
@@ -853,9 +861,9 @@ public:
                 printf("\r...finished.\n");
             }
 
-            // fixme: change 36 to rank squared.
-            auto left_dangling_ind = Index(36, "Site");
-            auto right_dangling_ind = Index(36, "Site");
+            int d = dim(sites(1));
+            auto left_dangling_ind = Index(d*d, "Site");
+            auto right_dangling_ind = Index(d*d, "Site");
 
             if (observable == "rho") {
                 // TODO: Zipper algorithm, currently slower and more inaccurate than applyMPO fit.
@@ -944,8 +952,8 @@ public:
                 }
 
                 // Dangling MPOs.
-                auto rho_op = RhoOp(sites, site_type_);
-                auto id_op = IdentityOp(sites, rho_op); // Matching indices with rho_op.
+//                auto rho_op = RhoOp(sites, site_type_);
+//                auto id_op = IdentityOp(sites, rho_op); // Matching indices with rho_op.
                 println("\nAct rho...");
 
                 // TODO: Measure rho by davidson?
@@ -991,6 +999,9 @@ public:
 //                println(innerC(psi0, AugmentMPO(rho_op, left_dangling_ind, right_dangling_ind),
 //                               psi_acted));
 
+                MPO rho_op;
+                MPO id_op;
+//                if (boundary_condition_ == "p") {
                 rho_op = RhoOp(sites, site_type_);
                 id_op = IdentityOp(sites, rho_op);
                 for (int i = states_acted.size(); i < num_states; i++) {
@@ -998,7 +1009,7 @@ public:
                     // Initialize
                     psi_acted = MPS(states.at(i));
                     // Act rho in two steps, first by dangling rho operator, then by dangling identity operator.
-                    printf("\r%d/%d", i+1, num_states);
+                    printf("\r%d/%d", i + 1, num_states);
                     psi_acted = applyMPO(AugmentMPO(rho_op, left_dangling_ind, right_dangling_ind),
                                          AugmentMPS(psi_acted, left_dangling_ind, right_dangling_ind),
                                          {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 2}
@@ -1006,7 +1017,6 @@ public:
                     psi_acted = applyMPO(AugmentMPO(id_op, left_dangling_ind, right_dangling_ind),
                                          psi_acted, {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 1});
                     states_acted.push_back(psi_acted);
-
                     dmrg_progress_.psis_acted_by_rho_.push_back(psi_acted);
                     dmrg_progress_.WriteRho(progress_path_);
 
@@ -1014,6 +1024,18 @@ public:
 //                    printf("\nTime spent: %gs\n", std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() / 1000000);
                 }
                 printf("\r...finished.\n");
+//                } else {
+//                    rho_op = OpenRhoOp(sites, site_type_);
+//                    for (int i = states_acted.size(); i < num_states; i++) {
+//                        psi_acted = MPS(states.at(i));
+//                        printf("\r%d/%d", i + 1, num_states);
+//                        psi_acted = applyMPO(rho_op, psi_acted);
+//                        states_acted.push_back(psi_acted);
+//                        dmrg_progress_.psis_acted_by_rho_.push_back(psi_acted);
+//                        dmrg_progress_.WriteRho(progress_path_);
+//                    }
+//                    printf("\r...finished.\n");
+//                }
             }
 
             Real en_shift = 0;
@@ -1033,9 +1055,13 @@ public:
                         matrix.set(s(i+1), sP(j+1), innerC(states.at(i), states_acted.at(j)));
                     }
                     if (observable == "rho") {
-                        matrix.set(s(i+1), sP(j+1),
+//                    if (boundary_condition_ == "p") {
+                        matrix.set(s(i + 1), sP(j + 1),
                                    innerC(AugmentMPS(states.at(i), left_dangling_ind, right_dangling_ind),
                                           states_acted.at(j)));
+//                        } else {
+//                            matrix.set(s(i + 1), sP(j + 1), innerC(states.at(i),states_acted.at(j)));
+//                        }
                     }
                 }
             }
@@ -1104,7 +1130,12 @@ public:
         translation_matrix = translation_matrix * delta(s, s_translation) * delta(prime(s), prime(s_translation));
         rho_matrix = rho_matrix * delta(s, s_rho) * delta(prime(s), prime(s_rho));
 
-        auto m = energy_matrix/num_sites_ + translation_matrix + rho_matrix;
+        ITensor m;
+        if (boundary_condition_ == "p") {
+            m = energy_matrix/num_sites_ + translation_matrix + rho_matrix;
+        } else {
+            m = energy_matrix/num_sites_;
+        }
         // TODO: Diagonalization does not work well for haagerup if we do not include rho here.
         auto[U,D] = eigen(m);
         U.conj();
@@ -1190,6 +1221,14 @@ public:
         printf("{{%s},", coupling_str_);
         PrintVector(energies);
         print("},\n");
+
+        // Still create .an file for convenience
+        auto energy_matrix = Measure("energy");
+        std::vector<std::vector<Real>> result;
+        for (int i=1;i<=num_states;i++) {
+            result.push_back( std::vector<Real>({ eltC(energy_matrix,i,i).real() }) );
+        }
+        DumpMatrix(result, an_path_);
     }
 
     // Mode 4
