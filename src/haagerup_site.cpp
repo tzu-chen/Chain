@@ -6,35 +6,35 @@ inline int mod(int x,int N) {
     return x;
 }
 
-HaagerupSite::HaagerupSite(const Index &I) : s(I) {}
+HaagerupSite::HaagerupSite(const Index &I) : s_(I) {}
 HaagerupSite::HaagerupSite(const Args &args) {
     auto tags=TagSet("Site,Haagerup");
-    s=Index(6,tags);
+    s_=Index(6, tags);
 }
-Index HaagerupSite::index() const { return s; }
+Index HaagerupSite::index() const { return s_; }
 
 IndexVal HaagerupSite::state(const string &state) {
     if (state=="r") {
-        return s(4);
+        return s_(4);
     } else {
-        return s(4);
+        return s_(4);
     }
 //    throw ITError("State "+state+" not recognized");
 }
 
 ITensor HaagerupSite::proj(int i) const {
-    auto sP=prime(s);
-    auto Op=ITensor(dag(s),sP);
-    Op.set(s(i),sP(i),1);
+    auto sP=prime(s_);
+    auto Op=ITensor(dag(s_), sP);
+    Op.set(s_(i), sP(i), 1);
     return Op;
 }
 
 ITensor HaagerupSite::FF(int projector, int left, int right) const {
-    auto sP=prime(s);
-    auto OpL=ITensor(dag(s));
+    auto sP=prime(s_);
+    auto OpL=ITensor(dag(s_));
     auto OpR=ITensor(sP);
     for (int i=1;i<=6;i++) {
-        OpL.set(s(i),haagerup_f_data.FSymbol(left, 4, 4, right, i, projector));
+        OpL.set(s_(i), haagerup_f_data.FSymbol(left, 4, 4, right, i, projector));
         OpR.set(sP(i),haagerup_f_data.FSymbol(left, 4, 4, right, i, projector));
     }
     return OpL * OpR;
@@ -43,7 +43,7 @@ ITensor HaagerupSite::FF(int projector, int left, int right) const {
 
 ITensor HaagerupSite::op(const string &opname, const Args &args) const {
     if (opname=="id") {
-        return toDense(delta(s, prime(s)));
+        return toDense(delta(s_, prime(s_)));
     } else if (opname=="n1") {
         return proj(1);
     } else if (opname=="na") {
@@ -109,9 +109,17 @@ ITensor HaagerupSite::op(const string &opname, const Args &args) const {
 }
 
 MPO Haagerup::Hamiltonian(const std::string& boundary_condition, int num_sites, Real U, std::vector<Real> couplings) {
-    Real K = couplings.at(0);
-    Real J = couplings.at(1);
-    Real M = couplings.at(2);
+    Real K;
+    Real J;
+    Real M;
+    try{
+        K = couplings.at(0);
+        J = couplings.at(1);
+        M = couplings.at(2);
+    } catch (std::exception e) {
+        println("Error in coupling string J.");
+        throw e;
+    }
 
     auto mpo = AutoMPO(*this);
 

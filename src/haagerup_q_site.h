@@ -21,7 +21,9 @@ public:
     Index index() const;
 
     IndexVal state(std::string const& state);
-    
+
+    ITensor id() const;
+
     ITensor m(int i) const;
     
     ITensor q(int i) const;
@@ -35,7 +37,6 @@ public:
     ITensor q_all(Cplx c_3, Cplx c_5, Cplx c_6, Cplx c_7, int i, int j) const;
 
     ITensor op(std::string const& opname,Args const& args = Args::global()) const;
-
 };
 
 class HaagerupQ: public BasicSiteSet<HaagerupQSite> {

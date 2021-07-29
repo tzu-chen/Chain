@@ -441,8 +441,10 @@ public:
         auto pre_init_state = InitState(sites_,"0");
         int center = (num_sites_+1)/2;
         pre_init_state.set(center, std::to_string(charge_));
-        MPS init_state = MPS(pre_init_state);
-        return init_state;
+//        MPS init_state = MPS(pre_init_state);
+//        return init_state;
+        return randomMPS(pre_init_state);
+//        return randomMPS(sites_);
     }
 
     // Cannot catch EXC_BAD_ACCESS on iOS
@@ -1266,6 +1268,25 @@ public:
     // Mode 6
     void Repair() {
         dmrg_progress_.RecoverStates(progress_path_);
+    }
+
+    void Test() {
+        MPO H = sites_.Hamiltonian(boundary_condition_, num_sites_, u_, couplings_);
+        H = removeQNs(H);
+        ITensor T = H(1);
+        std::vector<Index> sites = {sites_(1)};
+        for (int i=2;i<=num_sites_;i++) {
+            T *= H(i);
+            sites.push_back(sites_(i));
+        }
+//        sites = removeQNs(sites);
+        auto [U,S,V] = svd(expHermitian(T,-1),IndexSet(sites),{"MaxDim=",num_states_});
+        std::vector<Real> energies;
+        int num_states = std::min(num_states_, (int) dim(inds(S)(1)));
+        for (int i=1;i<=num_states;i++) {
+            energies.push_back(-log(elt(S,i,i)));
+        }
+        PrintVector(energies);
     }
 };
 

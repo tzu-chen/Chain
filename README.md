@@ -49,7 +49,11 @@ The built binary accepts the following arguments:
 
   4: measure energy ratios (normalization independent),
 
-  5: run dmrg simulation while performing 1 (charge=0) or 2 (otherwise) after simulation of each state.
+  5: run dmrg simulation while performing 1 (charge=0) or 2 (otherwise) after simulation of each state,
+
+  6: recover already simulated states from corrupt vector,
+
+  7: perform direct diagonalization of Hamiltonian.
 
 For example, the following command simulates a length 6 periodic Haagerup chain with QN charge conservation under pure rho projector in the neutral sector, and moreover measures energy, translation and rho eigenvalues after simulation of each state:
 

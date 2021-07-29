@@ -20,7 +20,7 @@ class HaagerupSite
     const double z=(1+sqrt(13))/6;
     const double y1=(5-sqrt(13)-sqrt(6*(1+sqrt(13))))/12;
     const double y2=(5-sqrt(13)+sqrt(6*(1+sqrt(13))))/12;
-    Index s;
+    Index s_;
     HaagerupFData haagerup_f_data;
 public:
     explicit HaagerupSite(Index const& I);

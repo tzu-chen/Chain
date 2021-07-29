@@ -54,6 +54,8 @@ int main(int argc, char** argv) {
             dmrg.Simulate(true);
         } else if (std::get<10>(params) == 6) {
             dmrg.Repair();
+        } else if (std::get<10>(params) == 7) {
+            dmrg.Test();
         } else {
             dmrg.Simulate();
         }
@@ -75,6 +77,8 @@ int main(int argc, char** argv) {
             dmrg.Simulate(true);
         } else if (std::get<10>(params) == 6) {
             dmrg.Repair();
+        } else if (std::get<10>(params) == 7) {
+            dmrg.Test();
         } else {
             dmrg.Simulate();
         }
@@ -96,6 +100,8 @@ int main(int argc, char** argv) {
             dmrg.Simulate(true);
         } else if (std::get<10>(params) == 6) {
             dmrg.Repair();
+        } else if (std::get<10>(params) == 7) {
+            dmrg.Test();
         } else {
             dmrg.Simulate();
         }

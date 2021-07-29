@@ -38,6 +38,15 @@ IndexVal HaagerupQSite::state(const string &state) {
 //    throw ITError("State "+state+" not recognized");
 }
 
+ITensor HaagerupQSite::id() const {
+    auto sP=prime(s_);
+    auto Op=ITensor(dag(s_), sP);
+    for (int i=1;i<=6;i++) {
+        Op.set(s_(i), sP(i), 1.0 / 3 );
+    }
+    return Op;
+}
+
 ITensor HaagerupQSite::m(int i) const {
     auto sP=prime(s_);
     auto Op=ITensor(dag(s_), sP);
@@ -265,7 +274,9 @@ ITensor HaagerupQSite::qbr(int i, int j) const {
 }
 
 ITensor HaagerupQSite::op(const string &opname, const Args &args) const {
-    if (opname=="m1") {
+    if (opname=="id") {
+        return id();
+    } else if (opname=="m1") {
         return m(1);
     } else if (opname=="m2") {
         return m(2);
@@ -342,9 +353,17 @@ ITensor HaagerupQSite::op(const string &opname, const Args &args) const {
 }
 
 MPO HaagerupQ::Hamiltonian(const std::string& boundary_condition, int num_sites, Real U, std::vector<Real> couplings) {
-    Real K = couplings.at(0);
-    Real J = couplings.at(1);
-    Real M = couplings.at(2);
+    Real K;
+    Real J;
+    Real M;
+    try{
+        K = couplings.at(0);
+        J = couplings.at(1);
+        M = couplings.at(2);
+    } catch (std::exception e) {
+        println("Error in coupling string J.");
+        throw e;
+    }
 
     auto mpo = AutoMPO(*this);
 
@@ -374,8 +393,13 @@ MPO HaagerupQ::Hamiltonian(const std::string& boundary_condition, int num_sites,
             mpo += -3 * Uj,"m6",j,"m2",mod(j+1, num_sites);
         }
         if (boundary_condition == "d") {
-            mpo += 3*U,"m1",1;
-            mpo += 3*U,"m1",num_sites;
+            Real UL = 3 * num_sites * U;
+            mpo += UL,"id",1;
+            mpo += UL,"id",num_sites;
+            mpo += -UL,"m4",1;
+            mpo += -UL,"m4",num_sites;
+//            mpo += 3*U,"m1",1;
+//            mpo += 3*U,"m1",num_sites;
         }
     }
 

@@ -55,7 +55,13 @@ IndexVal GoldenSite::state(const string &state) {
 Index GoldenSite::index() const { return s_; }
 
 MPO Golden::Hamiltonian(const std::string& boundary_condition, int num_sites, Real U, std::vector<Real> couplings) {
-    Real K = couplings.at(0);
+    Real K;
+    try {
+        K = couplings.at(0);
+    } catch (std::exception e) {
+        println("Error in coupling string J.");
+        throw e;
+    }
 
     auto mpo = AutoMPO(*this);
 
