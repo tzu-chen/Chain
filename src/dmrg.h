@@ -444,7 +444,6 @@ public:
 //        MPS init_state = MPS(pre_init_state);
 //        return init_state;
         return randomMPS(pre_init_state);
-//        return randomMPS(sites_);
     }
 
     // Cannot catch EXC_BAD_ACCESS on iOS
@@ -452,7 +451,7 @@ public:
     void Simulate(bool analyze = false) {
         try {
             SimulateRaw(analyze);
-        } catch (std::exception const& e) {
+        } catch (std::out_of_range const& e) {
             println(e.what());
             // Replace progress files with backup progress files
             // Put in try-catch because .bk files may not exist
@@ -464,7 +463,7 @@ public:
             }
             try {
                 SimulateRaw(analyze);
-            } catch (std::exception const& e) {
+            } catch (std::out_of_range const& e) {
                 dmrg_progress_.RecoverStates(progress_path_);
                 Simulate(analyze);
             }
@@ -493,7 +492,8 @@ public:
                        dmrg_progress_.NumDoneStates());
                 // Assumes that for charged sectors there is no need to measure rho, valid for Fibonacci and Haagerup.
                 if (analyze) {
-                    if (boundary_condition_ == "p") {
+                    // fixme
+                    if (boundary_condition_ == "p" || boundary_condition_ == "d") {
                         if (charge_ == 0) {
                             Analyze();
                         } else {
@@ -635,7 +635,8 @@ public:
 
             // Assumes that for charged sectors there is no need to measure rho, valid for Fibonacci and Haagerup.
             if (analyze) {
-                if (boundary_condition_ == "p") {
+                // fixme
+                if (boundary_condition_ == "p" || boundary_condition_ == "d") {
                     if (charge_ == 0) {
                         Analyze();
                     } else {
@@ -1003,41 +1004,46 @@ public:
 
                 MPO rho_op;
                 MPO id_op;
-//                if (boundary_condition_ == "p") {
-                rho_op = RhoOp(sites, site_type_);
-                id_op = IdentityOp(sites, rho_op);
-                for (int i = states_acted.size(); i < num_states; i++) {
-//                    auto start = std::chrono::high_resolution_clock::now();
-                    // Initialize
-                    psi_acted = MPS(states.at(i));
-                    // Act rho in two steps, first by dangling rho operator, then by dangling identity operator.
-                    printf("\r%d/%d", i + 1, num_states);
-                    psi_acted = applyMPO(AugmentMPO(rho_op, left_dangling_ind, right_dangling_ind),
-                                         AugmentMPS(psi_acted, left_dangling_ind, right_dangling_ind),
-                                         {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 2}
-                    );
-                    psi_acted = applyMPO(AugmentMPO(id_op, left_dangling_ind, right_dangling_ind),
-                                         psi_acted, {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 1});
-                    states_acted.push_back(psi_acted);
-                    dmrg_progress_.psis_acted_by_rho_.push_back(psi_acted);
-                    dmrg_progress_.WriteRho(progress_path_);
+                if (boundary_condition_ == "p") {
+                    rho_op = RhoOp(sites, site_type_);
+                    id_op = IdentityOp(sites, rho_op);
+                    for (int i = states_acted.size(); i < num_states; i++) {
+                        //                    auto start = std::chrono::high_resolution_clock::now();
+                        // Initialize
+                        psi_acted = MPS(states.at(i));
+                        // Act rho in two steps, first by dangling rho operator, then by dangling identity operator.
+                        printf("\r%d/%d", i + 1, num_states);
+                        psi_acted = applyMPO(AugmentMPO(rho_op, left_dangling_ind, right_dangling_ind),
+                                             AugmentMPS(psi_acted, left_dangling_ind, right_dangling_ind),
+                                             {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 2}
+                                            );
+                        psi_acted = applyMPO(AugmentMPO(id_op, left_dangling_ind, right_dangling_ind),
+                                             psi_acted, {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 1});
 
-//                    auto stop = std::chrono::high_resolution_clock::now();
-//                    printf("\nTime spent: %gs\n", std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() / 1000000);
+//                        psi_acted = applyMPO(AugmentMPO(rho_op, left_dangling_ind, right_dangling_ind),
+//                                             AugmentMPS(psi_acted, left_dangling_ind, right_dangling_ind));
+//                        psi_acted = applyMPO(AugmentMPO(id_op, left_dangling_ind, right_dangling_ind),
+//                                             psi_acted);
+                        states_acted.push_back(psi_acted);
+                        dmrg_progress_.psis_acted_by_rho_.push_back(psi_acted);
+                        dmrg_progress_.WriteRho(progress_path_);
+
+                        //                    auto stop = std::chrono::high_resolution_clock::now();
+                        //                    printf("\nTime spent: %gs\n", std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() / 1000000);
+                    }
+                } else {
+                    // TODO
+                    rho_op = OpenRhoOp(sites, site_type_);
+                    for (int i = states_acted.size(); i < num_states; i++) {
+                        psi_acted = MPS(states.at(i));
+                        printf("\r%d/%d", i + 1, num_states);
+                        psi_acted = applyMPO(rho_op, psi_acted, {"Method", "Fit", "Cutoff", svd_cutoff, "Nsweep", 1});
+                        states_acted.push_back(psi_acted);
+                        dmrg_progress_.psis_acted_by_rho_.push_back(psi_acted);
+                        dmrg_progress_.WriteRho(progress_path_);
+                    }
                 }
                 printf("\r...finished.\n");
-//                } else {
-//                    rho_op = OpenRhoOp(sites, site_type_);
-//                    for (int i = states_acted.size(); i < num_states; i++) {
-//                        psi_acted = MPS(states.at(i));
-//                        printf("\r%d/%d", i + 1, num_states);
-//                        psi_acted = applyMPO(rho_op, psi_acted);
-//                        states_acted.push_back(psi_acted);
-//                        dmrg_progress_.psis_acted_by_rho_.push_back(psi_acted);
-//                        dmrg_progress_.WriteRho(progress_path_);
-//                    }
-//                    printf("\r...finished.\n");
-//                }
             }
 
             Real en_shift = 0;
@@ -1057,13 +1063,14 @@ public:
                         matrix.set(s(i+1), sP(j+1), innerC(states.at(i), states_acted.at(j)));
                     }
                     if (observable == "rho") {
-//                    if (boundary_condition_ == "p") {
-                        matrix.set(s(i + 1), sP(j + 1),
-                                   innerC(AugmentMPS(states.at(i), left_dangling_ind, right_dangling_ind),
-                                          states_acted.at(j)));
-//                        } else {
-//                            matrix.set(s(i + 1), sP(j + 1), innerC(states.at(i),states_acted.at(j)));
-//                        }
+                        // TODO
+                        if (boundary_condition_ == "p") {
+                            matrix.set(s(i + 1), sP(j + 1),
+                                       innerC(AugmentMPS(states.at(i), left_dangling_ind, right_dangling_ind),
+                                              states_acted.at(j)));
+                        } else {
+                            matrix.set(s(i + 1), sP(j + 1), innerC(states.at(i),states_acted.at(j)));
+                        }
                     }
                 }
             }
@@ -1135,6 +1142,9 @@ public:
         ITensor m;
         if (boundary_condition_ == "p") {
             m = energy_matrix/num_sites_ + translation_matrix + rho_matrix;
+        } else if (boundary_condition_ == "d") {
+            // fixme
+            m = energy_matrix/num_sites_ + rho_matrix;
         } else {
             m = energy_matrix/num_sites_;
         }

@@ -14,7 +14,7 @@ MPO TranslationOp(const SiteSet& sites, bool inv=false);
 // 3-index Kronecker delta.
 ITensor Delta3ITensor(const Index& s1, const Index& s2, const Index& s3);
 
-//MPO OpenRhoOp(const SiteSet& sites, const std::string& site_type);
+MPO OpenRhoOp(const SiteSet& sites, const std::string& site_type);
 
 // Dangling form of the periodic MPO for the rho defect.
 // If contracted with IdentityOp forms the periodic MPO for the rho defect.

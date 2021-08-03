@@ -116,10 +116,10 @@ void DumpMatrix(std::vector<std::vector<Real>> matrix, const std::filesystem::pa
 void PrintVector(std::vector<Cplx> vector) {
     print("{");
     if (!vector.empty()) {
-        print(vector.at(0).real());
+        printf("%.10f",vector.at(0).real());
         for (int i=1; i<vector.size(); i++) {
             print(",");
-            print(vector.at(i).real());
+            printf("%.10f",vector.at(i).real());
         }
     }
     print("}");
@@ -129,10 +129,10 @@ void PrintVector(std::vector<Cplx> vector) {
 void PrintVector(std::vector<Real> vector) {
     print("{");
     if (!vector.empty()) {
-        print(vector.at(0));
+        printf("%.10f",vector.at(0));
         for (int i = 1; i < vector.size(); i++) {
             print(",");
-            print(vector.at(i));
+            printf("%.10f",vector.at(i));
         }
     }
     print("}");
