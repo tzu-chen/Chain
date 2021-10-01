@@ -513,6 +513,7 @@ public:
         }
 
         MPO H = sites_.Hamiltonian(boundary_condition_, num_sites_, u_, couplings_);
+        auto projs = sites_.Hprojs(boundary_condition_, num_sites_);
         init_state_ = DefaultInitState();
 
         // Only meaningful if using sine-squared deformed to hot start for periodic.
@@ -541,6 +542,8 @@ public:
                 sweeps.cutoff() = std::max(1E-5, svd_cutoff_),std::max(1E-6, svd_cutoff_),std::max(1E-7, svd_cutoff_),std::max(1E-8, svd_cutoff_),std::max(1E-9, svd_cutoff_),std::max(1E-10, svd_cutoff_),std::max(1E-11, svd_cutoff_),std::max(1E-12, svd_cutoff_),svd_cutoff_;
                 sweeps.niter() = 2;
                 sweeps.noise() = noise_;
+                //applyMPO(projs[0], init_state_);
+                //std::tie(en_, psi_) = dmrg(H, projs, dmrg_progress_.DoneStates(), init_state_, sweeps, {"Quiet", true, "Weight=", orthogonal_weight});
                 std::tie(en_, psi_) = dmrg(H, dmrg_progress_.DoneStates(), init_state_, sweeps, {"Quiet", true, "Weight=", orthogonal_weight});
                 num_sweeps_ += init_num_sweeps_per_rep_;
                 dmrg_progress_.Update(num_sweeps_, bond_dim_, en_, psi_, H);

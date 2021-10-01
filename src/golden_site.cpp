@@ -125,3 +125,21 @@ MPO Golden::Hamiltonian(const std::string& boundary_condition, int num_sites, Re
 
     return H;
 }
+
+std::vector<MPO> Golden::Hprojs(const std::string& boundary_condition, int num_sites){
+    int L = num_sites-1;
+    std::vector<MPO> projs;
+    if (boundary_condition == "p") {
+        L = num_sites;
+    }
+    //println("here!");
+    for(int j = 1; j <= L; ++j){
+        auto mpo = AutoMPO(*this);
+        mpo += 1,"n1",j,"nt",mod(j+1, num_sites);
+        mpo += 1,"nt",j,"n1",mod(j+1, num_sites);
+        mpo += 1,"nt",j,"nt",mod(j+1, num_sites);
+        auto H = toMPO(mpo);
+        projs.push_back(H);
+    }
+    return projs;
+}

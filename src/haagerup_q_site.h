@@ -46,6 +46,7 @@ public:
 
     // Hamiltonian appropriate for the boundary condition, number of sites, and couplings.
     MPO Hamiltonian(const std::string& boundary_condition, int num_sites, Real U, std::vector<Real> couplings);
+    std::vector<MPO> Hprojs(const std::string& boundary_condition, int num_sites);
 };
 
 #endif

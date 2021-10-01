@@ -45,7 +45,7 @@ MPS mydensityMatrixApplyMPOImpl(MPO const& K, MPS const& psi, Args args);
 // TODO: Zipper algorithm.
 
 MPS ZipperAugmentMPS(MPS const& original_psi, Index const& sl, Index const& sll);
-
+MPS ZipperShortenMPS(MPS const& psi);
 class ThreeSiteGate {
 public:
     ThreeSiteGate(SiteSet const& sites, int i1, int i2, int i3);

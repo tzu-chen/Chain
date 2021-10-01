@@ -237,3 +237,11 @@ MPO Haagerup::Hamiltonian(const std::string& boundary_condition, int num_sites, 
 
     return H;
 }
+
+std::vector<MPO> Haagerup::Hprojs(const std::string& boundary_condition, int num_sites){
+    auto mpo = AutoMPO(*this);
+    std::vector<MPO> projs;
+    auto H = toMPO(mpo);
+    projs.push_back(H);
+    return projs;
+}
