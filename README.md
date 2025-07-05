@@ -76,3 +76,26 @@ julia --project=julia julia/run_chain.jl -l 6 -d 100 -s 5 -b p -j 1.0 -o results
 ```
 
 The output energy and MPS are stored in JLD2 format.
+
+### Generic categories
+
+The module `Model.jl` provides a minimal interface for defining fusion
+categories directly in Julia.  Users can specify the number of anyon
+types and a table of `F`-symbols to construct an `AnyonModel`:
+
+```julia
+using Chain.Model
+m = AnyonModel(2; fsymbols=myF, qdims=[1.0, phi])
+```
+
+The returned object stores the categorical data and is used to build
+operators directly from the `F`-symbols. The F-move operator `FF` is
+constructed from these symbols so that no hard-coded constants (like
+the golden ratio) are required. A convenience function
+`fibonacci_model()` returns the Fibonacci fusion category so the DMRG
+driver can be run without importing `GoldenModel`:
+
+```julia
+using Chain
+energy = run_dmrg(L=6, model=Model.fibonacci_model())
+```
