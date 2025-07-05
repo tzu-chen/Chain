@@ -16,7 +16,7 @@ function run_dmrg(;L::Int, maxdim::Int=100, cutoff::Float64=1e-8, sweeps::Int=5,
     sweepset = Sweeps(sweeps)
     maxdim!(sweepset, maxdim)
     cutoff!(sweepset, cutoff)
-    energy, psi = dmrg(H, psi0, sweepset, silent=true)
+    energy, psi = dmrg(H, psi0, sweepset; outputlevel=0)
     @save out energy psi
     return energy
 end
