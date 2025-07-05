@@ -20,6 +20,10 @@ function parse_commandline()
             help = "boundary condition (p/o/s/sp)"
             arg_type = String
             default = "p"
+        "--couplings", "-j"
+            help = "comma-separated list of coupling coefficients"
+            arg_type = String
+            default = "1.0"
         "--out", "-o"
             help = "output JLD2 file"
             arg_type = String
@@ -34,9 +38,11 @@ function main()
     maxdim = args["maxdim"] === nothing ? args["d"] : args["maxdim"]
     sweeps = args["sweeps"] === nothing ? args["s"] : args["sweeps"]
     boundary = args["boundary"] === nothing ? args["b"] : args["boundary"]
+    couplings_str = args["couplings"] === nothing ? args["j"] : args["couplings"]
+    couplings = parse.(Float64, split(couplings_str, ","))
     out = args["out"] === nothing ? args["o"] : args["out"]
     run_dmrg(L=L, maxdim=maxdim, sweeps=sweeps,
-             boundary=boundary, out=out)
+             boundary=boundary, couplings=couplings, out=out)
 end
 
 main()
