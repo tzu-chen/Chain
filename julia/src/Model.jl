@@ -172,6 +172,7 @@ function hamiltonian(c::AnyonChain; boundary::String="p", U::Real=0.0, couplings
     ampo = AutoMPO()
 
     # penalty terms for states forbidden by fusion rules
+    # use numeric operator names n1–n6 consistently
     Lpen = boundary == "p" ? L : L - 1
     if boundary == "sp"
         Lpen -= 1
@@ -194,38 +195,38 @@ function hamiltonian(c::AnyonChain; boundary::String="p", U::Real=0.0, couplings
             for j in 1:Lpen
                 jp1 = mod(j, L) + 1
                 ampo += U, "n1", j, "n1", jp1
-                ampo += U, "n1", j, "na", jp1
-                ampo += U, "n1", j, "nb", jp1
-                ampo += U, "n1", j, "nar", jp1
-                ampo += U, "n1", j, "nbr", jp1
+                ampo += U, "n1", j, "n2", jp1
+                ampo += U, "n1", j, "n3", jp1
+                ampo += U, "n1", j, "n5", jp1
+                ampo += U, "n1", j, "n6", jp1
 
-                ampo += U, "na", j, "n1", jp1
-                ampo += U, "na", j, "na", jp1
-                ampo += U, "na", j, "nb", jp1
-                ampo += U, "na", j, "nr", jp1
-                ampo += U, "na", j, "nbr", jp1
+                ampo += U, "n2", j, "n1", jp1
+                ampo += U, "n2", j, "n2", jp1
+                ampo += U, "n2", j, "n3", jp1
+                ampo += U, "n2", j, "n4", jp1
+                ampo += U, "n2", j, "n6", jp1
 
-                ampo += U, "nb", j, "n1", jp1
-                ampo += U, "nb", j, "na", jp1
-                ampo += U, "nb", j, "nb", jp1
-                ampo += U, "nb", j, "nr", jp1
-                ampo += U, "nb", j, "nar", jp1
+                ampo += U, "n3", j, "n1", jp1
+                ampo += U, "n3", j, "n2", jp1
+                ampo += U, "n3", j, "n3", jp1
+                ampo += U, "n3", j, "n4", jp1
+                ampo += U, "n3", j, "n5", jp1
 
-                ampo += U, "nr", j, "na", jp1
-                ampo += U, "nr", j, "nb", jp1
+                ampo += U, "n4", j, "n2", jp1
+                ampo += U, "n4", j, "n3", jp1
 
-                ampo += U, "nar", j, "n1", jp1
-                ampo += U, "nar", j, "nb", jp1
+                ampo += U, "n5", j, "n1", jp1
+                ampo += U, "n5", j, "n3", jp1
 
-                ampo += U, "nbr", j, "n1", jp1
-                ampo += U, "nbr", j, "na", jp1
+                ampo += U, "n6", j, "n1", jp1
+                ampo += U, "n6", j, "n2", jp1
             end
             if boundary == "d"
                 UL = L * U
                 ampo += UL, "id", 1
                 ampo += UL, "id", L
-                ampo += -UL, "nr", 1
-                ampo += -UL, "nr", L
+                ampo += -UL, "n4", 1
+                ampo += -UL, "n4", L
             end
         end
     end
