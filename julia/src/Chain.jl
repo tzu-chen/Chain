@@ -6,6 +6,7 @@ using JLD2
 using ArgParse
 
 include("Golden.jl")
+include("Model.jl")
 include("utils.jl")
 include("dmrgdriver.jl")
 using .DMRGDriver: run_dmrg
