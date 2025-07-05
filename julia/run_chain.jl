@@ -5,22 +5,22 @@ using ArgParse
 function parse_commandline()
     s = ArgParseSettings()
     @add_arg_table s begin
-        "--length" "-l"
+        "--length", "-l"
             help = "number of sites"
             arg_type = Int
-        "--maxdim" "-d"
+        "--maxdim", "-d"
             help = "maximum bond dimension"
             arg_type = Int
             default = 100
-        "--sweeps" "-s"
+        "--sweeps", "-s"
             help = "number of sweeps"
             arg_type = Int
             default = 5
-        "--boundary" "-b"
+        "--boundary", "-b"
             help = "boundary condition (p/o/s/sp)"
             arg_type = String
             default = "p"
-        "--out" "-o"
+        "--out", "-o"
             help = "output JLD2 file"
             arg_type = String
             default = "dmrg.jld2"

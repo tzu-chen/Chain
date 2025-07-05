@@ -3,6 +3,8 @@ module GoldenModel
 using ITensors
 using ITensorMPS
 
+import ITensors: op, space, OpName, SiteType
+
 struct GoldenSite
     s::Index
 end
@@ -45,6 +47,25 @@ function FF(site::GoldenSite)
     Op[s(2), sp(1)] = sqrt_phi_inv*phi_inv
     Op[s(2), sp(2)] = phi_inv
     return Op
+end
+
+# Define site type interface for ITensors
+
+space(::SiteType"Golden"; kwargs...) = 2
+
+function op(o::OpName, ::SiteType"Golden"; kwargs...)
+    name = String(ITensors.name(o))
+    if name == "id"
+        return [1.0 0.0; 0.0 1.0]
+    elseif name == "n1"
+        return [1.0 0.0; 0.0 0.0]
+    elseif name == "nt"
+        return [0.0 0.0; 0.0 1.0]
+    elseif name == "FF"
+        return [phi_inv^2 sqrt_phi_inv*phi_inv; sqrt_phi_inv*phi_inv phi_inv]
+    else
+        return nothing
+    end
 end
 
 struct Golden <: AbstractVector{GoldenSite}
