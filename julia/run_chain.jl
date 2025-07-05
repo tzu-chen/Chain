@@ -24,6 +24,10 @@ function parse_commandline()
             help = "comma-separated list of coupling coefficients"
             arg_type = String
             default = "1.0"
+        "--penalty", "-u"
+            help = "penalty coefficient"
+            arg_type = Float64
+            default = 0.0
         "--out", "-o"
             help = "output JLD2 file"
             arg_type = String
@@ -40,9 +44,10 @@ function main()
     boundary = args["boundary"] === nothing ? args["b"] : args["boundary"]
     couplings_str = args["couplings"] === nothing ? args["j"] : args["couplings"]
     couplings = parse.(Float64, split(couplings_str, ","))
+    U = args["penalty"] === nothing ? args["u"] : args["penalty"]
     out = args["out"] === nothing ? args["o"] : args["out"]
     run_dmrg(L=L, maxdim=maxdim, sweeps=sweeps,
-             boundary=boundary, couplings=couplings, out=out)
+             boundary=boundary, couplings=couplings, U=U, out=out)
 end
 
 main()

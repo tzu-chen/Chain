@@ -72,7 +72,7 @@ julia --project=julia -e 'using Pkg; Pkg.instantiate()'
 Then run the DMRG driver as
 
 ```bash
-julia --project=julia julia/run_chain.jl -l 6 -d 100 -s 5 -b p -j 1.0 -o results.jld2
+julia --project=julia julia/run_chain.jl -l 6 -d 100 -s 5 -b p -j 1.0 -u 2.0 -o results.jld2
 ```
 
 The output energy and MPS are stored in JLD2 format.
@@ -97,5 +97,5 @@ driver can be run without importing `GoldenModel`:
 
 ```julia
 using Chain
-energy = run_dmrg(L=6, model=Model.fibonacci_model())
+energy = run_dmrg(L=6, model=Model.fibonacci_model(), U=2.0)
 ```
