@@ -166,10 +166,70 @@ end
 Base.length(c::AnyonChain) = length(c.sites)
 Base.getindex(c::AnyonChain, i::Int) = c.sites[i]
 
-"""Generic three-body Hamiltonian used for the golden chain."""
-function hamiltonian(c::AnyonChain; boundary::String="p", couplings=[1.0])
+"""Generic three-body Hamiltonian used for the golden or Haagerup chain."""
+function hamiltonian(c::AnyonChain; boundary::String="p", U::Real=0.0, couplings=[1.0])
     L = length(c)
     ampo = AutoMPO()
+
+    # penalty terms for states forbidden by fusion rules
+    Lpen = boundary == "p" ? L : L - 1
+    if boundary == "sp"
+        Lpen -= 1
+    end
+    if U != 0
+        if c.model.rank == 2
+            for j in 1:Lpen
+                jp1 = mod(j, L) + 1
+                Uj = (boundary == "s" || boundary == "sp") ? U * sin(pi * j / (Lpen + 1))^2 : U
+                ampo += Uj, "n1", j, "n1", jp1
+            end
+            if boundary == "d"
+                UL = L * U
+                ampo += UL, "id", 1
+                ampo += UL, "id", L
+                ampo += -UL, "nt", 1
+                ampo += -UL, "nt", L
+            end
+        elseif c.model.rank == 6
+            for j in 1:Lpen
+                jp1 = mod(j, L) + 1
+                ampo += U, "n1", j, "n1", jp1
+                ampo += U, "n1", j, "na", jp1
+                ampo += U, "n1", j, "nb", jp1
+                ampo += U, "n1", j, "nar", jp1
+                ampo += U, "n1", j, "nbr", jp1
+
+                ampo += U, "na", j, "n1", jp1
+                ampo += U, "na", j, "na", jp1
+                ampo += U, "na", j, "nb", jp1
+                ampo += U, "na", j, "nr", jp1
+                ampo += U, "na", j, "nbr", jp1
+
+                ampo += U, "nb", j, "n1", jp1
+                ampo += U, "nb", j, "na", jp1
+                ampo += U, "nb", j, "nb", jp1
+                ampo += U, "nb", j, "nr", jp1
+                ampo += U, "nb", j, "nar", jp1
+
+                ampo += U, "nr", j, "na", jp1
+                ampo += U, "nr", j, "nb", jp1
+
+                ampo += U, "nar", j, "n1", jp1
+                ampo += U, "nar", j, "nb", jp1
+
+                ampo += U, "nbr", j, "n1", jp1
+                ampo += U, "nbr", j, "na", jp1
+            end
+            if boundary == "d"
+                UL = L * U
+                ampo += UL, "id", 1
+                ampo += UL, "id", L
+                ampo += -UL, "nr", 1
+                ampo += -UL, "nr", L
+            end
+        end
+    end
+
     Lproj = boundary == "p" ? L : L - 2
     if boundary == "sp"
         Lproj = L - 3
