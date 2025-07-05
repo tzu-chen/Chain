@@ -64,7 +64,8 @@ function op(o::OpName, ::SiteType"Anyon"; kwargs...)
         F = zeros(ComplexF64, m.rank, m.rank)
         ρ = m.rank
         for i in 1:m.rank, j in 1:m.rank
-            F[i,j] = FSymbol(m, ρ, ρ, ρ, ρ, i, j)
+            F[i,j] = FSymbol(m, ρ, ρ, ρ, ρ, i, 1) *
+                     FSymbol(m, ρ, ρ, ρ, ρ, 1, j)
         end
         return F
     else
