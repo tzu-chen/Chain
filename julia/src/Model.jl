@@ -73,12 +73,11 @@ function op(o::OpName, ::SiteType"Anyon"; kwargs...)
         p = parse(Int, parts[1])
         l = parse(Int, parts[2])
         r = parse(Int, parts[3])
-        F = zeros(ComplexF64, m.rank, m.rank)
-        for i in 1:m.rank
-            val = FSymbol(m, l, div(m.rank, 2) + 1, div(m.rank, 2) + 1, r, i, p)
-            F[i,i] = val * val
-        end
-        return F
+        v = ComplexF64[
+            FSymbol(m, l, div(m.rank, 2) + 1, div(m.rank, 2) + 1, r, i, p)
+            for i in 1:m.rank
+        ]
+        return v * transpose(v)
     else
         return nothing
     end
@@ -123,14 +122,16 @@ function FF(site::AnyonSite, projector::Int, left::Int, right::Int)
     m = site.model
     s = site.s
     sp = prime(s)
-    op = ITensor(dag(s), sp)
+    opL = ITensor(dag(s))
+    opR = ITensor(sp)
     for i in 1:m.rank
         val = FSymbol(m, left, div(m.rank, 2) + 1, div(m.rank, 2) + 1, right, i, projector)
         if val != 0
-            op[s(i), sp(i)] = val * val
+            opL[s(i)] = val
+            opR[sp(i)] = val
         end
     end
-    return op
+    return opL * opR
 end
 
 function op(site::AnyonSite, name::String)
