@@ -1,5 +1,6 @@
 #!/usr/bin/env julia
 using Chain
+using Chain.Model
 using ArgParse
 
 function parse_commandline()
@@ -28,6 +29,10 @@ function parse_commandline()
             help = "penalty coefficient"
             arg_type = Float64
             default = 0.0
+        "--model", "-m"
+            help = "anyon model (golden/haagerup)"
+            arg_type = String
+            default = "golden"
         "--out", "-o"
             help = "output JLD2 file"
             arg_type = String
@@ -45,9 +50,12 @@ function main()
     couplings_str = args["couplings"] === nothing ? args["j"] : args["couplings"]
     couplings = parse.(Float64, split(couplings_str, ","))
     U = args["penalty"] === nothing ? args["u"] : args["penalty"]
+    modelname = args["model"] === nothing ? args["m"] : args["model"]
+    model = lowercase(modelname) == "haagerup" ? Model.haagerup_model() : Model.fibonacci_model()
     out = args["out"] === nothing ? args["o"] : args["out"]
     run_dmrg(L=L, maxdim=maxdim, sweeps=sweeps,
-             boundary=boundary, couplings=couplings, U=U, out=out)
+             boundary=boundary, couplings=couplings, U=U, out=out,
+             model=model)
 end
 
 main()
