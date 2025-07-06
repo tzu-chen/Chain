@@ -22,6 +22,7 @@ struct AnyonModel
     rank::Int
     fsymbols::Array{ComplexF64,6}
     qdims::Vector{Float64}
+    ff_cache::Dict{Tuple{Int,Int,Int}, ITensor}
 end
 
 const active_model = Ref{AnyonModel}()
@@ -30,7 +31,8 @@ function AnyonModel(rank::Int; fsymbols=zeros(ComplexF64,rank,rank,rank,rank,ran
     size(fsymbols) == (rank,rank,rank,rank,rank,rank) ||
         error("fsymbols must have size (rank,rank,rank,rank,rank,rank)")
     length(qdims) == rank || error("qdims must have length rank")
-    return AnyonModel(rank, ComplexF64.(fsymbols), Float64.(qdims))
+    return AnyonModel(rank, ComplexF64.(fsymbols), Float64.(qdims),
+                      Dict{Tuple{Int,Int,Int}, ITensor}())
 end
 
 """Return the F-symbol F^{abc}_{def}."""
@@ -108,6 +110,10 @@ chain.
 """
 function FF(site::AnyonSite)
     m = site.model
+    key = (0,0,0)
+    if haskey(m.ff_cache, key)
+        return m.ff_cache[key]
+    end
     s = site.s
     sp = prime(s)
     ρ = div(m.rank, 2) + 1
@@ -116,11 +122,16 @@ function FF(site::AnyonSite)
         op[s(i), sp(j)] = FSymbol(m, ρ, ρ, ρ, ρ, i, 1) *
                           FSymbol(m, ρ, ρ, ρ, ρ, 1, j)
     end
+    m.ff_cache[key] = op
     return op
 end
 
 function FF(site::AnyonSite, projector::Int, left::Int, right::Int)
     m = site.model
+    key = (projector, left, right)
+    if haskey(m.ff_cache, key)
+        return m.ff_cache[key]
+    end
     s = site.s
     sp = prime(s)
     opL = ITensor(dag(s))
@@ -132,7 +143,9 @@ function FF(site::AnyonSite, projector::Int, left::Int, right::Int)
             opR[sp(i)] = val
         end
     end
-    return opL * opR
+    op = opL * opR
+    m.ff_cache[key] = op
+    return op
 end
 
 function op(site::AnyonSite, name::String)
