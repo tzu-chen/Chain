@@ -1,6 +1,7 @@
 module Model
 
 using ITensors
+using LinearAlgebra
 using ITensorMPS: AutoMPO, MPO
 import ITensors: op, space, OpName, SiteType, @SiteType_str
 
