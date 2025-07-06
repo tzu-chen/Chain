@@ -37,6 +37,9 @@ function parse_commandline()
             help = "output JLD2 file"
             arg_type = String
             default = "dmrg.jld2"
+        "--amdgpu", "-g"
+            help = "use AMDGPU backend"
+            action = :store_true
     end
     return parse_args(s)
 end
@@ -53,9 +56,10 @@ function main()
     modelname = args["model"] === nothing ? args["m"] : args["model"]
     model = lowercase(modelname) == "haagerup" ? Model.haagerup_model() : Model.fibonacci_model()
     out = args["out"] === nothing ? args["o"] : args["out"]
+    use_amdgpu = get(args, "amdgpu", false)
     run_dmrg(L=L, maxdim=maxdim, sweeps=sweeps,
              boundary=boundary, couplings=couplings, U=U, out=out,
-             model=model)
+             model=model, amdgpu=use_amdgpu)
 end
 
 main()
