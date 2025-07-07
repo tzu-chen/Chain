@@ -70,7 +70,9 @@ julia --project=julia -e 'using Pkg; Pkg.instantiate()'
 ```
 
 Then run the DMRG driver as. Use `-m haagerup` to run the Haagerup chain or omit
-the flag for the default golden chain.
+the flag for the default golden chain. The option `-n` requests a number of
+excited states and `-w` sets the orthogonality weight used when targeting
+excited states.
 
 ```bash
 julia --project=julia julia/run_chain.jl -l 6 -d 100 -s 5 -b p -j 1.0 -u 2.0 -m haagerup -o results.jld2
