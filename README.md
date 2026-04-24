@@ -1,104 +1,124 @@
-# Installation
+# Chain
 
-1. Clone this repo.
-2. Download itensor to arbitrary directory.
-3. Build itensor against your openblas/mkl/etc.
-4. Move/copy the resulting "itensor" and "lib" folders to the following locations (create new folders whenever needed):
+A high-performance DMRG (density matrix renormalization group) solver for 1D **anyon chains** — quantum many-body systems whose Hilbert spaces are *not* tensor-factorized over sites, and therefore cannot be handled by standard spin-chain codes out of the box.
 
-itensor -> extern/itensor/include/itensor
+Written in C++ on top of [ITensor](https://itensor.org/), with a later Julia port for prototyping new fusion categories.
 
-lib -> extern/itensor/lib
+Research output: [*Numerical Evidence for a Haagerup Conformal Field Theory*](https://arxiv.org/abs/2110.03008), Phys. Rev. Lett. **128**, 231603 (2022).
 
-5. Duplicate CMakeListsTemplate.txt as CMakeLists.txt. Modify the openblas/mkl/etc location in CMakeLists.txt, matching ITensor options.mk. For example, the following change is appropriate for the Harvard cluster:
+---
 
--L/usr/lib64 -> -L/usr/local/opt/openblas/lib
+## What it does
 
--I/usr/include/openblas -> -I/usr/local/opt/openblas/include
+Given a fusion category (the algebraic data defining the anyon model) and a chain geometry, the solver:
 
-Also included is a template CMakeListsMac.txt that works on Ying's Mac. Further modification may be necessary to correctly link libraries.
+- Constructs the Hamiltonian as a matrix product operator (MPO) directly from the category's F-symbols — no hard-coded constants.
+- Runs DMRG to find the ground state and low-lying excited states, targeting excited states via orthogonality penalties.
+- Measures translation and topological-symmetry eigenvalues alongside the energy spectrum, so that states can be organized into momentum and symmetry sectors.
+- Supports multiple boundary conditions: periodic, open, Dirichlet, and sine-squared deformed (SSD), including the SSD-to-periodic "hot start" protocol.
+- Handles quantum-number (QN) conservation where the category admits a grading, which dramatically reduces bond dimension at fixed accuracy.
 
-6. For cmake versions earlier than 2.8, you can manually modify cmake_minimum_required, but you may need to explicitly include extra libraries. If GNU version is older, you may need to add -lstdc++fs to ITENSOR_LINK_FLAGS.
-7. Create a folder called build. Change directory into it.
-8. Run "cmake ..". This should generate a makefile.
-9. Duplicate src/path_template.h file as src/path.h. This file specifies the directory to store data, and is by default set to the Chain folder. To change this, modify the variable kPath in src/path.h.
-10. Run make.
+Built-in models: **golden** (Fibonacci), **Haagerup**, **Haagerup with QN conservation**. The Julia side additionally supports user-defined fusion categories via a generic `AnyonModel` interface.
 
-# Usage
+## Why it's non-trivial
 
-The built binary accepts the following arguments:
+Anyonic Hilbert spaces are labeled by fusion trees rather than local spin configurations. This means:
 
-* -s, --site: type of sites [std::string]; golden, haagerup, haagerupq (haagerup with QN conservation).
-* -b, --bc: type of boundary condition [std::string]; p(eriodic), o(pen), d(irichlet), s(ine-squared deformed), sp (sine-squared deformed to hot start periodic).
-* -l: L = length of chain = number of sites [int].
-* -d: max bond dimension [int].
-* -c, --cutoff: cutoff for singular value decomposition [float]; e.g., 1e-8.
-* -p, --precision: precision of energy minimization is this value divided by length [float]; e.g., 1e-2.
-* -j, --couplings: comma-separated string containing the coupling coefficients of projectors, positive for ferromagnetic and negative for antiferromagnetic [std::string]; e.g., for Haagerup, -1,0,0 is pure identity projector, 0,-1,0 is pure rho projector, 0,0,-1 is pure a*rho projector.
-* -u, --penalty: coefficient for the penalty term [float]; e.g., 2.
-* -q, --charge: QN charge (only valid for haagerupq) [int]; e.g., 0.
-* -n, --nstates: number of excited states to simulate/analyze [int]; e.g., 1 for just the ground state.
-* -m, --mode: currently provides 5 modes [int];
-  
-  0: run dmrg simulation,
-  
-  1: measure energy, translation and rho eigenvalues,
-  
-  2: measure energy and translation eigenvalues, 
-  
-  3: measure energies (normalization dependent),
+- Local operators don't decompose as tensor products; every term in the Hamiltonian involves an F-move that depends on the global fusion-tree state.
+- The MPO construction has to be generated from categorical data at runtime.
+- Symmetry sectors are labeled by non-invertible operators (e.g., the $\rho$ line of the Haagerup category), which the code diagonalizes jointly with energy and translation.
 
-  4: measure energy ratios (normalization independent),
+The solver reaches bond dimensions of $\sim 1600$ on chains up to $L \sim 16$ with SVD cutoffs of $10^{-8}$, which was sufficient to extract the central charge of the emergent CFT in the published work.
 
-  5: run dmrg simulation while performing 1 (charge=0) or 2 (otherwise) after simulation of each state,
+## Tech stack
 
-  6: recover already simulated states from corrupt vector,
+| Layer | Tool |
+|---|---|
+| Core solver | **C++17**, [ITensor](https://itensor.org/) v3 |
+| Linear algebra backend | OpenBLAS / MKL (configurable at build time) |
+| Build system | CMake ≥ 2.8 |
+| Data format | ITensor binary (C++), JLD2 (Julia) |
+| Prototyping / generic categories | **Julia 1.x** |
+| Output analysis | Mathematica-compatible matrix dumps (`.m`) |
 
-  7: perform direct diagonalization of Hamiltonian.
+## Repository layout
 
-For example, the following command simulates a length 6 periodic Haagerup chain with QN charge conservation under pure rho projector in the neutral sector, and moreover measures energy, translation and rho eigenvalues after simulation of each state:
+```
+src/          C++ DMRG driver, MPO construction, measurement modes
+julia/        Julia port with generic AnyonModel interface
+extern/       Vendored ITensor headers and libraries (see INSTALL.md)
+CMakeLists*   Build configuration (template + Mac variant)
+```
 
-./Chain -s haagerupq -b p -l 6 -d 1600 -c 1e-8 -p 1e-2 -j 0,-1,0 -u 2 -q 0 -n 1 -m 5
+## Install
 
-The simulation and measurement results are stored in several files.  The .an file contains the diagonalized spectrum in the form of {energy, momentum, rho}, .ee file contains the entanglement entropy curve, .en file contains the energies without diagonalization, and .m file contains the energy, translation and rho matrices without diagonalization in Mathematica-compatible format.
-## Julia Version
+See [INSTALL.md](INSTALL.md) for the full build procedure. In short: vendor ITensor under `extern/itensor/`, point `CMakeLists.txt` at your BLAS installation, then:
 
-A minimal Julia implementation of the golden chain is provided in the `julia/` directory.
-Install the dependencies with Julia 1.x:
+```bash
+mkdir build && cd build
+cmake ..
+make
+```
+
+The Julia version has no build step:
 
 ```bash
 julia --project=julia -e 'using Pkg; Pkg.instantiate()'
 ```
 
-Then run the DMRG driver as. Use `-m haagerup` to run the Haagerup chain or omit
-the flag for the default golden chain. The option `-n` requests a number of
-excited states and `-w` sets the orthogonality weight used when targeting
-excited states.
+## Quick start (C++)
+
+Simulate a length-6 periodic Haagerup chain with QN conservation under the pure-$\rho$ projector, in the neutral sector, and measure the energy / translation / $\rho$ spectrum after each state:
+
+```bash
+./Chain -s haagerupq -b p -l 6 -d 1600 -c 1e-8 -p 1e-2 -j 0,-1,0 -u 2 -q 0 -n 1 -m 5
+```
+
+Output files:
+
+| Extension | Contents |
+|---|---|
+| `.an` | Diagonalized spectrum: `{energy, momentum, ρ}` |
+| `.ee` | Entanglement entropy curve |
+| `.en` | Raw (undiagonalized) energies |
+| `.m`  | Energy / translation / ρ matrices in Mathematica format |
+
+Full CLI reference is in [INSTALL.md](INSTALL.md#cli-reference).
+
+## Quick start (Julia)
 
 ```bash
 julia --project=julia julia/run_chain.jl -l 6 -d 100 -s 5 -b p -j 1.0 -u 2.0 -m haagerup -o results.jld2
 ```
 
-The output energy and MPS are stored in JLD2 format.
+Or, using the generic interface to run a Fibonacci chain:
 
-### Generic categories
+```julia
+using Chain
+energy = run_dmrg(L=6, model=Model.fibonacci_model(), U=2.0)
+```
 
-The module `Model.jl` provides a minimal interface for defining fusion
-categories directly in Julia.  Users can specify the number of anyon
-types and a table of `F`-symbols to construct an `AnyonModel`:
+Define your own fusion category by supplying F-symbols and quantum dimensions:
 
 ```julia
 using Chain.Model
 m = AnyonModel(2; fsymbols=myF, qdims=[1.0, phi])
 ```
 
-The returned object stores the categorical data and is used to build
-operators directly from the `F`-symbols. The F-move operator `FF` is
-constructed from these symbols so that no hard-coded constants (like
-the golden ratio) are required. A convenience function
-`fibonacci_model()` returns the Fibonacci fusion category so the DMRG
-driver can be run without importing `GoldenModel`:
+## Citing
 
-```julia
-using Chain
-energy = run_dmrg(L=6, model=Model.fibonacci_model(), U=2.0)
+If this code is useful for your work, please cite:
+
+```bibtex
+@article{HuangLinOhmoriTachikawaTezuka2022,
+  title   = {Numerical Evidence for a Haagerup Conformal Field Theory},
+  author  = {Huang, Tzu-Chen and Lin, Ying-Hsuan and Ohmori, Kantaro
+             and Tachikawa, Yuji and Tezuka, Masaki},
+  journal = {Phys. Rev. Lett.},
+  volume  = {128},
+  number  = {23},
+  pages   = {231603},
+  year    = {2022},
+  doi     = {10.1103/PhysRevLett.128.231603},
+}
 ```
